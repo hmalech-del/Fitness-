@@ -21,11 +21,29 @@
     workout: null,
   };
 
+  // LocalStorage kann in Sandbox-Umgebungen (z. B. eingebettete iframes)
+  // blockiert sein – dann fällt die App auf einen In-Memory-Speicher zurück.
+  const storage = (() => {
+    try {
+      const t = '__fitplan_test__';
+      localStorage.setItem(t, t);
+      localStorage.removeItem(t);
+      return localStorage;
+    } catch {
+      const mem = {};
+      return {
+        getItem: (k) => (k in mem ? mem[k] : null),
+        setItem: (k, v) => { mem[k] = String(v); },
+        removeItem: (k) => { delete mem[k]; },
+      };
+    }
+  })();
+
   function loadJSON(key) {
-    try { return JSON.parse(localStorage.getItem(key)); } catch { return null; }
+    try { return JSON.parse(storage.getItem(key)); } catch { return null; }
   }
   function saveJSON(key, value) {
-    localStorage.setItem(key, JSON.stringify(value));
+    storage.setItem(key, JSON.stringify(value));
   }
 
   // ------------------------------------------------------------------
