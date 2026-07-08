@@ -1,0 +1,493 @@
+/* =====================================================================
+ * FitPlan – App-Logik: Wizard, Planübersicht, Tagesansicht, Workout-Player
+ * ===================================================================== */
+
+(function () {
+  'use strict';
+
+  const STORAGE_PROFILE = 'fitplan.profile';
+  const STORAGE_PLAN = 'fitplan.plan';
+  const STORAGE_STATS = 'fitplan.stats';
+
+  const $ = (sel) => document.querySelector(sel);
+
+  const state = {
+    profile: loadJSON(STORAGE_PROFILE),
+    plan: loadJSON(STORAGE_PLAN),
+    stats: loadJSON(STORAGE_STATS) || { workouts: 0, minutes: 0 },
+    wizardStep: 0,
+    wizardData: {},
+    currentDayIndex: 0,
+    workout: null,
+  };
+
+  function loadJSON(key) {
+    try { return JSON.parse(localStorage.getItem(key)); } catch { return null; }
+  }
+  function saveJSON(key, value) {
+    localStorage.setItem(key, JSON.stringify(value));
+  }
+
+  // ------------------------------------------------------------------
+  // Navigation
+  // ------------------------------------------------------------------
+  const SCREENS = ['welcome', 'wizard', 'plan', 'day', 'workout', 'done'];
+  function show(screen) {
+    SCREENS.forEach((s) => $('#screen-' + s).classList.toggle('hidden', s !== screen));
+    window.scrollTo(0, 0);
+  }
+
+  // ------------------------------------------------------------------
+  // Wizard
+  // ------------------------------------------------------------------
+  const WIZARD_STEPS = [
+    {
+      key: 'goal', title: 'Was ist dein Ziel?',
+      sub: 'Dein Plan wird auf dieses Ziel zugeschnitten.',
+      render(data) {
+        return cardGrid([
+          { value: 'muskelaufbau', emoji: '💪', label: 'Muskelaufbau', desc: 'Kraft und Muskeln aufbauen' },
+          { value: 'abnehmen', emoji: '🔥', label: 'Abnehmen', desc: 'Kalorien verbrennen, Körper straffen' },
+          { value: 'ausdauer', emoji: '🏃', label: 'Ausdauer', desc: 'Kondition und Herz-Kreislauf stärken' },
+          { value: 'beweglichkeit', emoji: '🧘', label: 'Beweglichkeit', desc: 'Mobilität und Dehnung verbessern' },
+          { value: 'fitness', emoji: '⚡', label: 'Allgemeine Fitness', desc: 'Rundum fit und gesund bleiben' },
+        ], data.goal, 'goal');
+      },
+      valid: (d) => !!d.goal,
+    },
+    {
+      key: 'age', title: 'Wie alt bist du?',
+      sub: 'Alter und Erfahrung bestimmen Intensität und Übungsauswahl.',
+      render(data) {
+        return `
+          <div class="field">
+            <label for="input-age">Alter</label>
+            <div class="age-row">
+              <input type="range" id="input-age" min="14" max="90" value="${data.age || 30}">
+              <span class="age-value" id="age-value">${data.age || 30}</span>
+            </div>
+          </div>
+          <div class="field">
+            <label>Wie fit bist du aktuell?</label>
+            ${cardGrid([
+              { value: 'anfaenger', emoji: '🌱', label: 'Anfänger', desc: 'Wenig oder keine Trainingserfahrung' },
+              { value: 'mittel', emoji: '🌿', label: 'Fortgeschritten', desc: 'Ich trainiere gelegentlich' },
+              { value: 'profi', emoji: '🌳', label: 'Sehr erfahren', desc: 'Ich trainiere regelmäßig seit Jahren' },
+            ], data.level, 'level')}
+          </div>`;
+      },
+      mount(data) {
+        const slider = $('#input-age');
+        slider.addEventListener('input', () => {
+          $('#age-value').textContent = slider.value;
+          data.age = parseInt(slider.value, 10);
+          updateWizardButtons();
+        });
+        data.age = data.age || 30;
+      },
+      valid: (d) => d.age && d.level,
+    },
+    {
+      key: 'time', title: 'Wie viel Zeit hast du?',
+      sub: 'Der Plan füllt genau die Zeit, die du wirklich hast.',
+      render(data) {
+        return `
+          <div class="field">
+            <label>Minuten pro Einheit</label>
+            ${chipRow([15, 20, 30, 45, 60], data.minutes, 'minutes', ' Min.')}
+          </div>
+          <div class="field">
+            <label>Trainingstage pro Woche</label>
+            ${chipRow([2, 3, 4, 5, 6], data.days, 'days', ' Tage')}
+          </div>`;
+      },
+      valid: (d) => d.minutes && d.days,
+    },
+    {
+      key: 'equipment', title: 'Welches Equipment hast du?',
+      sub: 'Wähle alles aus, was dir zur Verfügung steht – oder nichts für reines Körpergewichtstraining.',
+      render(data) {
+        const eq = data.equipment || [];
+        return cardGrid([
+          { value: 'kurzhanteln', emoji: '🏋️', label: 'Kurzhanteln', desc: 'Oder Kettlebells / gefüllte Flaschen' },
+          { value: 'band', emoji: '🎗️', label: 'Widerstandsbänder', desc: 'Stretch-/Fitnessbänder' },
+          { value: 'matte', emoji: '🧘', label: 'Matte', desc: 'Für Boden- und Dehnübungen' },
+        ], eq, 'equipment', true);
+      },
+      valid: () => true,
+    },
+    {
+      key: 'summary', title: 'Alles klar!',
+      sub: 'Prüfe deine Angaben – dann erstellen wir deinen Plan.',
+      render(data) {
+        const goal = FitPlanner.GOALS[data.goal];
+        const level = FitPlanner.LEVELS[data.level];
+        const eq = (data.equipment || []);
+        const eqLabel = eq.length
+          ? eq.map((e) => ({ kurzhanteln: 'Kurzhanteln', band: 'Bänder', matte: 'Matte' }[e])).join(', ')
+          : 'Nur Körpergewicht';
+        return `
+          <div class="summary-card">
+            <div class="summary-row"><span>🎯 Ziel</span><strong>${goal.emoji} ${goal.label}</strong></div>
+            <div class="summary-row"><span>🎂 Alter</span><strong>${data.age} Jahre</strong></div>
+            <div class="summary-row"><span>📈 Level</span><strong>${level.label}</strong></div>
+            <div class="summary-row"><span>⏱️ Zeit</span><strong>${data.minutes} Min. × ${data.days} Tage/Woche</strong></div>
+            <div class="summary-row"><span>🛠️ Equipment</span><strong>${eqLabel}</strong></div>
+          </div>`;
+      },
+      valid: () => true,
+    },
+  ];
+
+  function cardGrid(options, selected, field, multi) {
+    const isSelected = (v) => multi ? (selected || []).includes(v) : selected === v;
+    return `<div class="card-grid" data-field="${field}" data-multi="${multi ? 1 : 0}">
+      ${options.map((o) => `
+        <button type="button" class="option-card ${isSelected(o.value) ? 'selected' : ''}" data-value="${o.value}">
+          <span class="option-emoji">${o.emoji}</span>
+          <span class="option-label">${o.label}</span>
+          <span class="option-desc">${o.desc}</span>
+        </button>`).join('')}
+    </div>`;
+  }
+
+  function chipRow(values, selected, field, suffix) {
+    return `<div class="chip-row" data-field="${field}">
+      ${values.map((v) => `
+        <button type="button" class="chip ${selected === v ? 'selected' : ''}" data-value="${v}">${v}${suffix}</button>
+      `).join('')}
+    </div>`;
+  }
+
+  function renderWizardStep() {
+    const step = WIZARD_STEPS[state.wizardStep];
+    const body = $('#wizard-body');
+    body.innerHTML = `
+      <h2>${step.title}</h2>
+      <p class="muted">${step.sub}</p>
+      ${step.render(state.wizardData)}`;
+    if (step.mount) step.mount(state.wizardData);
+
+    // Auswahl-Handler
+    body.querySelectorAll('.card-grid').forEach((grid) => {
+      const field = grid.dataset.field;
+      const multi = grid.dataset.multi === '1';
+      grid.querySelectorAll('.option-card').forEach((card) => {
+        card.addEventListener('click', () => {
+          if (multi) {
+            const list = state.wizardData[field] || (state.wizardData[field] = []);
+            const idx = list.indexOf(card.dataset.value);
+            if (idx === -1) list.push(card.dataset.value); else list.splice(idx, 1);
+            card.classList.toggle('selected');
+          } else {
+            state.wizardData[field] = card.dataset.value;
+            grid.querySelectorAll('.option-card').forEach((c) => c.classList.remove('selected'));
+            card.classList.add('selected');
+          }
+          updateWizardButtons();
+        });
+      });
+    });
+    body.querySelectorAll('.chip-row').forEach((row) => {
+      const field = row.dataset.field;
+      row.querySelectorAll('.chip').forEach((chip) => {
+        chip.addEventListener('click', () => {
+          state.wizardData[field] = parseInt(chip.dataset.value, 10);
+          row.querySelectorAll('.chip').forEach((c) => c.classList.remove('selected'));
+          chip.classList.add('selected');
+          updateWizardButtons();
+        });
+      });
+    });
+
+    $('#wizard-progress').style.width = `${((state.wizardStep + 1) / WIZARD_STEPS.length) * 100}%`;
+    $('#wizard-step-label').textContent = `${state.wizardStep + 1}/${WIZARD_STEPS.length}`;
+    $('#wizard-next').textContent = state.wizardStep === WIZARD_STEPS.length - 1 ? '✨ Plan erstellen' : 'Weiter';
+    updateWizardButtons();
+  }
+
+  function updateWizardButtons() {
+    const step = WIZARD_STEPS[state.wizardStep];
+    $('#wizard-next').disabled = !step.valid(state.wizardData);
+  }
+
+  function wizardNext() {
+    if (state.wizardStep < WIZARD_STEPS.length - 1) {
+      state.wizardStep++;
+      renderWizardStep();
+      return;
+    }
+    // Fertig: Profil speichern & Plan erzeugen
+    const d = state.wizardData;
+    state.profile = {
+      goal: d.goal, age: d.age, level: d.level,
+      minutes: d.minutes, days: d.days,
+      equipment: d.equipment || [],
+    };
+    saveJSON(STORAGE_PROFILE, state.profile);
+    regeneratePlan();
+    renderPlan();
+    show('plan');
+  }
+
+  function wizardBack() {
+    if (state.wizardStep === 0) {
+      show(state.plan ? 'plan' : 'welcome');
+    } else {
+      state.wizardStep--;
+      renderWizardStep();
+    }
+  }
+
+  function startWizard(prefill) {
+    state.wizardStep = 0;
+    state.wizardData = prefill ? Object.assign({}, state.profile) : {};
+    renderWizardStep();
+    show('wizard');
+  }
+
+  // ------------------------------------------------------------------
+  // Plan
+  // ------------------------------------------------------------------
+  function regeneratePlan() {
+    state.plan = FitPlanner.generatePlan(state.profile);
+    saveJSON(STORAGE_PLAN, state.plan);
+  }
+
+  function renderPlan() {
+    const { profile, plan, stats } = state;
+    const goal = FitPlanner.GOALS[profile.goal];
+    $('#plan-subtitle').textContent =
+      `${goal.emoji} ${goal.label} · ${profile.minutes} Min. · ${profile.days}× pro Woche`;
+
+    $('#plan-stats').innerHTML = `
+      <div class="stat"><strong>${stats.workouts}</strong><span>Workouts geschafft</span></div>
+      <div class="stat"><strong>${stats.minutes}</strong><span>Minuten trainiert</span></div>
+      <div class="stat"><strong>${plan.days.reduce((s, d) => s + d.blocks.main.length, 0)}</strong><span>Übungen im Plan</span></div>`;
+
+    $('#plan-days').innerHTML = plan.days.map((day, i) => {
+      const count = day.blocks.warmup.length + day.blocks.main.length + day.blocks.cooldown.length;
+      return `
+        <button class="day-card" data-day="${i}">
+          <span class="day-emoji">${day.emoji}</span>
+          <span class="day-info">
+            <span class="day-name">${day.name} · ${day.focus}</span>
+            <span class="day-meta">${count} Übungen · ca. ${day.estMinutes} Min.</span>
+          </span>
+          <span class="day-arrow">→</span>
+        </button>`;
+    }).join('');
+
+    $('#plan-days').querySelectorAll('.day-card').forEach((card) => {
+      card.addEventListener('click', () => {
+        state.currentDayIndex = parseInt(card.dataset.day, 10);
+        renderDay();
+        show('day');
+      });
+    });
+  }
+
+  // ------------------------------------------------------------------
+  // Tagesansicht
+  // ------------------------------------------------------------------
+  function itemMeta(item) {
+    const parts = [];
+    if (item.seconds) parts.push(`${item.sets} × ${item.seconds} Sek.`);
+    else parts.push(`${item.sets} × ${item.reps} Wdh.`);
+    if (item.sets > 1) parts.push(`${item.restSec} Sek. Pause`);
+    return parts.join(' · ');
+  }
+
+  function exerciseCard(item) {
+    const ex = EXERCISE_BY_ID[item.exId];
+    const muscles = ex.muscles
+      .filter((m) => MUSCLE_LABELS[m])
+      .map((m) => `<span class="tag">${MUSCLE_LABELS[m]}</span>`).join('');
+    return `
+      <div class="exercise-card" data-ex="${ex.id}">
+        <div class="exercise-anim-box" data-anim-slot="${ex.id}"></div>
+        <div class="exercise-info">
+          <h4>${ex.name}</h4>
+          <p class="exercise-meta">${itemMeta(item)}</p>
+          <p class="exercise-desc">${ex.desc}</p>
+          <div class="tags">${muscles}</div>
+        </div>
+      </div>`;
+  }
+
+  function mountAnimations(container) {
+    container.querySelectorAll('[data-anim-slot]').forEach((slot) => {
+      const ex = EXERCISE_BY_ID[slot.dataset.animSlot];
+      slot.innerHTML = '';
+      slot.appendChild(FitAnimations.createExerciseAnimation(ex.anim, ex.props));
+    });
+  }
+
+  function renderDay() {
+    const day = state.plan.days[state.currentDayIndex];
+    $('#day-title').textContent = `${day.emoji} ${day.name} – ${day.focus}`;
+    $('#day-subtitle').textContent = `ca. ${day.estMinutes} Minuten`;
+
+    const block = (title, items) => items.length ? `
+      <h3 class="block-title">${title}</h3>
+      ${items.map(exerciseCard).join('')}` : '';
+
+    const blocks = $('#day-blocks');
+    blocks.innerHTML =
+      block('🔆 Aufwärmen', day.blocks.warmup) +
+      block('🏋️ Hauptteil', day.blocks.main) +
+      block('🧘 Ausklang & Dehnen', day.blocks.cooldown);
+    mountAnimations(blocks);
+  }
+
+  // ------------------------------------------------------------------
+  // Workout-Player
+  // ------------------------------------------------------------------
+  function buildWorkoutSteps(day) {
+    const items = [...day.blocks.warmup, ...day.blocks.main, ...day.blocks.cooldown];
+    const steps = [];
+    items.forEach((item, itemIdx) => {
+      for (let set = 1; set <= item.sets; set++) {
+        steps.push({ type: 'work', item, set });
+        const isLastOverall = itemIdx === items.length - 1 && set === item.sets;
+        if (!isLastOverall) steps.push({ type: 'rest', sec: item.restSec, nextItem: set < item.sets ? item : items[itemIdx + 1] });
+      }
+    });
+    return steps;
+  }
+
+  function startWorkout() {
+    const day = state.plan.days[state.currentDayIndex];
+    state.workout = {
+      steps: buildWorkoutSteps(day),
+      index: 0,
+      startedAt: Date.now(),
+      timer: null,
+    };
+    renderWorkoutStep();
+    show('workout');
+  }
+
+  function stopTimer() {
+    if (state.workout && state.workout.timer) {
+      clearInterval(state.workout.timer);
+      state.workout.timer = null;
+    }
+  }
+
+  function renderWorkoutStep() {
+    const w = state.workout;
+    stopTimer();
+
+    if (w.index >= w.steps.length) return finishWorkout();
+
+    const step = w.steps[w.index];
+    $('#workout-progress').style.width = `${(w.index / w.steps.length) * 100}%`;
+
+    const workSteps = w.steps.filter((s) => s.type === 'work');
+    const doneWork = w.steps.slice(0, w.index).filter((s) => s.type === 'work').length;
+    $('#workout-step-label').textContent = `${Math.min(doneWork + 1, workSteps.length)}/${workSteps.length}`;
+
+    const body = $('#workout-body');
+
+    if (step.type === 'rest') {
+      const nextEx = EXERCISE_BY_ID[step.nextItem.exId];
+      body.innerHTML = `
+        <div class="player-rest">
+          <p class="player-kicker">Pause</p>
+          <div class="rest-timer" id="rest-timer">${step.sec}</div>
+          <p class="muted">Gleich weiter mit: <strong>${nextEx.name}</strong></p>
+          <button class="btn btn-ghost" id="btn-skip-rest">Pause überspringen ➜</button>
+        </div>`;
+      let remaining = step.sec;
+      w.timer = setInterval(() => {
+        remaining--;
+        const t = $('#rest-timer');
+        if (t) t.textContent = remaining;
+        if (remaining <= 0) nextStep();
+      }, 1000);
+      $('#btn-skip-rest').addEventListener('click', nextStep);
+      return;
+    }
+
+    // Arbeits-Schritt
+    const ex = EXERCISE_BY_ID[step.item.exId];
+    const isTimed = !!step.item.seconds;
+    body.innerHTML = `
+      <div class="player-work">
+        <p class="player-kicker">Satz ${step.set} von ${step.item.sets}</p>
+        <h2 class="player-title">${ex.name}</h2>
+        <div class="player-anim" data-anim-slot="${ex.id}"></div>
+        <p class="player-target">${isTimed ? '' : step.item.reps + ' Wiederholungen'}</p>
+        ${isTimed ? `<div class="rest-timer work-timer" id="work-timer">${step.item.seconds}</div>` : ''}
+        <p class="player-desc">${ex.desc}</p>
+        ${isTimed
+          ? '<button class="btn btn-ghost" id="btn-skip-work">Überspringen ➜</button>'
+          : '<button class="btn btn-primary btn-lg" id="btn-set-done">✓ Satz geschafft</button>'}
+      </div>`;
+    mountAnimations(body);
+
+    if (isTimed) {
+      let remaining = step.item.seconds;
+      w.timer = setInterval(() => {
+        remaining--;
+        const t = $('#work-timer');
+        if (t) t.textContent = remaining;
+        if (remaining <= 0) nextStep();
+      }, 1000);
+      $('#btn-skip-work').addEventListener('click', nextStep);
+    } else {
+      $('#btn-set-done').addEventListener('click', nextStep);
+    }
+  }
+
+  function nextStep() {
+    stopTimer();
+    state.workout.index++;
+    renderWorkoutStep();
+  }
+
+  function finishWorkout() {
+    stopTimer();
+    const minutes = Math.max(1, Math.round((Date.now() - state.workout.startedAt) / 60000));
+    state.stats.workouts++;
+    state.stats.minutes += minutes;
+    saveJSON(STORAGE_STATS, state.stats);
+
+    const day = state.plan.days[state.currentDayIndex];
+    $('#done-summary').textContent =
+      `${day.name} – ${day.focus} abgeschlossen: ${day.blocks.main.length + day.blocks.warmup.length + day.blocks.cooldown.length} Übungen in ${minutes} Minuten. Stark! 💪`;
+    state.workout = null;
+    show('done');
+  }
+
+  function quitWorkout() {
+    stopTimer();
+    state.workout = null;
+    renderDay();
+    show('day');
+  }
+
+  // ------------------------------------------------------------------
+  // Events & Init
+  // ------------------------------------------------------------------
+  $('#btn-start').addEventListener('click', () => startWizard(false));
+  $('#btn-resume').addEventListener('click', () => { renderPlan(); show('plan'); });
+  $('#wizard-next').addEventListener('click', wizardNext);
+  $('#wizard-back').addEventListener('click', wizardBack);
+  $('#btn-edit-profile').addEventListener('click', () => startWizard(true));
+  $('#btn-regenerate').addEventListener('click', () => { regeneratePlan(); renderPlan(); });
+  $('#day-back').addEventListener('click', () => { renderPlan(); show('plan'); });
+  $('#btn-start-workout').addEventListener('click', startWorkout);
+  $('#workout-quit').addEventListener('click', quitWorkout);
+  $('#btn-done-home').addEventListener('click', () => { renderPlan(); show('plan'); });
+
+  // Start
+  if (state.profile && state.plan) {
+    $('#btn-resume').classList.remove('hidden');
+    renderPlan();
+    show('plan');
+  } else {
+    show('welcome');
+  }
+})();

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0f1220">
+  <title>FitPlan – Dein dynamischer Trainingsplan</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💪</text></svg>">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="app">
+
+    <!-- ================= Welcome ================= -->
+    <section id="screen-welcome" class="screen">
+      <div class="hero">
+        <div class="hero-badge">💪</div>
+        <h1>FitPlan</h1>
+        <p class="hero-sub">Beantworte ein paar Fragen zu deinen Zielen, deinem Alter, deiner Zeit und deinem Equipment – und erhalte einen persönlichen Trainingsplan mit animierten Übungen.</p>
+        <div class="hero-features">
+          <div class="feature"><span>🎯</span> Zielbasierter Plan</div>
+          <div class="feature"><span>🏋️</span> Passend zu deinem Equipment</div>
+          <div class="feature"><span>🎬</span> Animationen für jede Übung</div>
+          <div class="feature"><span>⏱️</span> Workout-Player mit Timer</div>
+        </div>
+        <button class="btn btn-primary btn-lg" id="btn-start">Los geht's</button>
+        <button class="btn btn-ghost hidden" id="btn-resume">Weiter mit meinem Plan</button>
+      </div>
+    </section>
+
+    <!-- ================= Wizard ================= -->
+    <section id="screen-wizard" class="screen hidden">
+      <header class="topbar">
+        <button class="btn-icon" id="wizard-back" aria-label="Zurück">←</button>
+        <div class="progress-track"><div class="progress-fill" id="wizard-progress"></div></div>
+        <span class="step-label" id="wizard-step-label">1/5</span>
+      </header>
+      <div id="wizard-body" class="wizard-body"></div>
+      <footer class="wizard-footer">
+        <button class="btn btn-primary btn-lg" id="wizard-next" disabled>Weiter</button>
+      </footer>
+    </section>
+
+    <!-- ================= Plan overview ================= -->
+    <section id="screen-plan" class="screen hidden">
+      <header class="topbar plan-topbar">
+        <div>
+          <h2>Dein Wochenplan</h2>
+          <p class="muted" id="plan-subtitle"></p>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-ghost btn-sm" id="btn-edit-profile">✏️ Profil</button>
+          <button class="btn btn-ghost btn-sm" id="btn-regenerate">🔄 Neu mischen</button>
+        </div>
+      </header>
+      <div id="plan-stats" class="plan-stats"></div>
+      <div id="plan-days" class="plan-days"></div>
+    </section>
+
+    <!-- ================= Day detail ================= -->
+    <section id="screen-day" class="screen hidden">
+      <header class="topbar">
+        <button class="btn-icon" id="day-back" aria-label="Zurück">←</button>
+        <div>
+          <h2 id="day-title"></h2>
+          <p class="muted" id="day-subtitle"></p>
+        </div>
+      </header>
+      <div id="day-blocks"></div>
+      <footer class="sticky-footer">
+        <button class="btn btn-primary btn-lg" id="btn-start-workout">▶ Workout starten</button>
+      </footer>
+    </section>
+
+    <!-- ================= Workout player ================= -->
+    <section id="screen-workout" class="screen hidden">
+      <header class="topbar">
+        <button class="btn-icon" id="workout-quit" aria-label="Beenden">✕</button>
+        <div class="progress-track"><div class="progress-fill" id="workout-progress"></div></div>
+        <span class="step-label" id="workout-step-label"></span>
+      </header>
+      <div id="workout-body" class="workout-body"></div>
+    </section>
+
+    <!-- ================= Done ================= -->
+    <section id="screen-done" class="screen hidden">
+      <div class="hero">
+        <div class="hero-badge">🎉</div>
+        <h1>Geschafft!</h1>
+        <p class="hero-sub" id="done-summary"></p>
+        <button class="btn btn-primary btn-lg" id="btn-done-home">Zurück zum Plan</button>
+      </div>
+    </section>
+
+  </div>
+
+  <script src="js/animations.js"></script>
+  <script src="js/exercises.js"></script>
+  <script src="js/planner.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
