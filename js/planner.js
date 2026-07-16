@@ -13,6 +13,7 @@
     abnehmen: { label: 'Abnehmen', emoji: '🔥' },
     ausdauer: { label: 'Ausdauer', emoji: '🏃' },
     beweglichkeit: { label: 'Beweglichkeit', emoji: '🧘' },
+    ruecken: { label: 'Rückenstärkung', emoji: '🛡️' },
     fitness: { label: 'Allgemeine Fitness', emoji: '⚡' },
   };
 
@@ -29,6 +30,7 @@
     abnehmen: { sets: 3, reps: '12–15', restSec: 30, workSec: 45 },
     ausdauer: { sets: 3, reps: '15–20', restSec: 25, workSec: 45 },
     beweglichkeit: { sets: 2, reps: null, restSec: 15, workSec: 35 },
+    ruecken: { sets: 3, reps: '10–15', restSec: 45, workSec: 40 },
     fitness: { sets: 3, reps: '10–12', restSec: 50, workSec: 40 },
   };
 
@@ -181,6 +183,14 @@
       filter: (ex) => ex.category === 'kraft' && ex.muscles.includes('core'),
       muscles: ['core', 'core', 'core'],
     },
+    ruecken: {
+      name: 'Rücken & Haltung', emoji: '🛡️',
+      // Rückenkräftigung + stabilisierender Core + hintere Kette + Mobilisation
+      filter: (ex) => ex.muscles.includes('ruecken')
+        || (ex.category === 'kraft' && ex.muscles.includes('core'))
+        || ['glute_bridge', 'sl_glute_bridge', 'db_glutebridge', 'cat_cow'].includes(ex.id),
+      muscles: ['ruecken', 'core', 'ruecken', 'po'],
+    },
   };
 
   // Wochenstruktur je Ziel und Trainingstagen
@@ -188,6 +198,10 @@
     const seq = [];
     if (goal === 'beweglichkeit') {
       for (let i = 0; i < days; i++) seq.push(i % 3 === 2 ? 'ganzkoerper' : 'mobility');
+    } else if (goal === 'ruecken') {
+      // Kräftigung im Wechsel mit Mobilisation, dazu etwas Ganzkörper-Basis
+      const mix = ['ruecken', 'mobility', 'ruecken', 'ganzkoerper', 'ruecken', 'mobility'];
+      for (let i = 0; i < days; i++) seq.push(mix[i % mix.length]);
     } else if (goal === 'ausdauer') {
       for (let i = 0; i < days; i++) seq.push(i % 3 === 2 ? 'zirkel' : 'cardio_core');
     } else if (goal === 'abnehmen') {
@@ -275,6 +289,7 @@
     hiit: { tpl: 'hiit', label: 'HIIT', emoji: '🔥' },
     cardio: { tpl: 'cardio_core', label: 'Cardio & Core', emoji: '🏃' },
     bauch: { tpl: 'bauch', label: 'Bauch', emoji: '💥' },
+    ruecken: { tpl: 'ruecken', label: 'Rücken', emoji: '🛡️' },
     ganzkoerper: { tpl: 'ganzkoerper', label: 'Ganzkörper', emoji: '🏋️' },
     oberkoerper: { tpl: 'oberkoerper', label: 'Oberkörper', emoji: '💪' },
     unterkoerper: { tpl: 'unterkoerper', label: 'Beine & Po', emoji: '🦵' },
@@ -292,6 +307,8 @@
       base = GOAL_PARAMS.ausdauer;
     } else if (focusId === 'mobility') {
       base = GOAL_PARAMS.beweglichkeit;
+    } else if (focusId === 'ruecken') {
+      base = GOAL_PARAMS.ruecken;
     } else {
       base = profile.goal === 'muskelaufbau' ? GOAL_PARAMS.muskelaufbau : GOAL_PARAMS.fitness;
     }

@@ -87,6 +87,18 @@ const EXERCISES = [
     desc: 'Bauchlage, Arme nach vorn gestreckt. Arme und Beine gleichzeitig anheben, kurz halten, langsam absenken.',
   },
   {
+    id: 'good_morning', name: 'Good Mornings', anim: 'goodmorning',
+    equipment: 'none', muscles: ['ruecken', 'po', 'beine'], category: 'kraft', level: 2,
+    impact: false, mode: 'reps',
+    desc: 'Hände an die Schläfen, Knie leicht gebeugt. Oberkörper mit geradem Rücken aus der Hüfte nach vorn kippen, bis er fast waagerecht ist, und kontrolliert aufrichten.',
+  },
+  {
+    id: 'swimmer', name: 'Schwimmer', anim: 'superman',
+    equipment: 'none', muscles: ['ruecken', 'po'], category: 'kraft', level: 1,
+    impact: false, mode: 'time', holdSec: 30,
+    desc: 'Bauchlage, Arme nach vorn. Gegengleich rechten Arm und linkes Bein anheben, absenken und wechseln – wie beim Kraulschwimmen. Ruhig und kontrolliert.',
+  },
+  {
     id: 'birddog', name: 'Bird Dog', anim: 'birddog',
     equipment: 'none', muscles: ['core', 'ruecken'], category: 'kraft', level: 1,
     impact: false, mode: 'reps',
@@ -266,6 +278,12 @@ const EXERCISES = [
     equipment: 'band', muscles: ['schultern'], category: 'kraft', level: 1,
     impact: false, mode: 'reps',
     desc: 'Auf das Band stellen und die Arme seitlich bis auf Schulterhöhe anheben.',
+  },
+  {
+    id: 'band_latpull', name: 'Band-Lat-Zug', anim: 'latpulldown',
+    equipment: 'band', muscles: ['ruecken', 'arme'], category: 'kraft', level: 1,
+    impact: false, mode: 'reps',
+    desc: 'Band mit gestreckten Armen über dem Kopf halten. Ellbogen seitlich nach unten ziehen, bis das Band hinter bzw. vor dem Kopf ist, Schulterblätter zusammenführen, langsam zurück.',
   },
   {
     id: 'band_frontraise', name: 'Band-Frontheben', anim: 'bandfrontraise',

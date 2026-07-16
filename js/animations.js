@@ -239,6 +239,35 @@
       props: [{ type: 'band', from: 'handF', to: 'footF' }],
     },
 
+    goodmorning: {
+      dur: 2.8,
+      poses: [
+        p(STAND, {
+          elbowF: [112, 66], handF: [106, 50],
+          elbowB: [108, 68], handB: [104, 52],
+        }),
+        p(RDL_HINGE, {
+          elbowF: [136, 80], handF: [148, 86],
+          elbowB: [132, 82], handB: [144, 88],
+        }),
+      ],
+    },
+
+    latpulldown: {
+      dur: 2.4,
+      poses: [
+        p(STAND_FRONT, {
+          elbowF: [116, 44], handF: [110, 22],
+          elbowB: [84, 44], handB: [90, 22],
+        }),
+        p(STAND_FRONT, {
+          elbowF: [122, 74], handF: [126, 48],
+          elbowB: [78, 74], handB: [74, 48],
+        }),
+      ],
+      props: [{ type: 'band', from: 'handF', to: 'handB' }],
+    },
+
     frontraise: {
       dur: 2.4,
       poses: [STAND, FRONTRAISE_UP],
