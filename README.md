@@ -11,7 +11,8 @@ und einem geführten Workout-Player mit Timer.
   Trainingstage pro Woche und verfügbares Equipment (Kurzhanteln,
   Widerstandsbänder, Matte).
 - **Dynamischer Plangenerator**:
-  - Wählt Übungen passend zu Ziel, Level und Equipment aus ~38 Übungen aus.
+  - Wählt Übungen passend zu Ziel, Level und Equipment aus über 50 Übungen
+    aus – vorhandenes Equipment (z. B. Kurzhanteln) wird bevorzugt eingesetzt.
   - Baut sinnvolle Wochen-Splits (Ganzkörper, Oberkörper/Unterkörper, Zirkel,
     Cardio & Core, Mobility) je nach Ziel und Trainingsfrequenz.
   - Füllt exakt das angegebene Zeitbudget (Aufwärmen → Hauptteil → Dehnen).

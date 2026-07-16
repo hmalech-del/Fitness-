@@ -98,6 +98,48 @@ const EXERCISES = [
     impact: false, mode: 'reps',
     desc: 'Aufrecht stehen und langsam auf die Zehenspitzen drücken, oben kurz halten, kontrolliert absenken.',
   },
+  {
+    id: 'reverse_lunge', name: 'Ausfallschritte rückwärts', anim: 'lunge',
+    equipment: 'none', muscles: ['beine', 'po'], category: 'kraft', level: 1,
+    impact: false, mode: 'reps',
+    desc: 'Großen Schritt nach hinten machen und das hintere Knie Richtung Boden senken – knieschonender als die Vorwärts-Variante. Seiten abwechseln.',
+  },
+  {
+    id: 'leg_raise', name: 'Beinheben', anim: 'legraise',
+    equipment: 'none', muscles: ['core'], category: 'kraft', level: 2,
+    impact: false, mode: 'reps',
+    desc: 'Rückenlage, Hände neben dem Körper. Gestreckte Beine langsam bis zur Senkrechten anheben und kontrolliert absenken, ohne ins Hohlkreuz zu fallen.',
+  },
+  {
+    id: 'dead_bug', name: 'Dead Bug', anim: 'deadbug',
+    equipment: 'none', muscles: ['core'], category: 'kraft', level: 1,
+    impact: false, mode: 'reps',
+    desc: 'Rückenlage, Arme senkrecht, Knie über der Hüfte. Gegengleich einen Arm hinter den Kopf und das andere Bein lang ausstrecken, zurück und wechseln.',
+  },
+  {
+    id: 'side_plank', name: 'Seitstütz', anim: 'sideplank',
+    equipment: 'none', muscles: ['core'], category: 'kraft', level: 2,
+    impact: false, mode: 'time', holdSec: 20,
+    desc: 'Seitlich auf dem Unterarm abstützen, Körper bildet eine Linie. Hüfte oben halten, dann die Seite wechseln.',
+  },
+  {
+    id: 'chair_dip', name: 'Trizeps-Dips am Stuhl', anim: 'dip',
+    equipment: 'none', muscles: ['arme', 'brust'], category: 'kraft', level: 2,
+    impact: false, mode: 'reps',
+    desc: 'Hände hinter dem Körper auf einer stabilen Stuhlkante. Ellbogen beugen, Körper absenken und wieder hochdrücken.',
+  },
+  {
+    id: 'bicycle_crunch', name: 'Bicycle Crunches', anim: 'crunch',
+    equipment: 'none', muscles: ['core'], category: 'kraft', level: 2,
+    impact: false, mode: 'reps',
+    desc: 'Rückenlage, Hände an die Schläfen. Ellbogen und gegenüberliegendes Knie abwechselnd zueinander führen – wie Fahrradfahren.',
+  },
+  {
+    id: 'squat_jump', name: 'Squat Jumps', anim: 'squatjump',
+    equipment: 'none', muscles: ['beine', 'po', 'cardio'], category: 'cardio', level: 3,
+    impact: true, mode: 'time', holdSec: 30,
+    desc: 'In die Kniebeuge gehen und explosiv nach oben springen, weich landen und direkt in die nächste Wiederholung übergehen.',
+  },
 
   // ---------------- Kurzhanteln ----------------
   {
@@ -150,6 +192,43 @@ const EXERCISES = [
     props: [{ type: 'dumbbell', joint: 'handF' }],
     desc: 'Wadenheben mit zusätzlichem Gewicht in einer Hand, die andere kann sich abstützen.',
   },
+  {
+    id: 'db_floorpress', name: 'Bankdrücken am Boden', anim: 'floorpress',
+    equipment: 'kurzhanteln', muscles: ['brust', 'arme'], category: 'kraft', level: 1,
+    impact: false, mode: 'reps',
+    desc: 'Rückenlage, Hanteln auf Brusthöhe, Ellbogen am Boden. Gewichte senkrecht nach oben drücken und langsam absenken.',
+  },
+  {
+    id: 'db_kickback', name: 'Trizeps-Kickbacks', anim: 'kickback',
+    equipment: 'kurzhanteln', muscles: ['arme'], category: 'kraft', level: 1,
+    impact: false, mode: 'reps',
+    desc: 'Oberkörper vorbeugen, Oberarme parallel zum Boden fixieren. Unterarme nach hinten strecken, bis der Arm gerade ist, dann langsam zurück.',
+  },
+  {
+    id: 'db_frontraise', name: 'Frontheben', anim: 'frontraise',
+    equipment: 'kurzhanteln', muscles: ['schultern'], category: 'kraft', level: 1,
+    impact: false, mode: 'reps',
+    desc: 'Hanteln vor den Oberschenkeln. Gestreckte Arme bis auf Schulterhöhe nach vorn anheben und kontrolliert absenken.',
+  },
+  {
+    id: 'db_overhead', name: 'Überkopf-Trizepsstrecken', anim: 'overheadtriceps',
+    equipment: 'kurzhanteln', muscles: ['arme'], category: 'kraft', level: 1,
+    impact: false, mode: 'reps',
+    desc: 'Eine Hantel mit beiden Händen über dem Kopf halten. Unterarme hinter den Kopf absenken und wieder nach oben strecken, Ellbogen bleiben eng.',
+  },
+  {
+    id: 'db_hammer', name: 'Hammer Curls', anim: 'curl',
+    equipment: 'kurzhanteln', muscles: ['arme'], category: 'kraft', level: 1,
+    impact: false, mode: 'reps',
+    desc: 'Wie Bizeps-Curls, aber die Handflächen zeigen zueinander – trainiert zusätzlich den Unterarm.',
+  },
+  {
+    id: 'db_glutebridge', name: 'Glute Bridge mit Gewicht', anim: 'glutebridge',
+    equipment: 'kurzhanteln', muscles: ['po', 'core'], category: 'kraft', level: 2,
+    impact: false, mode: 'reps',
+    props: [{ type: 'dumbbell', joint: 'hip' }],
+    desc: 'Glute Bridge mit einer Kurzhantel auf der Hüfte – festhalten, Hüfte kraftvoll anheben und oben kurz halten.',
+  },
 
   // ---------------- Widerstandsband ----------------
   {
@@ -187,6 +266,18 @@ const EXERCISES = [
     equipment: 'band', muscles: ['schultern'], category: 'kraft', level: 1,
     impact: false, mode: 'reps',
     desc: 'Auf das Band stellen und die Arme seitlich bis auf Schulterhöhe anheben.',
+  },
+  {
+    id: 'band_frontraise', name: 'Band-Frontheben', anim: 'bandfrontraise',
+    equipment: 'band', muscles: ['schultern'], category: 'kraft', level: 1,
+    impact: false, mode: 'reps',
+    desc: 'Auf das Band stellen und die gestreckten Arme gegen den Widerstand nach vorn bis auf Schulterhöhe anheben.',
+  },
+  {
+    id: 'band_rdl', name: 'Band-Kreuzheben', anim: 'bandrdl',
+    equipment: 'band', muscles: ['beine', 'po', 'ruecken'], category: 'kraft', level: 2,
+    impact: false, mode: 'reps',
+    desc: 'Auf das Band stellen, Enden greifen. Hüfte mit geradem Rücken nach hinten schieben und gegen den Zug wieder aufrichten.',
   },
 
   // ---------------- Cardio ----------------

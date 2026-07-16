@@ -52,6 +52,26 @@
 
   const p = (base, over) => Object.assign({}, base, over);
 
+  // Rückenlage (Kopf links) – Basis für Boden-Übungen
+  const LYING = {
+    head: [34, 168], neck: [46, 173], hip: [96, 176],
+    kneeF: [116, 150], footF: [128, 180], kneeB: [114, 148], footB: [126, 178],
+    elbowF: [66, 178], handF: [84, 178], elbowB: [64, 176], handB: [82, 176],
+  };
+
+  // Hüftbeuge (Kreuzheben) – von rdl und Band-Variante geteilt
+  const RDL_HINGE = {
+    head: [150, 92], neck: [138, 97], hip: [86, 120],
+    kneeF: [100, 150], footF: [104, 182], kneeB: [95, 150], footB: [95, 182],
+    elbowF: [140, 120], handF: [141, 144], elbowB: [136, 118], handB: [137, 142],
+  };
+
+  // Frontheben oben – von Kurzhantel- und Band-Variante geteilt
+  const FRONTRAISE_UP = p(STAND, {
+    elbowF: [124, 62], handF: [148, 64],
+    elbowB: [120, 64], handB: [144, 66],
+  });
+
   // ------------------------------------------------------------------
   // Animationen: { dur (s), poses [...], props [...] }
   // Prop-Typen: dumbbell (joint), band (from/to: Gelenk oder [x,y])
@@ -204,15 +224,150 @@
 
     rdl: {
       dur: 2.8,
+      poses: [STAND, RDL_HINGE],
+      props: [{ type: 'dumbbell', joint: 'handF' }, { type: 'dumbbell', joint: 'handB' }],
+    },
+
+    bandrdl: {
+      dur: 2.8,
+      poses: [STAND, RDL_HINGE],
+      props: [{ type: 'band', from: 'handF', to: 'footF' }],
+    },
+
+    frontraise: {
+      dur: 2.4,
+      poses: [STAND, FRONTRAISE_UP],
+      props: [{ type: 'dumbbell', joint: 'handF' }, { type: 'dumbbell', joint: 'handB' }],
+    },
+
+    bandfrontraise: {
+      dur: 2.4,
+      poses: [STAND, FRONTRAISE_UP],
+      props: [{ type: 'band', from: 'handF', to: 'footF' }],
+    },
+
+    floorpress: {
+      dur: 2.2,
       poses: [
-        STAND,
+        p(LYING, {
+          elbowF: [62, 176], handF: [62, 152],
+          elbowB: [58, 174], handB: [58, 150],
+        }),
+        p(LYING, {
+          elbowF: [52, 152], handF: [53, 128],
+          elbowB: [48, 150], handB: [49, 126],
+        }),
+      ],
+      props: [{ type: 'dumbbell', joint: 'handF' }, { type: 'dumbbell', joint: 'handB' }],
+    },
+
+    kickback: {
+      dur: 2,
+      poses: [
         {
-          head: [150, 92], neck: [138, 97], hip: [86, 120],
-          kneeF: [100, 150], footF: [104, 182], kneeB: [95, 150], footB: [95, 182],
-          elbowF: [140, 120], handF: [141, 144], elbowB: [136, 118], handB: [137, 142],
+          head: [153, 78], neck: [142, 84], hip: [100, 118],
+          kneeF: [103, 149], footF: [104, 182], kneeB: [98, 149], footB: [95, 182],
+          elbowF: [122, 100], handF: [124, 124], elbowB: [118, 98], handB: [120, 122],
+        },
+        {
+          head: [153, 78], neck: [142, 84], hip: [100, 118],
+          kneeF: [103, 149], footF: [104, 182], kneeB: [98, 149], footB: [95, 182],
+          elbowF: [122, 100], handF: [98, 102], elbowB: [118, 98], handB: [94, 100],
         },
       ],
       props: [{ type: 'dumbbell', joint: 'handF' }, { type: 'dumbbell', joint: 'handB' }],
+    },
+
+    overheadtriceps: {
+      dur: 2.2,
+      poses: [
+        p(STAND, {
+          elbowF: [105, 36], handF: [88, 48],
+          elbowB: [101, 38], handB: [84, 50],
+        }),
+        p(STAND, {
+          elbowF: [105, 36], handF: [107, 14],
+          elbowB: [101, 38], handB: [103, 16],
+        }),
+      ],
+      props: [{ type: 'dumbbell', joint: 'handF' }],
+    },
+
+    legraise: {
+      dur: 2.4,
+      poses: [
+        p(LYING, {
+          kneeF: [124, 177], footF: [152, 178],
+          kneeB: [122, 175], footB: [150, 176],
+        }),
+        p(LYING, {
+          kneeF: [100, 149], footF: [101, 121],
+          kneeB: [98, 147], footB: [99, 119],
+        }),
+      ],
+    },
+
+    deadbug: {
+      dur: 2.6,
+      poses: [
+        p(LYING, {
+          kneeF: [98, 150], footF: [118, 152], kneeB: [96, 148], footB: [116, 150],
+          elbowF: [48, 152], handF: [47, 130], elbowB: [44, 150], handB: [43, 128],
+        }),
+        p(LYING, {
+          kneeF: [118, 166], footF: [142, 172], kneeB: [96, 148], footB: [116, 150],
+          elbowF: [48, 152], handF: [47, 130], elbowB: [30, 166], handB: [12, 162],
+        }),
+      ],
+    },
+
+    sideplank: {
+      dur: 3,
+      poses: [
+        {
+          head: [148, 115], neck: [136, 122], hip: [95, 146],
+          kneeF: [68, 163], footF: [42, 180], kneeB: [66, 161], footB: [40, 178],
+          elbowF: [138, 150], handF: [156, 152], elbowB: [132, 102], handB: [130, 82],
+        },
+        {
+          head: [148, 118], neck: [136, 125], hip: [95, 152],
+          kneeF: [68, 166], footF: [42, 180], kneeB: [66, 164], footB: [40, 178],
+          elbowF: [138, 152], handF: [156, 154], elbowB: [132, 105], handB: [130, 85],
+        },
+      ],
+    },
+
+    dip: {
+      dur: 2.2,
+      poses: [
+        {
+          head: [124, 91], neck: [120, 104], hip: [102, 148],
+          kneeF: [76, 164], footF: [54, 180], kneeB: [74, 162], footB: [52, 178],
+          elbowF: [126, 124], handF: [124, 140], elbowB: [122, 122], handB: [120, 138],
+        },
+        {
+          head: [128, 105], neck: [124, 118], hip: [106, 160],
+          kneeF: [76, 164], footF: [54, 180], kneeB: [74, 162], footB: [52, 178],
+          elbowF: [136, 130], handF: [124, 140], elbowB: [132, 128], handB: [120, 138],
+        },
+      ],
+      props: [{ type: 'chair' }],
+    },
+
+    squatjump: {
+      dur: 1.1,
+      poses: [
+        {
+          head: [98, 82], neck: [95, 95], hip: [86, 146],
+          kneeF: [112, 158], footF: [104, 182], kneeB: [107, 158], footB: [95, 182],
+          elbowF: [116, 98], handF: [134, 100], elbowB: [112, 100], handB: [130, 102],
+        },
+        {
+          head: [101, 30], neck: [100, 44], hip: [100, 98],
+          kneeF: [102, 133], footF: [104, 168], kneeB: [97, 133], footB: [95, 168],
+          elbowF: [108, 32], handF: [106, 12], elbowB: [92, 32], handB: [94, 12],
+        },
+      ],
     },
 
     lateralraise: {
@@ -604,6 +759,10 @@
       svg.appendChild(el('line', {
         x1: prop.x, y1: 40, x2: prop.x, y2: 182, class: 'prop-wall',
       }));
+    } else if (prop.type === 'chair') {
+      svg.appendChild(el('line', { x1: 116, y1: 140, x2: 152, y2: 140, class: 'prop-wall' }));
+      svg.appendChild(el('line', { x1: 120, y1: 140, x2: 120, y2: 182, class: 'prop-wall' }));
+      svg.appendChild(el('line', { x1: 148, y1: 140, x2: 148, y2: 182, class: 'prop-wall' }));
     }
   }
 
@@ -631,7 +790,7 @@
 
     // Props (hinter der Figur gezeichnete Bänder/Wände zuerst)
     const props = (anim.props || []).concat(extraProps || []);
-    props.filter((pr) => pr.type === 'wall' || pr.type === 'band')
+    props.filter((pr) => pr.type !== 'dumbbell')
       .forEach((pr) => buildProp(pr, poses, dur, svg));
 
     // Hintere Gliedmaßen (heller)

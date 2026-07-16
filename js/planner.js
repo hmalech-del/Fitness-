@@ -79,14 +79,27 @@
 
   // Wählt aus dem Pool Übungen, bis das Zeitbudget erschöpft ist.
   // preferredMuscles sorgt für ausgewogene Muskelabdeckung.
+  // Hat der Nutzer Equipment, werden Übungen damit bevorzugt.
   function fillBlock(pool, budgetSec, params, profile, preferredMuscles) {
     const items = [];
     let remaining = budgetSec;
+    const hasEquipment = profile.equipment.some((e) => e === 'kurzhanteln' || e === 'band');
     let candidates = shuffle(pool);
+    if (hasEquipment) {
+      candidates = candidates
+        .map((ex) => ({ ex, score: (ex.equipment === 'none' ? 1 : 0) + Math.random() * 0.9 }))
+        .sort((a, b) => a.score - b.score)
+        .map((c) => c.ex);
+    }
 
     // Zuerst je eine Übung pro gewünschter Muskelgruppe
+    // (bei vorhandenem Equipment bevorzugt die Geräte-Variante)
     (preferredMuscles || []).forEach((muscle) => {
-      const idx = candidates.findIndex((ex) => ex.muscles.includes(muscle));
+      let idx = -1;
+      if (hasEquipment) {
+        idx = candidates.findIndex((ex) => ex.muscles.includes(muscle) && ex.equipment !== 'none');
+      }
+      if (idx === -1) idx = candidates.findIndex((ex) => ex.muscles.includes(muscle));
       if (idx === -1) return;
       const ex = candidates.splice(idx, 1)[0];
       const item = makeItem(ex, params, profile);
