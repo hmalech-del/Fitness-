@@ -22,6 +22,10 @@ und einem geführten Workout-Player mit Timer.
   Bewegungsabläufen (SMIL) – inklusive Requisiten wie Kurzhanteln und Bändern.
 - **Workout-Player**: Führt Satz für Satz durch das Training, mit
   Countdown-Timern für Halte-/Cardio-Übungen und automatischen Pausen.
+- **Ansagen & Klänge**: Sprachansagen (Web Speech API, Deutsch) sagen die
+  nächste Übung, Satz und Vorgabe an; synthetisierte Töne (Web Audio API)
+  markieren Start, die letzten drei Sekunden und das Ende von Intervallen –
+  per 🔊-Knopf im Player abschaltbar, ganz ohne Audiodateien.
 - **Fortschritt**: Abgeschlossene Workouts und Trainingsminuten werden lokal
   gespeichert (LocalStorage) – keine Anmeldung, keine Server.
 

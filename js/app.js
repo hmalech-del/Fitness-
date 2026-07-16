@@ -8,6 +8,7 @@
   const STORAGE_PROFILE = 'fitplan.profile';
   const STORAGE_PLAN = 'fitplan.plan';
   const STORAGE_STATS = 'fitplan.stats';
+  const STORAGE_SOUND = 'fitplan.sound';
 
   const $ = (sel) => document.querySelector(sel);
 
@@ -374,6 +375,11 @@
     return steps;
   }
 
+  // Ansage-Texte: "8–12 Wdh." → "8 bis 12 Wiederholungen"
+  function speakableReps(reps) {
+    return reps.replace('–', ' bis ') + ' Wiederholungen';
+  }
+
   function startWorkout() {
     const day = state.plan.days[state.currentDayIndex];
     state.workout = {
@@ -382,8 +388,24 @@
       startedAt: Date.now(),
       timer: null,
     };
+    FitSound.unlock(); // Audio braucht eine Nutzer-Interaktion – die ist das hier
+    updateSoundButton();
     renderWorkoutStep();
     show('workout');
+  }
+
+  function updateSoundButton() {
+    const btn = $('#btn-sound');
+    btn.textContent = state.soundOn ? '🔊' : '🔇';
+    btn.title = state.soundOn ? 'Ton ausschalten' : 'Ton einschalten';
+  }
+
+  function toggleSound() {
+    state.soundOn = !state.soundOn;
+    saveJSON(STORAGE_SOUND, state.soundOn);
+    FitSound.setEnabled(state.soundOn);
+    if (state.soundOn) FitSound.unlock();
+    updateSoundButton();
   }
 
   function stopTimer() {
@@ -417,11 +439,13 @@
           <p class="muted">Gleich weiter mit: <strong>${nextEx.name}</strong></p>
           <button class="btn btn-ghost" id="btn-skip-rest">Pause überspringen ➜</button>
         </div>`;
+      FitSound.speak(`Pause, ${step.sec} Sekunden. Gleich weiter mit: ${nextEx.name}.`);
       let remaining = step.sec;
       w.timer = setInterval(() => {
         remaining--;
         const t = $('#rest-timer');
         if (t) t.textContent = remaining;
+        if (remaining > 0 && remaining <= 3) FitSound.tick();
         if (remaining <= 0) nextStep();
       }, 1000);
       $('#btn-skip-rest').addEventListener('click', nextStep);
@@ -445,13 +469,24 @@
       </div>`;
     mountAnimations(body);
 
+    // Ansage: Übung, Satz und Vorgabe
+    const setInfo = step.item.sets > 1 ? `Satz ${step.set} von ${step.item.sets}. ` : '';
+    FitSound.start();
+    FitSound.speak(isTimed
+      ? `${ex.name}. ${setInfo}${step.item.seconds} Sekunden. Los geht's!`
+      : `${ex.name}. ${setInfo}${speakableReps(step.item.reps)}.`);
+
     if (isTimed) {
       let remaining = step.item.seconds;
       w.timer = setInterval(() => {
         remaining--;
         const t = $('#work-timer');
         if (t) t.textContent = remaining;
-        if (remaining <= 0) nextStep();
+        if (remaining > 0 && remaining <= 3) FitSound.tick();
+        if (remaining <= 0) {
+          FitSound.finish();
+          nextStep();
+        }
       }, 1000);
       $('#btn-skip-work').addEventListener('click', nextStep);
     } else {
@@ -476,11 +511,14 @@
     $('#done-summary').textContent =
       `${day.name} – ${day.focus} abgeschlossen: ${day.blocks.main.length + day.blocks.warmup.length + day.blocks.cooldown.length} Übungen in ${minutes} Minuten. Stark! 💪`;
     state.workout = null;
+    FitSound.finish();
+    FitSound.speak('Workout geschafft. Stark!');
     show('done');
   }
 
   function quitWorkout() {
     stopTimer();
+    FitSound.stop();
     state.workout = null;
     renderDay();
     show('day');
@@ -498,7 +536,13 @@
   $('#day-back').addEventListener('click', () => { renderPlan(); show('plan'); });
   $('#btn-start-workout').addEventListener('click', startWorkout);
   $('#workout-quit').addEventListener('click', quitWorkout);
+  $('#btn-sound').addEventListener('click', toggleSound);
   $('#btn-done-home').addEventListener('click', () => { renderPlan(); show('plan'); });
+
+  // Ton-Einstellung laden (Standard: an)
+  state.soundOn = loadJSON(STORAGE_SOUND);
+  if (state.soundOn === null) state.soundOn = true;
+  FitSound.setEnabled(state.soundOn);
 
   // Start
   if (state.profile && state.plan) {
