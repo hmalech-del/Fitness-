@@ -1,21 +1,94 @@
 /* =====================================================================
  * FitPlan – Ansagen & Klänge
- * Sprachansagen über die Web Speech API (speechSynthesis, Deutsch)
- * und synthetisierte Signaltöne über die Web Audio API – beides ohne
- * Audiodateien. Alle Aufrufe sind abgesichert: Fehlt eine API (oder ist
- * der Ton aus), passiert einfach nichts.
+ *
+ * Sprachansagen: Web Speech API (speechSynthesis, Deutsch).
+ *
+ * Signaltöne: werden zur Laufzeit als kleine WAV-Klänge synthetisiert
+ * und über <audio>-Elemente abgespielt. Wichtig: <audio> nutzt den
+ * MEDIEN-Kanal des Geräts (wie Musik) – der ist auf iPhones auch bei
+ * aktiviertem Stumm-Schalter hörbar, während Web-Audio-Töne dort
+ * stummgeschaltet werden. Web Audio dient nur noch als Fallback, falls
+ * das Abspielen der <audio>-Elemente scheitert (z. B. durch eine CSP).
+ *
+ * Alle Aufrufe sind abgesichert: Fehlt eine API oder ist der Ton aus,
+ * passiert einfach nichts.
  * ===================================================================== */
 
 (function (global) {
   'use strict';
 
-  let ctx = null;
   let enabled = true;
+  let ctx = null;
+  let primed = false;
 
-  // AudioContext darf erst nach einer Nutzer-Interaktion starten –
-  // unlock() wird deshalb beim Klick auf "Workout starten" aufgerufen.
+  // ------------------------------------------------------------------
+  // WAV-Synthese: Tonfolgen als data:-URI (16-bit mono, 22050 Hz)
+  // segments: [{ freq, dur, at?, vol?, type? }]
+  // ------------------------------------------------------------------
+  function buildWav(segments) {
+    const rate = 22050;
+    let total = 0;
+    segments.forEach((s) => { total = Math.max(total, (s.at || 0) + s.dur); });
+    const n = Math.ceil((total + 0.03) * rate);
+    const data = new Float32Array(n);
+
+    segments.forEach((s) => {
+      const start = Math.floor((s.at || 0) * rate);
+      const len = Math.floor(s.dur * rate);
+      for (let i = 0; i < len; i++) {
+        const t = i / rate;
+        // kurzer Attack, weiches Ausklingen
+        const env = Math.min(1, i / (0.004 * rate)) * Math.pow(1 - i / len, 1.5);
+        let v = Math.sin(2 * Math.PI * s.freq * t);
+        if (s.type === 'square') v = Math.sign(v) * 0.55;
+        data[start + i] += v * (s.vol || 0.6) * env;
+      }
+    });
+
+    const buf = new ArrayBuffer(44 + n * 2);
+    const dv = new DataView(buf);
+    const wstr = (o, str) => { for (let i = 0; i < str.length; i++) dv.setUint8(o + i, str.charCodeAt(i)); };
+    wstr(0, 'RIFF'); dv.setUint32(4, 36 + n * 2, true); wstr(8, 'WAVE');
+    wstr(12, 'fmt '); dv.setUint32(16, 16, true);
+    dv.setUint16(20, 1, true); dv.setUint16(22, 1, true);
+    dv.setUint32(24, rate, true); dv.setUint32(28, rate * 2, true);
+    dv.setUint16(32, 2, true); dv.setUint16(34, 16, true);
+    wstr(36, 'data'); dv.setUint32(40, n * 2, true);
+    for (let i = 0; i < n; i++) {
+      const v = Math.max(-1, Math.min(1, data[i]));
+      dv.setInt16(44 + i * 2, v * 32767, true);
+    }
+
+    let bin = '';
+    const bytes = new Uint8Array(buf);
+    for (let i = 0; i < bytes.length; i += 8192) {
+      bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 8192));
+    }
+    return 'data:audio/wav;base64,' + btoa(bin);
+  }
+
+  const SOUND_DEFS = {
+    tick: [{ freq: 880, dur: 0.12, type: 'square', vol: 0.5 }],
+    start: [{ freq: 660, dur: 0.12 }, { freq: 990, at: 0.14, dur: 0.2 }],
+    finish: [{ freq: 784, dur: 0.15 }, { freq: 988, at: 0.16, dur: 0.15 }, { freq: 1319, at: 0.32, dur: 0.4 }],
+  };
+
+  const players = {};
+  function buildPlayers() {
+    if (players.tick) return;
+    try {
+      for (const name in SOUND_DEFS) {
+        const a = new Audio(buildWav(SOUND_DEFS[name]));
+        a.preload = 'auto';
+        players[name] = a;
+      }
+    } catch { /* kein <audio> verfügbar – Fallback greift */ }
+  }
+
+  // ------------------------------------------------------------------
+  // Web-Audio-Fallback
+  // ------------------------------------------------------------------
   function ensureCtx() {
-    if (!enabled) return null;
     try {
       if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
       if (ctx.state === 'suspended') ctx.resume();
@@ -25,30 +98,73 @@
     }
   }
 
-  function tone(freq, startIn, dur, vol, type) {
+  function oscillatorPlay(name) {
     const c = ensureCtx();
     if (!c) return;
-    const t = c.currentTime + startIn;
-    const osc = c.createOscillator();
-    const gain = c.createGain();
-    osc.type = type || 'sine';
-    osc.frequency.value = freq;
-    gain.gain.setValueAtTime(0.0001, t);
-    gain.gain.exponentialRampToValueAtTime(vol || 0.18, t + 0.02);
-    gain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-    osc.connect(gain);
-    gain.connect(c.destination);
-    osc.start(t);
-    osc.stop(t + dur + 0.05);
+    SOUND_DEFS[name].forEach((s) => {
+      const t = c.currentTime + (s.at || 0);
+      const osc = c.createOscillator();
+      const gain = c.createGain();
+      osc.type = s.type || 'sine';
+      osc.frequency.value = s.freq;
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.exponentialRampToValueAtTime((s.vol || 0.6) * 0.3, t + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + s.dur);
+      osc.connect(gain);
+      gain.connect(c.destination);
+      osc.start(t);
+      osc.stop(t + s.dur + 0.05);
+    });
   }
 
-  // Countdown-Tick (letzte Sekunden)
-  function tick() { tone(880, 0, 0.12, 0.1, 'square'); }
-  // Start eines Satzes / einer Übung
-  function start() { tone(660, 0, 0.12); tone(990, 0.14, 0.2); }
-  // Intervall bzw. Workout beendet
-  function finish() { tone(784, 0, 0.15); tone(988, 0.16, 0.15); tone(1319, 0.32, 0.35); }
+  // ------------------------------------------------------------------
+  // Abspielen & Freischalten
+  // ------------------------------------------------------------------
+  function play(name) {
+    if (!enabled) return;
+    const el = players[name];
+    if (el) {
+      try {
+        el.currentTime = 0;
+        const p = el.play();
+        if (p && p.catch) p.catch(() => oscillatorPlay(name));
+        return;
+      } catch { /* weiter zum Fallback */ }
+    }
+    oscillatorPlay(name);
+  }
 
+  // Browser erlauben Audio erst nach einer Nutzer-Interaktion. unlock()
+  // spielt deshalb jedes Element einmal stumm an ("Priming") – danach
+  // dürfen die Töne auch aus Timern heraus abgespielt werden.
+  function unlock() {
+    buildPlayers();
+    ensureCtx();
+    if (primed) return;
+    primed = true;
+    for (const name in players) {
+      const el = players[name];
+      try {
+        el.muted = true;
+        const p = el.play();
+        if (p && p.then) {
+          p.then(() => { el.pause(); el.currentTime = 0; el.muted = false; })
+            .catch(() => { el.muted = false; primed = false; });
+        } else {
+          el.pause(); el.currentTime = 0; el.muted = false;
+        }
+      } catch { el.muted = false; }
+    }
+  }
+
+  // Jede Berührung/Klick schaltet Audio frei bzw. weckt den Kontext auf
+  try {
+    document.addEventListener('pointerdown', () => { if (enabled) unlock(); }, true);
+  } catch { /* egal */ }
+
+  // ------------------------------------------------------------------
+  // Sprachansagen
+  // ------------------------------------------------------------------
   function speak(text) {
     if (!enabled) return;
     try {
@@ -61,21 +177,21 @@
     } catch { /* Sprachausgabe nicht verfügbar */ }
   }
 
-  function setEnabled(on) {
-    enabled = on;
-    if (!on) {
-      try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch { /* egal */ }
-    }
-  }
-
   // Laufende Ansage abbrechen (z. B. beim Verlassen des Workouts)
   function stop() {
     try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch { /* egal */ }
   }
 
+  function setEnabled(on) {
+    enabled = on;
+    if (!on) stop();
+  }
+
   global.FitSound = {
-    speak, tick, start, finish, setEnabled, stop,
+    speak, stop, setEnabled, unlock,
     isEnabled: () => enabled,
-    unlock: ensureCtx,
+    tick: () => play('tick'),
+    start: () => play('start'),
+    finish: () => play('finish'),
   };
 })(window);
