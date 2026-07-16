@@ -23,11 +23,21 @@ und einem geführten Workout-Player mit Timer.
 - **Workout-Player**: Führt Satz für Satz durch das Training, mit
   Countdown-Timern für Halte-/Cardio-Übungen und automatischen Pausen.
 - **Ansagen & Klänge**: Sprachansagen (Web Speech API, Deutsch) sagen die
-  nächste Übung, Satz und Vorgabe an; synthetisierte Töne (Web Audio API)
-  markieren Start, die letzten drei Sekunden und das Ende von Intervallen –
-  per 🔊-Knopf im Player abschaltbar, ganz ohne Audiodateien.
-- **Fortschritt**: Abgeschlossene Workouts und Trainingsminuten werden lokal
-  gespeichert (LocalStorage) – keine Anmeldung, keine Server.
+  nächste Übung, Satz und Vorgabe an – auf Wunsch inklusive der
+  Ausführungsbeschreibung (💬-Knopf). Synthetisierte Signaltöne markieren
+  Start, die letzten drei Sekunden und das Ende von Intervallen; sie laufen
+  über den Medien-Kanal (auch bei iOS-Stummschalter hörbar) und sind per
+  🔊-Knopf abschaltbar – ganz ohne Audiodateien.
+- **Einzel-Workouts**: Ohne Plan sofort loslegen – Schwerpunkt wählen
+  (HIIT, Cardio & Core, Bauch, Ganzkörper, Oberkörper, Beine & Po,
+  Mobility) und starten. HIIT nutzt ein Intervallformat (30 s Belastung,
+  15 s Pause).
+- **Mehrere Pläne parallel**: Beliebig viele Trainingspläne anlegen (z. B.
+  Muskelaufbau und Ausdauer) und per Chip-Leiste umschalten.
+- **Fortschritt**: Abgeschlossene Workouts und Trainingsminuten werden
+  gespeichert; jede Tageskarte zeigt, wie oft und wann zuletzt sie
+  absolviert wurde. Alles lokal (LocalStorage) – keine Anmeldung, keine
+  Server.
 
 ## 🚀 Starten
 

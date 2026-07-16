@@ -258,6 +258,25 @@ input[type="range"] {
 .summary-row span { color: var(--text-muted); font-size: .9rem; }
 
 /* ---------------- Plan overview ---------------- */
+.plan-switcher {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.chip-add { border-style: dashed; color: var(--text-muted); }
+
+.quick-section { margin-bottom: 6px; }
+.quick-row .chip { font-size: .9rem; }
+
+.day-progress {
+  font-size: .78rem;
+  color: var(--success);
+  margin-top: 2px;
+}
+
+.btn-icon.off { opacity: .35; }
+
 .plan-stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

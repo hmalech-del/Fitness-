@@ -1,26 +1,17 @@
 /* =====================================================================
- * FitPlan – App-Logik: Wizard, Planübersicht, Tagesansicht, Workout-Player
+ * FitPlan – App-Logik: Wizard, Pläne, Einzel-Workouts, Workout-Player
  * ===================================================================== */
 
 (function () {
   'use strict';
 
-  const STORAGE_PROFILE = 'fitplan.profile';
-  const STORAGE_PLAN = 'fitplan.plan';
+  const STORAGE_PLANS = 'fitplan.plans';
+  const STORAGE_ACTIVE = 'fitplan.active';
   const STORAGE_STATS = 'fitplan.stats';
   const STORAGE_SOUND = 'fitplan.sound';
+  const STORAGE_SPEAKDESC = 'fitplan.speakdesc';
 
   const $ = (sel) => document.querySelector(sel);
-
-  const state = {
-    profile: loadJSON(STORAGE_PROFILE),
-    plan: loadJSON(STORAGE_PLAN),
-    stats: loadJSON(STORAGE_STATS) || { workouts: 0, minutes: 0 },
-    wizardStep: 0,
-    wizardData: {},
-    currentDayIndex: 0,
-    workout: null,
-  };
 
   // LocalStorage kann in Sandbox-Umgebungen (z. B. eingebettete iframes)
   // blockiert sein – dann fällt die App auf einen In-Memory-Speicher zurück.
@@ -45,6 +36,64 @@
   }
   function saveJSON(key, value) {
     storage.setItem(key, JSON.stringify(value));
+  }
+
+  const state = {
+    plans: [],
+    activePlanId: null,
+    stats: loadJSON(STORAGE_STATS) || { workouts: 0, minutes: 0 },
+    wizardStep: 0,
+    wizardData: {},
+    wizardMode: 'new', // 'new' = neuen Plan anlegen, 'edit' = aktiven Plan ändern
+    currentDayRef: null, // { type:'plan', planId, index, day } | { type:'quick', day }
+    workout: null,
+    soundOn: true,
+    speakDescOn: true,
+  };
+
+  // ------------------------------------------------------------------
+  // Pläne: Laden, Speichern, Migration vom alten Einzelplan-Format
+  // ------------------------------------------------------------------
+  function planName(goal) {
+    const base = FitPlanner.GOALS[goal].label;
+    const names = state.plans.map((p) => p.name);
+    let name = base;
+    let i = 2;
+    while (names.includes(name)) name = `${base} ${i++}`;
+    return name;
+  }
+
+  function loadPlans() {
+    let plans = loadJSON(STORAGE_PLANS);
+    if (!Array.isArray(plans)) {
+      plans = [];
+      // Migration: altes Einzelplan-Format übernehmen
+      const oldProfile = loadJSON('fitplan.profile');
+      const oldPlan = loadJSON('fitplan.plan');
+      if (oldProfile && oldPlan) {
+        plans.push({
+          id: 'p' + Date.now(),
+          name: FitPlanner.GOALS[oldProfile.goal].label,
+          profile: oldProfile,
+          plan: oldPlan,
+          progress: {},
+        });
+      }
+    }
+    state.plans = plans;
+    const active = loadJSON(STORAGE_ACTIVE);
+    state.activePlanId = plans.some((p) => p.id === active)
+      ? active
+      : (plans[0] ? plans[0].id : null);
+  }
+
+  function savePlans() {
+    saveJSON(STORAGE_PLANS, state.plans);
+    saveJSON(STORAGE_ACTIVE, state.activePlanId);
+  }
+
+  function activePlan() {
+    return state.plans.find((p) => p.id === state.activePlanId) || null;
   }
 
   // ------------------------------------------------------------------
@@ -236,62 +285,137 @@
       renderWizardStep();
       return;
     }
-    // Fertig: Profil speichern & Plan erzeugen
+    // Fertig: Plan anlegen bzw. aktiven Plan aktualisieren
     const d = state.wizardData;
-    state.profile = {
+    const profile = {
       goal: d.goal, age: d.age, level: d.level,
       minutes: d.minutes, days: d.days,
       equipment: d.equipment || [],
     };
-    saveJSON(STORAGE_PROFILE, state.profile);
-    regeneratePlan();
+    if (state.wizardMode === 'edit' && activePlan()) {
+      const p = activePlan();
+      p.profile = profile;
+      p.plan = FitPlanner.generatePlan(profile);
+      p.progress = {};
+    } else {
+      const p = {
+        id: 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+        name: planName(d.goal),
+        profile,
+        plan: FitPlanner.generatePlan(profile),
+        progress: {},
+      };
+      state.plans.push(p);
+      state.activePlanId = p.id;
+    }
+    savePlans();
     renderPlan();
     show('plan');
   }
 
   function wizardBack() {
     if (state.wizardStep === 0) {
-      show(state.plan ? 'plan' : 'welcome');
+      show(state.plans.length ? 'plan' : 'welcome');
     } else {
       state.wizardStep--;
       renderWizardStep();
     }
   }
 
-  function startWizard(prefill) {
+  function startWizard(mode) {
+    state.wizardMode = mode;
     state.wizardStep = 0;
-    state.wizardData = prefill ? Object.assign({}, state.profile) : {};
+    state.wizardData = (mode === 'edit' && activePlan())
+      ? Object.assign({}, activePlan().profile)
+      : {};
     renderWizardStep();
     show('wizard');
   }
 
   // ------------------------------------------------------------------
-  // Plan
+  // Planübersicht
   // ------------------------------------------------------------------
+  let deleteArmed = false;
+
   function regeneratePlan() {
-    state.plan = FitPlanner.generatePlan(state.profile);
-    saveJSON(STORAGE_PLAN, state.plan);
+    const p = activePlan();
+    if (!p) return;
+    p.plan = FitPlanner.generatePlan(p.profile);
+    p.progress = {};
+    savePlans();
+  }
+
+  function formatDate(iso) {
+    try {
+      return new Date(iso).toLocaleDateString('de-DE', { day: 'numeric', month: 'numeric' });
+    } catch {
+      return '';
+    }
   }
 
   function renderPlan() {
-    const { profile, plan, stats } = state;
-    const goal = FitPlanner.GOALS[profile.goal];
+    const p = activePlan();
+    if (!p) { show('welcome'); return; }
+    deleteArmed = false;
+
+    const goal = FitPlanner.GOALS[p.profile.goal];
+    $('#plan-title').textContent = p.name;
     $('#plan-subtitle').textContent =
-      `${goal.emoji} ${goal.label} · ${profile.minutes} Min. · ${profile.days}× pro Woche`;
+      `${goal.emoji} ${goal.label} · ${p.profile.minutes} Min. · ${p.profile.days}× pro Woche`;
 
+    const del = $('#btn-delete-plan');
+    del.classList.toggle('hidden', state.plans.length < 2);
+    del.textContent = '🗑️';
+
+    // Plan-Umschalter
+    $('#plan-switcher').innerHTML = state.plans.map((plan) => `
+      <button class="chip ${plan.id === state.activePlanId ? 'selected' : ''}" data-plan="${plan.id}">${plan.name}</button>
+    `).join('') + '<button class="chip chip-add" id="btn-new-plan">＋ Neuer Plan</button>';
+    $('#plan-switcher').querySelectorAll('[data-plan]').forEach((chip) => {
+      chip.addEventListener('click', () => {
+        state.activePlanId = chip.dataset.plan;
+        savePlans();
+        renderPlan();
+      });
+    });
+    $('#btn-new-plan').addEventListener('click', () => startWizard('new'));
+
+    // Statistik
     $('#plan-stats').innerHTML = `
-      <div class="stat"><strong>${stats.workouts}</strong><span>Workouts geschafft</span></div>
-      <div class="stat"><strong>${stats.minutes}</strong><span>Minuten trainiert</span></div>
-      <div class="stat"><strong>${plan.days.reduce((s, d) => s + d.blocks.main.length, 0)}</strong><span>Übungen im Plan</span></div>`;
+      <div class="stat"><strong>${state.stats.workouts}</strong><span>Workouts geschafft</span></div>
+      <div class="stat"><strong>${state.stats.minutes}</strong><span>Minuten trainiert</span></div>
+      <div class="stat"><strong>${p.plan.days.reduce((s, d) => s + d.blocks.main.length, 0)}</strong><span>Übungen im Plan</span></div>`;
 
-    $('#plan-days').innerHTML = plan.days.map((day, i) => {
+    // Einzel-Workouts
+    $('#quick-section').innerHTML = `
+      <h3 class="block-title">⚡ Einzel-Workout – ohne Plan, sofort starten</h3>
+      <div class="chip-row quick-row">
+        ${Object.entries(FitPlanner.QUICK_FOCUS).map(([id, f]) => `
+          <button class="chip" data-quick="${id}">${f.emoji} ${f.label}</button>`).join('')}
+      </div>`;
+    $('#quick-section').querySelectorAll('[data-quick]').forEach((chip) => {
+      chip.addEventListener('click', () => {
+        const day = FitPlanner.generateQuickDay(p.profile, chip.dataset.quick);
+        state.currentDayRef = { type: 'quick', day };
+        renderDay();
+        show('day');
+      });
+    });
+
+    // Wochenplan
+    $('#plan-days').innerHTML = '<h3 class="block-title">📅 Dein Wochenplan</h3>' + p.plan.days.map((day, i) => {
       const count = day.blocks.warmup.length + day.blocks.main.length + day.blocks.cooldown.length;
+      const pr = p.progress[i];
+      const progressLine = pr
+        ? `<span class="day-progress">✅ ${pr.n}× absolviert · zuletzt ${formatDate(pr.last)}</span>`
+        : '';
       return `
         <button class="day-card" data-day="${i}">
           <span class="day-emoji">${day.emoji}</span>
           <span class="day-info">
             <span class="day-name">${day.name} · ${day.focus}</span>
             <span class="day-meta">${count} Übungen · ca. ${day.estMinutes} Min.</span>
+            ${progressLine}
           </span>
           <span class="day-arrow">→</span>
         </button>`;
@@ -299,11 +423,31 @@
 
     $('#plan-days').querySelectorAll('.day-card').forEach((card) => {
       card.addEventListener('click', () => {
-        state.currentDayIndex = parseInt(card.dataset.day, 10);
+        const index = parseInt(card.dataset.day, 10);
+        state.currentDayRef = { type: 'plan', planId: p.id, index, day: p.plan.days[index] };
         renderDay();
         show('day');
       });
     });
+  }
+
+  function deletePlan() {
+    if (state.plans.length < 2) return;
+    const btn = $('#btn-delete-plan');
+    if (!deleteArmed) {
+      // Erst nach zweitem Tipp wirklich löschen
+      deleteArmed = true;
+      btn.textContent = 'Wirklich löschen?';
+      setTimeout(() => {
+        deleteArmed = false;
+        btn.textContent = '🗑️';
+      }, 3000);
+      return;
+    }
+    state.plans = state.plans.filter((p) => p.id !== state.activePlanId);
+    state.activePlanId = state.plans[0] ? state.plans[0].id : null;
+    savePlans();
+    renderPlan();
   }
 
   // ------------------------------------------------------------------
@@ -343,9 +487,13 @@
   }
 
   function renderDay() {
-    const day = state.plan.days[state.currentDayIndex];
-    $('#day-title').textContent = `${day.emoji} ${day.name} – ${day.focus}`;
-    $('#day-subtitle').textContent = `ca. ${day.estMinutes} Minuten`;
+    const ref = state.currentDayRef;
+    const day = ref.day;
+    $('#day-title').textContent = ref.type === 'quick'
+      ? `${day.emoji} ${day.focus}`
+      : `${day.emoji} ${day.name} – ${day.focus}`;
+    $('#day-subtitle').textContent =
+      (ref.type === 'quick' ? 'Einzel-Workout · ' : '') + `ca. ${day.estMinutes} Minuten`;
 
     const block = (title, items) => items.length ? `
       <h3 class="block-title">${title}</h3>
@@ -381,7 +529,7 @@
   }
 
   function startWorkout() {
-    const day = state.plan.days[state.currentDayIndex];
+    const day = state.currentDayRef.day;
     state.workout = {
       steps: buildWorkoutSteps(day),
       index: 0,
@@ -389,15 +537,20 @@
       timer: null,
     };
     FitSound.unlock(); // Audio braucht eine Nutzer-Interaktion – die ist das hier
-    updateSoundButton();
+    updateAudioButtons();
     renderWorkoutStep();
     show('workout');
   }
 
-  function updateSoundButton() {
-    const btn = $('#btn-sound');
-    btn.textContent = state.soundOn ? '🔊' : '🔇';
-    btn.title = state.soundOn ? 'Ton ausschalten' : 'Ton einschalten';
+  function updateAudioButtons() {
+    const sound = $('#btn-sound');
+    sound.textContent = state.soundOn ? '🔊' : '🔇';
+    sound.title = state.soundOn ? 'Ton ausschalten' : 'Ton einschalten';
+    const speak = $('#btn-speak-desc');
+    speak.classList.toggle('off', !state.speakDescOn);
+    speak.title = state.speakDescOn
+      ? 'Übungsbeschreibung nicht mehr ansagen'
+      : 'Übungsbeschreibung ansagen';
   }
 
   function toggleSound() {
@@ -405,7 +558,13 @@
     saveJSON(STORAGE_SOUND, state.soundOn);
     FitSound.setEnabled(state.soundOn);
     if (state.soundOn) FitSound.unlock();
-    updateSoundButton();
+    updateAudioButtons();
+  }
+
+  function toggleSpeakDesc() {
+    state.speakDescOn = !state.speakDescOn;
+    saveJSON(STORAGE_SPEAKDESC, state.speakDescOn);
+    updateAudioButtons();
   }
 
   function stopTimer() {
@@ -469,12 +628,15 @@
       </div>`;
     mountAnimations(body);
 
-    // Ansage: Übung, Satz und Vorgabe
+    // Ansage: Übung, Satz, Vorgabe – und auf Wunsch die Beschreibung
     const setInfo = step.item.sets > 1 ? `Satz ${step.set} von ${step.item.sets}. ` : '';
+    let text = isTimed
+      ? `${ex.name}. ${setInfo}${step.item.seconds} Sekunden.`
+      : `${ex.name}. ${setInfo}${speakableReps(step.item.reps)}.`;
+    if (state.speakDescOn && step.set === 1) text += ' ' + ex.desc;
+    if (isTimed) text += " Los geht's!";
     FitSound.start();
-    FitSound.speak(isTimed
-      ? `${ex.name}. ${setInfo}${step.item.seconds} Sekunden. Los geht's!`
-      : `${ex.name}. ${setInfo}${speakableReps(step.item.reps)}.`);
+    FitSound.speak(text);
 
     if (isTimed) {
       let remaining = step.item.seconds;
@@ -507,9 +669,23 @@
     state.stats.minutes += minutes;
     saveJSON(STORAGE_STATS, state.stats);
 
-    const day = state.plan.days[state.currentDayIndex];
+    // Fortschritt am Plan-Tag festhalten
+    const ref = state.currentDayRef;
+    if (ref && ref.type === 'plan') {
+      const p = state.plans.find((x) => x.id === ref.planId);
+      if (p) {
+        const pr = p.progress[ref.index] || { n: 0 };
+        pr.n++;
+        pr.last = new Date().toISOString();
+        p.progress[ref.index] = pr;
+        savePlans();
+      }
+    }
+
+    const day = ref.day;
+    const label = ref.type === 'quick' ? day.focus : `${day.name} – ${day.focus}`;
     $('#done-summary').textContent =
-      `${day.name} – ${day.focus} abgeschlossen: ${day.blocks.main.length + day.blocks.warmup.length + day.blocks.cooldown.length} Übungen in ${minutes} Minuten. Stark! 💪`;
+      `${label} abgeschlossen: ${day.blocks.main.length + day.blocks.warmup.length + day.blocks.cooldown.length} Übungen in ${minutes} Minuten. Stark! 💪`;
     state.workout = null;
     FitSound.finish();
     FitSound.speak('Workout geschafft. Stark!');
@@ -527,25 +703,31 @@
   // ------------------------------------------------------------------
   // Events & Init
   // ------------------------------------------------------------------
-  $('#btn-start').addEventListener('click', () => startWizard(false));
+  $('#btn-start').addEventListener('click', () => startWizard('new'));
   $('#btn-resume').addEventListener('click', () => { renderPlan(); show('plan'); });
   $('#wizard-next').addEventListener('click', wizardNext);
   $('#wizard-back').addEventListener('click', wizardBack);
-  $('#btn-edit-profile').addEventListener('click', () => startWizard(true));
+  $('#btn-edit-profile').addEventListener('click', () => startWizard('edit'));
   $('#btn-regenerate').addEventListener('click', () => { regeneratePlan(); renderPlan(); });
+  $('#btn-delete-plan').addEventListener('click', deletePlan);
   $('#day-back').addEventListener('click', () => { renderPlan(); show('plan'); });
   $('#btn-start-workout').addEventListener('click', startWorkout);
   $('#workout-quit').addEventListener('click', quitWorkout);
   $('#btn-sound').addEventListener('click', toggleSound);
+  $('#btn-speak-desc').addEventListener('click', toggleSpeakDesc);
   $('#btn-done-home').addEventListener('click', () => { renderPlan(); show('plan'); });
 
-  // Ton-Einstellung laden (Standard: an)
+  // Einstellungen laden (Standard: Ton und Beschreibungs-Ansage an)
   state.soundOn = loadJSON(STORAGE_SOUND);
   if (state.soundOn === null) state.soundOn = true;
   FitSound.setEnabled(state.soundOn);
+  state.speakDescOn = loadJSON(STORAGE_SPEAKDESC);
+  if (state.speakDescOn === null) state.speakDescOn = true;
 
   // Start
-  if (state.profile && state.plan) {
+  loadPlans();
+  if (state.plans.length) {
+    savePlans();
     $('#btn-resume').classList.remove('hidden');
     renderPlan();
     show('plan');

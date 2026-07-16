@@ -45,15 +45,18 @@
     <section id="screen-plan" class="screen hidden">
       <header class="topbar plan-topbar">
         <div>
-          <h2>Dein Wochenplan</h2>
+          <h2 id="plan-title">Dein Wochenplan</h2>
           <p class="muted" id="plan-subtitle"></p>
         </div>
         <div class="topbar-actions">
           <button class="btn btn-ghost btn-sm" id="btn-edit-profile">✏️ Profil</button>
           <button class="btn btn-ghost btn-sm" id="btn-regenerate">🔄 Neu mischen</button>
+          <button class="btn btn-ghost btn-sm hidden" id="btn-delete-plan">🗑️</button>
         </div>
       </header>
+      <div id="plan-switcher" class="plan-switcher"></div>
       <div id="plan-stats" class="plan-stats"></div>
+      <div id="quick-section" class="quick-section"></div>
       <div id="plan-days" class="plan-days"></div>
     </section>
 
@@ -78,6 +81,7 @@
         <button class="btn-icon" id="workout-quit" aria-label="Beenden">✕</button>
         <div class="progress-track"><div class="progress-fill" id="workout-progress"></div></div>
         <span class="step-label" id="workout-step-label"></span>
+        <button class="btn-icon" id="btn-speak-desc" aria-label="Übungsbeschreibung ansagen">💬</button>
         <button class="btn-icon" id="btn-sound" aria-label="Ton an/aus">🔊</button>
       </header>
       <div id="workout-body" class="workout-body"></div>

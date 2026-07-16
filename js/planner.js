@@ -1,7 +1,8 @@
 /* =====================================================================
  * FitPlan – Plangenerator
  * Baut aus dem Nutzerprofil (Ziel, Alter, Level, Zeit, Equipment)
- * einen dynamischen Wochenplan.
+ * einen dynamischen Wochenplan – oder ein einzelnes Schwerpunkt-Workout
+ * (z. B. HIIT, Bauch, Cardio) ohne Plan.
  * ===================================================================== */
 
 (function (global) {
@@ -66,7 +67,10 @@
 
   function makeItem(ex, params, profile) {
     const item = { exId: ex.id, sets: params.sets, restSec: params.restSec, workSec: params.workSec };
-    if (ex.mode === 'time' || !params.reps) {
+    if (params.forceSec) {
+      // Intervallformat (z. B. HIIT): feste Belastungszeit für alle Übungen
+      item.seconds = params.forceSec;
+    } else if (ex.mode === 'time' || !params.reps) {
       let sec = ex.holdSec || 30;
       if (profile.level === 'profi') sec = Math.round(sec * 1.3);
       if (profile.level === 'anfaenger') sec = Math.round(sec * 0.85);
@@ -166,6 +170,17 @@
       filter: (ex) => ex.category === 'mobility' || ['birddog', 'superman', 'glute_bridge'].includes(ex.id),
       muscles: ['ruecken', 'beine', 'schultern'],
     },
+    hiit: {
+      name: 'HIIT-Intervalle', emoji: '🔥',
+      filter: (ex) => ex.category === 'cardio'
+        || (ex.category === 'kraft' && ex.muscles.some((m) => ['beine', 'po', 'brust', 'core'].includes(m))),
+      muscles: ['cardio', 'beine', 'core', 'cardio', 'brust'],
+    },
+    bauch: {
+      name: 'Bauch & Core', emoji: '💥',
+      filter: (ex) => ex.category === 'kraft' && ex.muscles.includes('core'),
+      muscles: ['core', 'core', 'core'],
+    },
   };
 
   // Wochenstruktur je Ziel und Trainingstagen
@@ -191,52 +206,60 @@
   }
 
   // ------------------------------------------------------------------
-  // Hauptfunktion
+  // Session-Aufbau (für Plan-Tage und Einzel-Workouts)
   // ------------------------------------------------------------------
-  function generatePlan(profile) {
-    const allowed = allowedExercises(profile);
-    const params = Object.assign({}, GOAL_PARAMS[profile.goal] || GOAL_PARAMS.fitness);
-
-    // Anpassungen
+  function adjustParams(profile, base) {
+    const params = Object.assign({}, base);
     if (profile.level === 'anfaenger') params.sets = Math.max(2, params.sets - 1);
     if (profile.level === 'profi' && profile.goal === 'muskelaufbau') params.sets += 1;
     if (profile.age >= 65) {
       params.sets = Math.max(2, params.sets - 1);
       params.restSec += 15;
     }
+    return params;
+  }
 
-    const totalSec = profile.minutes * 60;
+  function buildSession(tplId, profile, params, minutes) {
+    const allowed = allowedExercises(profile);
+    const tpl = DAY_TEMPLATES[tplId];
+
+    const totalSec = minutes * 60;
     // Ältere Trainierende: etwas längeres Aufwärmen
-    const warmupCount = profile.minutes <= 20 ? 1 : profile.age >= 55 ? 3 : 2;
-    const cooldownCount = profile.minutes <= 20 ? 1 : 2;
-    const warmupSec = warmupCount * 55;
-    const cooldownSec = cooldownCount * 45;
-    const mainBudget = Math.max(300, totalSec - warmupSec - cooldownSec);
+    const warmupCount = minutes <= 20 ? 1 : profile.age >= 55 ? 3 : 2;
+    const cooldownCount = minutes <= 20 ? 1 : 2;
+    const mainBudget = Math.max(300, totalSec - warmupCount * 55 - cooldownCount * 45);
 
+    const pool = allowed.filter(tpl.filter);
+    const main = fillBlock(pool, mainBudget, params, profile, tpl.muscles);
+
+    const warmup = buildSupportBlock(WARMUP_POOL, warmupCount, allowed, 40);
+    const usedIds = new Set(main.map((it) => it.exId));
+    const cooldown = buildSupportBlock(
+      COOLDOWN_POOL.filter((id) => !usedIds.has(id)),
+      cooldownCount, allowed, 30
+    );
+
+    const estSec = [...warmup, ...main, ...cooldown].reduce((s, it) => s + itemTimeSec(it), 0);
+
+    return {
+      focus: tpl.name,
+      emoji: tpl.emoji,
+      blocks: { warmup, main, cooldown },
+      estMinutes: Math.round(estSec / 60),
+    };
+  }
+
+  // ------------------------------------------------------------------
+  // Wochenplan
+  // ------------------------------------------------------------------
+  function generatePlan(profile) {
+    const params = adjustParams(profile, GOAL_PARAMS[profile.goal] || GOAL_PARAMS.fitness);
     const templates = weekTemplates(profile.goal, profile.days);
 
-    const days = templates.map((tplId, i) => {
-      const tpl = DAY_TEMPLATES[tplId];
-      const pool = allowed.filter(tpl.filter);
-      const main = fillBlock(pool, mainBudget, params, profile, tpl.muscles);
-
-      const warmup = buildSupportBlock(WARMUP_POOL, warmupCount, allowed, 40);
-      const usedIds = new Set(main.map((it) => it.exId));
-      const cooldown = buildSupportBlock(
-        COOLDOWN_POOL.filter((id) => !usedIds.has(id)),
-        cooldownCount, allowed, 30
-      );
-
-      const estSec = [...warmup, ...main, ...cooldown].reduce((s, it) => s + itemTimeSec(it), 0);
-
-      return {
-        name: `Tag ${i + 1}`,
-        focus: tpl.name,
-        emoji: tpl.emoji,
-        blocks: { warmup, main, cooldown },
-        estMinutes: Math.round(estSec / 60),
-      };
-    });
+    const days = templates.map((tplId, i) => Object.assign(
+      buildSession(tplId, profile, params, profile.minutes),
+      { name: `Tag ${i + 1}` }
+    ));
 
     return {
       createdAt: new Date().toISOString(),
@@ -245,5 +268,39 @@
     };
   }
 
-  global.FitPlanner = { generatePlan, GOALS, LEVELS, GOAL_PARAMS };
+  // ------------------------------------------------------------------
+  // Einzel-Workouts mit Schwerpunkt (ohne Plan)
+  // ------------------------------------------------------------------
+  const QUICK_FOCUS = {
+    hiit: { tpl: 'hiit', label: 'HIIT', emoji: '🔥' },
+    cardio: { tpl: 'cardio_core', label: 'Cardio & Core', emoji: '🏃' },
+    bauch: { tpl: 'bauch', label: 'Bauch', emoji: '💥' },
+    ganzkoerper: { tpl: 'ganzkoerper', label: 'Ganzkörper', emoji: '🏋️' },
+    oberkoerper: { tpl: 'oberkoerper', label: 'Oberkörper', emoji: '💪' },
+    unterkoerper: { tpl: 'unterkoerper', label: 'Beine & Po', emoji: '🦵' },
+    mobility: { tpl: 'mobility', label: 'Mobility', emoji: '🧘' },
+  };
+
+  function generateQuickDay(profile, focusId) {
+    const focus = QUICK_FOCUS[focusId] || QUICK_FOCUS.ganzkoerper;
+
+    let base;
+    if (focusId === 'hiit') {
+      // Klassisches Intervallformat: 30 s Belastung, 15 s Pause, 2 Runden
+      base = { sets: 2, reps: null, restSec: 15, workSec: 30, forceSec: 30 };
+    } else if (focusId === 'cardio') {
+      base = GOAL_PARAMS.ausdauer;
+    } else if (focusId === 'mobility') {
+      base = GOAL_PARAMS.beweglichkeit;
+    } else {
+      base = profile.goal === 'muskelaufbau' ? GOAL_PARAMS.muskelaufbau : GOAL_PARAMS.fitness;
+    }
+
+    const params = adjustParams(profile, base);
+    const day = buildSession(focus.tpl, profile, params, profile.minutes);
+    day.name = 'Einzel-Workout';
+    return day;
+  }
+
+  global.FitPlanner = { generatePlan, generateQuickDay, GOALS, LEVELS, GOAL_PARAMS, QUICK_FOCUS };
 })(window);
