@@ -412,29 +412,47 @@ input[type="range"] {
 .work-timer { font-size: 3.2rem; }
 
 /* ---------------- Übungs-Animationen (SVG) ---------------- */
-.exercise-anim { display: block; width: 100%; height: auto; }
-.exercise-anim .limb {
-  stroke: var(--text);
-  stroke-width: 6;
-  stroke-linecap: round;
-  fill: none;
+.exercise-anim {
+  display: block;
+  width: 100%;
+  height: auto;
+  /* Figuren-Farben: Haut, Shirt, Hose – hintere Gliedmaßen abgedunkelt */
+  --skin-f: #eec39a;
+  --skin-b: #bd9066;
+  --shirt: #8f7bff;
+  --pants-f: #56c2dd;
+  --pants-b: #35899e;
+  --shoe-f: #f4f6ff;
+  --shoe-b: #b7bdd6;
 }
-.exercise-anim .limb-back { stroke: #565f94; }
-.exercise-anim .head { fill: var(--text); }
+.exercise-anim line { stroke-linecap: round; fill: none; }
+.exercise-anim .torso { stroke: var(--shirt); stroke-width: 14; }
+.exercise-anim .neck-line { stroke: var(--skin-f); stroke-width: 5; }
+.exercise-anim .arm { stroke-width: 6; }
+.exercise-anim .arm-f { stroke: var(--skin-f); }
+.exercise-anim .arm-b { stroke: var(--skin-b); }
+.exercise-anim .leg { stroke-width: 8; }
+.exercise-anim .leg-f { stroke: var(--pants-f); }
+.exercise-anim .leg-b { stroke: var(--pants-b); }
+.exercise-anim .head { fill: var(--skin-f); }
+.exercise-anim .hand-f { fill: var(--skin-f); }
+.exercise-anim .hand-b { fill: var(--skin-b); }
+.exercise-anim .shoe-f { fill: var(--shoe-f); }
+.exercise-anim .shoe-b { fill: var(--shoe-b); }
 .exercise-anim .floor {
   stroke: var(--border);
   stroke-width: 3;
   stroke-linecap: round;
 }
-.exercise-anim .dumbbell-bar { stroke: var(--accent2); stroke-width: 3; }
-.exercise-anim .dumbbell-weight { fill: var(--accent2); }
+.exercise-anim .dumbbell-bar { stroke: #d99a26; stroke-width: 3; }
+.exercise-anim .dumbbell-weight { fill: #fbbf24; }
 .exercise-anim .prop-band {
   stroke: var(--success);
   stroke-width: 3;
   stroke-linecap: round;
   stroke-dasharray: 2 5;
 }
-.exercise-anim .prop-wall { stroke: var(--border); stroke-width: 5; }
+.exercise-anim .prop-wall { stroke: #454d84; stroke-width: 5; }
 
 /* ---------------- Responsive ---------------- */
 @media (max-width: 420px) {

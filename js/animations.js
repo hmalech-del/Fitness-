@@ -13,14 +13,19 @@
 
   // Gelenke: head, neck (= Schulter), hip, kneeF/footF (vorderes Bein),
   // kneeB/footB (hinteres Bein), elbowF/handF, elbowB/handB
-  const BONES_BACK = [
-    ['hip', 'kneeB'], ['kneeB', 'footB'],
-    ['neck', 'elbowB'], ['elbowB', 'handB'],
-  ];
-  const BONES_FRONT = [
-    ['head', 'neck'], ['neck', 'hip'],
-    ['hip', 'kneeF'], ['kneeF', 'footF'],
-    ['neck', 'elbowF'], ['elbowF', 'handF'],
+  //
+  // Die Figur wird mit Volumen gezeichnet: Rumpf als breite "Shirt"-Kapsel,
+  // Arme in Hautfarbe, Beine in Hosenfarbe. Hintere Gliedmaßen sind
+  // abgedunkelt, damit Tiefe erkennbar ist. Zeichenreihenfolge = Ebenen:
+  // hintere Gliedmaßen → Rumpf → vorderes Bein → Kopf → vorderer Arm.
+  const LAYERS = [
+    { bones: [['neck', 'elbowB'], ['elbowB', 'handB']], cls: 'arm arm-b', dot: ['handB', 'hand hand-b', 3.2] },
+    { bones: [['hip', 'kneeB'], ['kneeB', 'footB']], cls: 'leg leg-b', dot: ['footB', 'shoe shoe-b', 4.5] },
+    { bones: [['head', 'neck']], cls: 'neck-line' },
+    { bones: [['neck', 'hip']], cls: 'torso' },
+    { bones: [['hip', 'kneeF'], ['kneeF', 'footF']], cls: 'leg leg-f', dot: ['footF', 'shoe shoe-f', 4.5] },
+    { head: true },
+    { bones: [['neck', 'elbowF'], ['elbowF', 'handF']], cls: 'arm arm-f', dot: ['handF', 'hand hand-f', 3.2] },
   ];
 
   // ------------------------------------------------------------------
@@ -710,6 +715,17 @@
     return line;
   }
 
+  function animatedCircle(poses, joint, r, dur, cls) {
+    const circle = el('circle', {
+      cx: poses[0][joint][0], cy: poses[0][joint][1], r, class: cls,
+    });
+    if (poses.length > 1) {
+      circle.appendChild(smil('cx', loopValues(poses, joint, 0), dur));
+      circle.appendChild(smil('cy', loopValues(poses, joint, 1), dur));
+    }
+    return circle;
+  }
+
   function resolvePoint(pose, ref) {
     return Array.isArray(ref) ? ref : pose[ref];
   }
@@ -788,23 +804,23 @@
     // Boden
     svg.appendChild(el('line', { x1: 12, y1: 182, x2: 208, y2: 182, class: 'floor' }));
 
-    // Props (hinter der Figur gezeichnete Bänder/Wände zuerst)
+    // Props (hinter der Figur gezeichnete Bänder/Wände/Stühle zuerst)
     const props = (anim.props || []).concat(extraProps || []);
     props.filter((pr) => pr.type !== 'dumbbell')
       .forEach((pr) => buildProp(pr, poses, dur, svg));
 
-    // Hintere Gliedmaßen (heller)
-    BONES_BACK.forEach(([a, b]) => svg.appendChild(animatedLine(poses, a, b, dur, 'limb limb-back')));
-    // Vordere Gliedmaßen + Rumpf
-    BONES_FRONT.forEach(([a, b]) => svg.appendChild(animatedLine(poses, a, b, dur, 'limb')));
-
-    // Kopf
-    const head = el('circle', { cx: poses[0].head[0], cy: poses[0].head[1], r: 9, class: 'head' });
-    if (poses.length > 1) {
-      head.appendChild(smil('cx', loopValues(poses, 'head', 0), dur));
-      head.appendChild(smil('cy', loopValues(poses, 'head', 1), dur));
-    }
-    svg.appendChild(head);
+    // Figur ebenenweise aufbauen (hinten → vorn)
+    LAYERS.forEach((layer) => {
+      if (layer.head) {
+        svg.appendChild(animatedCircle(poses, 'head', 9, dur, 'head'));
+        return;
+      }
+      layer.bones.forEach(([a, b]) => svg.appendChild(animatedLine(poses, a, b, dur, layer.cls)));
+      if (layer.dot) {
+        const [joint, cls, r] = layer.dot;
+        svg.appendChild(animatedCircle(poses, joint, r, dur, cls));
+      }
+    });
 
     // Hanteln über der Figur
     props.filter((pr) => pr.type === 'dumbbell')
