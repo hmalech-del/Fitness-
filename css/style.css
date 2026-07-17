@@ -1,20 +1,23 @@
 /* =====================================================================
  * FitPlan – Styles
+ * Farbwelt abgestimmt auf das Titelbild: warmes Creme, Salbei- und
+ * Mattengrün, Holz-/Terrakotta-Akzente.
  * ===================================================================== */
 
 :root {
-  --bg: #0f1220;
-  --bg-elev: #181c30;
-  --bg-elev2: #1f2440;
-  --border: #2c3255;
-  --text: #eef0fb;
-  --text-muted: #9aa1c4;
-  --accent: #7c5cff;
-  --accent2: #22d3ee;
-  --gradient: linear-gradient(135deg, #7c5cff 0%, #22d3ee 100%);
-  --success: #34d399;
+  --bg: #f4efe6;
+  --bg-elev: #fdfbf6;
+  --bg-elev2: #ece5d5;
+  --border: #ddd3c0;
+  --text: #2e372f;
+  --text-muted: #6f7768;
+  --accent: #5f7d64;    /* Salbeigrün */
+  --accent2: #3f5d52;   /* Mattengrün */
+  --terracotta: #c26d4f;
+  --gradient: linear-gradient(135deg, #6f8f74 0%, #3f5d52 100%);
+  --success: #4d7a58;
   --radius: 16px;
-  --shadow: 0 8px 30px rgba(0, 0, 0, .35);
+  --shadow: 0 10px 28px rgba(72, 82, 62, .16);
 }
 
 * { box-sizing: border-box; }
@@ -29,7 +32,20 @@ html, body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Dezenter App-Hintergrund aus dem Titelbild */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: url("../assets/hero.jpg") center / cover no-repeat;
+  opacity: .07;
+  pointer-events: none;
+  z-index: 0;
+}
+
 #app {
+  position: relative;
+  z-index: 1;
   max-width: 640px;
   margin: 0 auto;
   padding: 16px 16px 48px;
@@ -61,13 +77,13 @@ h4 { margin: 0 0 2px; font-size: 1.02rem; }
 
 .btn-primary {
   background: var(--gradient);
-  color: #fff;
-  box-shadow: 0 6px 20px rgba(124, 92, 255, .35);
+  color: #fdfbf6;
+  box-shadow: 0 6px 18px rgba(63, 93, 82, .32);
 }
 .btn-lg { width: 100%; padding: 16px; font-size: 1.08rem; }
 .btn-sm { padding: 8px 12px; font-size: .85rem; }
 .btn-ghost {
-  background: transparent;
+  background: var(--bg-elev);
   border: 1px solid var(--border);
   color: var(--text-muted);
 }
@@ -83,15 +99,29 @@ h4 { margin: 0 0 2px; font-size: 1.02rem; }
   cursor: pointer;
   flex-shrink: 0;
 }
+.btn-icon.off { opacity: .35; }
 
 /* ---------------- Hero / Welcome ---------------- */
 .hero {
   text-align: center;
-  padding: 48px 8px 24px;
+  padding: 24px 8px 24px;
   display: flex;
   flex-direction: column;
   gap: 14px;
   align-items: center;
+}
+.hero-image {
+  width: 100%;
+  max-width: 480px;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+}
+.hero-image img {
+  display: block;
+  width: 100%;
+  height: auto;
 }
 .hero-badge {
   font-size: 3.2rem;
@@ -165,7 +195,7 @@ h4 { margin: 0 0 2px; font-size: 1.02rem; }
   left: 0;
   right: 0;
   padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
-  background: linear-gradient(transparent, var(--bg) 30%);
+  background: linear-gradient(rgba(244, 239, 230, 0), var(--bg) 30%);
   max-width: 640px;
   margin: 0 auto;
 }
@@ -197,10 +227,10 @@ h4 { margin: 0 0 2px; font-size: 1.02rem; }
   cursor: pointer;
   transition: border-color .15s ease, background .15s ease;
 }
-.option-card:hover { border-color: #454d84; }
+.option-card:hover { border-color: #b9c4ae; }
 .option-card.selected {
   border-color: var(--accent);
-  background: rgba(124, 92, 255, .12);
+  background: rgba(95, 125, 100, .12);
 }
 .option-emoji { grid-area: emoji; font-size: 1.8rem; }
 .option-label { grid-area: label; font-weight: 700; }
@@ -219,8 +249,9 @@ h4 { margin: 0 0 2px; font-size: 1.02rem; }
 }
 .chip.selected {
   border-color: var(--accent);
-  background: rgba(124, 92, 255, .15);
+  background: rgba(95, 125, 100, .15);
 }
+.chip-add { border-style: dashed; color: var(--text-muted); }
 
 .age-row { display: flex; align-items: center; gap: 16px; }
 .age-value {
@@ -264,7 +295,6 @@ input[type="range"] {
   gap: 8px;
   margin-bottom: 16px;
 }
-.chip-add { border-style: dashed; color: var(--text-muted); }
 
 .quick-section { margin-bottom: 6px; }
 .quick-row .chip { font-size: .9rem; }
@@ -274,8 +304,6 @@ input[type="range"] {
   color: var(--success);
   margin-top: 2px;
 }
-
-.btn-icon.off { opacity: .35; }
 
 .plan-stats {
   display: grid;
@@ -292,7 +320,7 @@ input[type="range"] {
   display: flex;
   flex-direction: column;
 }
-.stat strong { font-size: 1.4rem; }
+.stat strong { font-size: 1.4rem; color: var(--accent2); }
 .stat span { font-size: .75rem; color: var(--text-muted); }
 
 .plan-days { display: flex; flex-direction: column; gap: 10px; }
@@ -361,7 +389,7 @@ input[type="range"] {
   font-weight: 700;
   padding: 3px 9px;
   border-radius: 999px;
-  background: rgba(34, 211, 238, .12);
+  background: rgba(63, 93, 82, .12);
   color: var(--accent2);
 }
 
@@ -371,7 +399,7 @@ input[type="range"] {
   left: 0;
   right: 0;
   padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
-  background: linear-gradient(transparent, var(--bg) 30%);
+  background: linear-gradient(rgba(244, 239, 230, 0), var(--bg) 30%);
   max-width: 640px;
   margin: 0 auto;
 }
@@ -399,7 +427,7 @@ input[type="range"] {
   letter-spacing: .1em;
   font-size: .78rem;
   font-weight: 700;
-  color: var(--accent2);
+  color: var(--accent);
 }
 .player-title { margin: 0; font-size: 1.6rem; }
 .player-anim {
@@ -408,6 +436,7 @@ input[type="range"] {
   border: 1px solid var(--border);
   border-radius: 20px;
   overflow: hidden;
+  box-shadow: var(--shadow);
 }
 .player-target { margin: 0; font-weight: 700; font-size: 1.15rem; }
 .player-desc {
@@ -436,13 +465,13 @@ input[type="range"] {
   width: 100%;
   height: auto;
   /* Figuren-Farben: Haut, Shirt, Hose – hintere Gliedmaßen abgedunkelt */
-  --skin-f: #eec39a;
-  --skin-b: #bd9066;
-  --shirt: #8f7bff;
-  --pants-f: #56c2dd;
-  --pants-b: #35899e;
-  --shoe-f: #f4f6ff;
-  --shoe-b: #b7bdd6;
+  --skin-f: #e5b085;
+  --skin-b: #bd8a5e;
+  --shirt: #5f7d64;
+  --pants-f: #4d5049;
+  --pants-b: #75786e;
+  --shoe-f: #c26d4f;
+  --shoe-b: #d9a08b;
 }
 .exercise-anim line { stroke-linecap: round; fill: none; }
 .exercise-anim .torso { stroke: var(--shirt); stroke-width: 14; }
@@ -459,19 +488,19 @@ input[type="range"] {
 .exercise-anim .shoe-f { fill: var(--shoe-f); }
 .exercise-anim .shoe-b { fill: var(--shoe-b); }
 .exercise-anim .floor {
-  stroke: var(--border);
+  stroke: #cfc4ac;
   stroke-width: 3;
   stroke-linecap: round;
 }
-.exercise-anim .dumbbell-bar { stroke: #d99a26; stroke-width: 3; }
-.exercise-anim .dumbbell-weight { fill: #fbbf24; }
+.exercise-anim .dumbbell-bar { stroke: #4b5563; stroke-width: 3; }
+.exercise-anim .dumbbell-weight { fill: #6b7280; }
 .exercise-anim .prop-band {
-  stroke: var(--success);
+  stroke: var(--terracotta);
   stroke-width: 3;
   stroke-linecap: round;
   stroke-dasharray: 2 5;
 }
-.exercise-anim .prop-wall { stroke: #454d84; stroke-width: 5; }
+.exercise-anim .prop-wall { stroke: #b9ad94; stroke-width: 5; }
 
 /* ---------------- Responsive ---------------- */
 @media (max-width: 420px) {
