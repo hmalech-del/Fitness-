@@ -725,6 +725,20 @@
   state.speakDescOn = loadJSON(STORAGE_SPEAKDESC);
   if (state.speakDescOn === null) state.speakDescOn = true;
 
+  // Splash-Screen: bei jedem Start kurz zeigen, per Tipp überspringbar
+  const splash = document.getElementById('splash');
+  if (splash) {
+    let dismissed = false;
+    const dismiss = () => {
+      if (dismissed) return;
+      dismissed = true;
+      splash.classList.add('hide');
+      setTimeout(() => splash.remove(), 600);
+    };
+    splash.addEventListener('click', dismiss);
+    setTimeout(dismiss, 1900);
+  }
+
   // Start
   loadPlans();
   if (state.plans.length) {
