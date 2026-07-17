@@ -707,50 +707,74 @@
     return node;
   }
 
-  function smil(attr, values, dur) {
-    const n = values.length;
-    const keyTimes = values.map((_, i) => (i / (n - 1)).toFixed(4)).join(';');
-    const keySplines = new Array(n - 1).fill('.42 0 .58 1').join(';');
-    return el('animate', {
+  // Baut aus den Posen-Werten eine SMIL-Spur. Mit useHold verweilt die
+  // Figur kurz in jeder Pose (30 % des Segments) – so sind Anfangs- und
+  // Endposition einer Bewegung deutlich erkennbar. Die Übergänge werden
+  // weich beschleunigt (Spline), Haltephasen bleiben linear.
+  function trackFor(vals, useHold) {
+    const n = vals.length;
+    if (!useHold) {
+      const values = vals.concat([vals[0]]);
+      return {
+        values,
+        keyTimes: values.map((_, i) => (i / n).toFixed(4)),
+        splines: new Array(n).fill('.42 0 .58 1'),
+      };
+    }
+    const seg = 1 / n;
+    const hold = seg * 0.3;
+    const values = [];
+    const keyTimes = [];
+    const splines = [];
+    for (let i = 0; i < n; i++) {
+      values.push(vals[i]); keyTimes.push((i * seg).toFixed(4)); splines.push('0 0 1 1');
+      values.push(vals[i]); keyTimes.push((i * seg + hold).toFixed(4)); splines.push('.42 0 .58 1');
+    }
+    values.push(vals[0]);
+    keyTimes.push('1');
+    return { values, keyTimes, splines };
+  }
+
+  function smilEl(attr, track, dur, isTransform) {
+    const node = el(isTransform ? 'animateTransform' : 'animate', {
       attributeName: attr,
-      values: values.join(';'),
-      keyTimes,
-      keySplines,
+      values: track.values.join(';'),
+      keyTimes: track.keyTimes.join(';'),
+      keySplines: track.splines.join(';'),
       calcMode: 'spline',
       dur: dur + 's',
       repeatCount: 'indefinite',
     });
+    if (isTransform) node.setAttribute('type', 'translate');
+    return node;
   }
 
-  // Posen-Schleife: letzte Pose = erste Pose für nahtloses Looping
-  function loopValues(poses, joint, idx) {
-    const vals = poses.map((pose) => pose[joint][idx]);
-    vals.push(poses[0][joint][idx]);
-    return vals;
+  function jointVals(poses, joint, idx) {
+    return poses.map((pose) => pose[joint][idx]);
   }
 
-  function animatedLine(poses, jointA, jointB, dur, cls) {
+  function animatedLine(poses, jointA, jointB, dur, cls, useHold) {
     const line = el('line', {
       x1: poses[0][jointA][0], y1: poses[0][jointA][1],
       x2: poses[0][jointB][0], y2: poses[0][jointB][1],
       class: cls,
     });
     if (poses.length > 1) {
-      line.appendChild(smil('x1', loopValues(poses, jointA, 0), dur));
-      line.appendChild(smil('y1', loopValues(poses, jointA, 1), dur));
-      line.appendChild(smil('x2', loopValues(poses, jointB, 0), dur));
-      line.appendChild(smil('y2', loopValues(poses, jointB, 1), dur));
+      line.appendChild(smilEl('x1', trackFor(jointVals(poses, jointA, 0), useHold), dur));
+      line.appendChild(smilEl('y1', trackFor(jointVals(poses, jointA, 1), useHold), dur));
+      line.appendChild(smilEl('x2', trackFor(jointVals(poses, jointB, 0), useHold), dur));
+      line.appendChild(smilEl('y2', trackFor(jointVals(poses, jointB, 1), useHold), dur));
     }
     return line;
   }
 
-  function animatedCircle(poses, joint, r, dur, cls) {
+  function animatedCircle(poses, joint, r, dur, cls, useHold) {
     const circle = el('circle', {
       cx: poses[0][joint][0], cy: poses[0][joint][1], r, class: cls,
     });
     if (poses.length > 1) {
-      circle.appendChild(smil('cx', loopValues(poses, joint, 0), dur));
-      circle.appendChild(smil('cy', loopValues(poses, joint, 1), dur));
+      circle.appendChild(smilEl('cx', trackFor(jointVals(poses, joint, 0), useHold), dur));
+      circle.appendChild(smilEl('cy', trackFor(jointVals(poses, joint, 1), useHold), dur));
     }
     return circle;
   }
@@ -759,7 +783,7 @@
     return Array.isArray(ref) ? ref : pose[ref];
   }
 
-  function buildProp(prop, poses, dur, svg) {
+  function buildProp(prop, poses, dur, svg, useHold) {
     if (prop.type === 'dumbbell') {
       const g = el('g', { class: 'prop-dumbbell' });
       g.appendChild(el('line', { x1: -8, y1: 0, x2: 8, y2: 0, class: 'dumbbell-bar' }));
@@ -769,18 +793,7 @@
       g.setAttribute('transform', `translate(${start[0]},${start[1]})`);
       if (poses.length > 1) {
         const vals = poses.map((pose) => pose[prop.joint].join(','));
-        vals.push(poses[0][prop.joint].join(','));
-        const n = vals.length;
-        g.appendChild(el('animateTransform', {
-          attributeName: 'transform',
-          type: 'translate',
-          values: vals.join(';'),
-          keyTimes: vals.map((_, i) => (i / (n - 1)).toFixed(4)).join(';'),
-          keySplines: new Array(n - 1).fill('.42 0 .58 1').join(';'),
-          calcMode: 'spline',
-          dur: dur + 's',
-          repeatCount: 'indefinite',
-        }));
+        g.appendChild(smilEl('transform', trackFor(vals, useHold), dur, true));
       }
       svg.appendChild(g);
     } else if (prop.type === 'band') {
@@ -791,13 +804,11 @@
       });
       if (poses.length > 1) {
         const av = poses.map((pose) => resolvePoint(pose, prop.from));
-        av.push(av[0]);
         const bv = poses.map((pose) => resolvePoint(pose, prop.to));
-        bv.push(bv[0]);
-        line.appendChild(smilFromPairs('x1', av.map((v) => v[0]), dur));
-        line.appendChild(smilFromPairs('y1', av.map((v) => v[1]), dur));
-        line.appendChild(smilFromPairs('x2', bv.map((v) => v[0]), dur));
-        line.appendChild(smilFromPairs('y2', bv.map((v) => v[1]), dur));
+        line.appendChild(smilEl('x1', trackFor(av.map((v) => v[0]), useHold), dur));
+        line.appendChild(smilEl('y1', trackFor(av.map((v) => v[1]), useHold), dur));
+        line.appendChild(smilEl('x2', trackFor(bv.map((v) => v[0]), useHold), dur));
+        line.appendChild(smilEl('y2', trackFor(bv.map((v) => v[1]), useHold), dur));
       }
       svg.appendChild(line);
     } else if (prop.type === 'wall') {
@@ -811,8 +822,49 @@
     }
   }
 
-  function smilFromPairs(attr, values, dur) {
-    return smil(attr, values, dur);
+  // Zoomt die Ansicht automatisch auf die Figur samt Requisiten, damit
+  // sie den Kasten füllt (statt klein in der 220×200-Fläche zu stehen).
+  function computeViewBox(poses, props) {
+    let minX = 1e9; let minY = 1e9; let maxX = -1e9; let maxY = -1e9;
+    const add = (x, y, r) => {
+      minX = Math.min(minX, x - r); maxX = Math.max(maxX, x + r);
+      minY = Math.min(minY, y - r); maxY = Math.max(maxY, y + r);
+    };
+    poses.forEach((pose) => {
+      for (const j in pose) add(pose[j][0], pose[j][1], j === 'head' ? 11 : 5);
+    });
+    props.forEach((pr) => {
+      if (pr.type === 'dumbbell') {
+        poses.forEach((pose) => add(pose[pr.joint][0], pose[pr.joint][1], 13));
+      } else if (pr.type === 'band') {
+        [pr.from, pr.to].forEach((ref) => {
+          if (Array.isArray(ref)) add(ref[0], ref[1], 5);
+          else poses.forEach((pose) => add(pose[ref][0], pose[ref][1], 5));
+        });
+      } else if (pr.type === 'wall') {
+        add(pr.x, 60, 5); add(pr.x, 182, 5);
+      } else if (pr.type === 'chair') {
+        add(116, 140, 5); add(152, 182, 5);
+      }
+    });
+    // Bodenlinie zeigen, wenn die Figur am Boden agiert
+    if (maxY > 150) maxY = Math.max(maxY, 186);
+    minX -= 10; maxX += 10; minY -= 10; maxY += 8;
+
+    // Auf das feste Seitenverhältnis 220:200 aufweiten, damit alle
+    // Vorschau-Kästen gleich proportioniert bleiben.
+    const ar = 220 / 200;
+    let w = maxX - minX;
+    let h = maxY - minY;
+    if (w / h > ar) {
+      minY -= (w / ar - h); // nach oben erweitern, Boden bleibt unten
+      h = w / ar;
+    } else {
+      const dx = (h * ar - w) / 2;
+      minX -= dx; maxX += dx;
+      w = h * ar;
+    }
+    return `${minX.toFixed(1)} ${minY.toFixed(1)} ${w.toFixed(1)} ${h.toFixed(1)}`;
   }
 
   /**
@@ -823,37 +875,40 @@
   function createExerciseAnimation(animId, extraProps) {
     const anim = ANIMS[animId] || ANIMS.squat;
     const { poses, dur } = anim;
+    const props = (anim.props || []).concat(extraProps || []);
+    // Halte-Momente nur bei langsamen Übungen – schnelle Cardio-Bewegungen
+    // (High Knees, Hampelmänner …) laufen flüssig durch.
+    const useHold = poses.length > 1 && dur >= 1.6;
 
     const svg = el('svg', {
-      viewBox: '0 0 220 200',
+      viewBox: computeViewBox(poses, props),
       class: 'exercise-anim',
       'aria-hidden': 'true',
     });
 
     // Boden
-    svg.appendChild(el('line', { x1: 12, y1: 182, x2: 208, y2: 182, class: 'floor' }));
+    svg.appendChild(el('line', { x1: -40, y1: 182, x2: 260, y2: 182, class: 'floor' }));
 
     // Props (hinter der Figur gezeichnete Bänder/Wände/Stühle zuerst)
-    const props = (anim.props || []).concat(extraProps || []);
     props.filter((pr) => pr.type !== 'dumbbell')
-      .forEach((pr) => buildProp(pr, poses, dur, svg));
+      .forEach((pr) => buildProp(pr, poses, dur, svg, useHold));
 
     // Figur ebenenweise aufbauen (hinten → vorn)
     LAYERS.forEach((layer) => {
       if (layer.head) {
-        svg.appendChild(animatedCircle(poses, 'head', 9, dur, 'head'));
+        svg.appendChild(animatedCircle(poses, 'head', 9, dur, 'head', useHold));
         return;
       }
-      layer.bones.forEach(([a, b]) => svg.appendChild(animatedLine(poses, a, b, dur, layer.cls)));
+      layer.bones.forEach(([a, b]) => svg.appendChild(animatedLine(poses, a, b, dur, layer.cls, useHold)));
       if (layer.dot) {
         const [joint, cls, r] = layer.dot;
-        svg.appendChild(animatedCircle(poses, joint, r, dur, cls));
+        svg.appendChild(animatedCircle(poses, joint, r, dur, cls, useHold));
       }
     });
 
     // Hanteln über der Figur
     props.filter((pr) => pr.type === 'dumbbell')
-      .forEach((pr) => buildProp(pr, poses, dur, svg));
+      .forEach((pr) => buildProp(pr, poses, dur, svg, useHold));
 
     return svg;
   }
