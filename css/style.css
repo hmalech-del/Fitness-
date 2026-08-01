@@ -507,6 +507,8 @@ input[type="range"] {
   color: var(--text-muted);
 }
 .player-work .btn, .player-rest .btn { margin-top: 10px; min-width: 220px; }
+.rest-actions { display: flex; gap: 10px; }
+.rest-actions .btn { min-width: 0; flex: 1; white-space: nowrap; }
 
 .rest-timer {
   font-size: 4.5rem;

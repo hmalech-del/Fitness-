@@ -26,7 +26,7 @@
   // Trainingsparameter je Ziel: Sätze, Wiederholungen, Pause,
   // geschätzte Arbeitszeit pro Satz (für die Zeitplanung)
   const GOAL_PARAMS = {
-    muskelaufbau: { sets: 3, reps: '8–12', restSec: 75, workSec: 40 },
+    muskelaufbau: { sets: 3, reps: '8–12', restSec: 60, workSec: 40 },
     abnehmen: { sets: 3, reps: '12–15', restSec: 30, workSec: 45 },
     ausdauer: { sets: 3, reps: '15–20', restSec: 25, workSec: 45 },
     beweglichkeit: { sets: 2, reps: null, restSec: 15, workSec: 35 },

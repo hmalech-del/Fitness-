@@ -88,6 +88,16 @@
   ];
   const CURL_HOLDS = [true, false, true, false];
 
+  // Seitheben (Kurzhantel- und Band-Variante geteilt): 45°-Zwischenpose,
+  // damit die Arme sichtbar seitlich um die Schulter kreisen.
+  const LATERAL_POSES = [
+    p(STAND_FRONT, { elbowF: [110, 82], handF: [113, 104], elbowB: [90, 82], handB: [87, 104] }),
+    p(STAND_FRONT, { elbowF: [118, 76], handF: [134, 92], elbowB: [82, 76], handB: [66, 92] }),
+    p(STAND_FRONT, { elbowF: [125, 60], handF: [147, 58], elbowB: [75, 60], handB: [53, 58] }),
+    p(STAND_FRONT, { elbowF: [118, 76], handF: [134, 92], elbowB: [82, 76], handB: [66, 92] }),
+  ];
+  const LATERAL_HOLDS = [true, false, true, false];
+
   // ------------------------------------------------------------------
   // Animationen: { dur (s), poses [...], props [...] }
   // Prop-Typen: dumbbell (joint), band (from/to: Gelenk oder [x,y])
@@ -436,17 +446,9 @@
     },
 
     lateralraise: {
-      dur: 2.4,
-      poses: [
-        p(STAND_FRONT, {
-          elbowF: [110, 82], handF: [113, 104],
-          elbowB: [90, 82], handB: [87, 104],
-        }),
-        p(STAND_FRONT, {
-          elbowF: [125, 60], handF: [147, 58],
-          elbowB: [75, 60], handB: [53, 58],
-        }),
-      ],
+      dur: 2.6,
+      poses: LATERAL_POSES,
+      holdMask: LATERAL_HOLDS,
       props: [{ type: 'dumbbell', joint: 'handF' }, { type: 'dumbbell', joint: 'handB' }],
     },
 
@@ -668,17 +670,9 @@
     },
 
     bandlateral: {
-      dur: 2.4,
-      poses: [
-        p(STAND_FRONT, {
-          elbowF: [110, 82], handF: [113, 104],
-          elbowB: [90, 82], handB: [87, 104],
-        }),
-        p(STAND_FRONT, {
-          elbowF: [125, 60], handF: [147, 58],
-          elbowB: [75, 60], handB: [53, 58],
-        }),
-      ],
+      dur: 2.6,
+      poses: LATERAL_POSES,
+      holdMask: LATERAL_HOLDS,
       props: [
         { type: 'band', from: 'handF', to: 'footF' },
         { type: 'band', from: 'handB', to: 'footB' },
@@ -686,9 +680,12 @@
     },
 
     forwardfold: {
-      dur: 4,
+      dur: 5,
+      // Über die Hüftbeuge (Durchgangspose) abrollen, unten kurz halten
+      // und sanft nachfedern, dann über die Hüftbeuge wieder aufrichten.
       poses: [
         STAND,
+        RDL_HINGE,
         {
           head: [107, 172], neck: [105, 160], hip: [96, 116],
           kneeF: [102, 148], footF: [104, 182], kneeB: [97, 148], footB: [95, 182],
@@ -704,7 +701,9 @@
           kneeF: [102, 148], footF: [104, 182], kneeB: [97, 148], footB: [95, 182],
           elbowF: [107, 172], handF: [106, 180], elbowB: [103, 170], handB: [102, 178],
         },
+        RDL_HINGE,
       ],
+      holdMask: [true, false, true, false, false, false],
     },
 
     quadstretch: {
@@ -755,7 +754,11 @@
         t += holdFrac;
         values.push(vals[i]); keyTimes.push(t.toFixed(4));
       }
-      splines.push('.42 0 .58 1');
+      // Nur an gehaltenen Posen an- bzw. abbremsen – durch fließende
+      // Zwischenposen läuft die Bewegung mit konstantem Tempo, sonst
+      // ruckelt sie an jedem Keyframe.
+      const nextHeld = held[(i + 1) % n];
+      splines.push((held[i] ? '.42 0' : '0 0') + ' ' + (nextHeld ? '.58 1' : '1 1'));
       t += transFrac;
     }
     values.push(vals[0]);

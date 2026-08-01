@@ -564,8 +564,9 @@
 
   // Countdown auf Uhrzeit-Basis: läuft auch nach kurzem App-Wechsel korrekt
   // weiter (setInterval wird im Hintergrund gedrosselt).
+  // Rückgabe: extend(sec) verlängert den laufenden Countdown.
   function startCountdown(w, seconds, displaySel, onDone) {
-    const endAt = Date.now() + seconds * 1000;
+    let endAt = Date.now() + seconds * 1000;
     let last = seconds;
     w.timer = setInterval(() => {
       const remaining = Math.max(0, Math.ceil((endAt - Date.now()) / 1000));
@@ -576,6 +577,12 @@
       if (remaining > 0 && remaining <= 3) FitSound.tick();
       if (remaining <= 0) onDone();
     }, 250);
+    return {
+      extend(sec) {
+        endAt += sec * 1000;
+        last = -1; // Anzeige beim nächsten Tick sofort aktualisieren
+      },
+    };
   }
 
   function updateAudioButtons() {
@@ -632,11 +639,15 @@
           <p class="player-kicker">Pause</p>
           <div class="rest-timer" id="rest-timer">${step.sec}</div>
           <p class="muted">Gleich weiter mit: <strong>${nextEx.name}</strong></p>
-          <button class="btn btn-ghost" id="btn-skip-rest">Pause überspringen ➜</button>
+          <div class="rest-actions">
+            <button class="btn btn-ghost" id="btn-extend-rest">+20 Sek.</button>
+            <button class="btn btn-ghost" id="btn-skip-rest">Überspringen ➜</button>
+          </div>
         </div>`;
       FitSound.speak(`Pause, ${step.sec} Sekunden. Gleich weiter mit: ${nextEx.name}.`);
-      startCountdown(w, step.sec, '#rest-timer', nextStep);
+      const countdown = startCountdown(w, step.sec, '#rest-timer', nextStep);
       $('#btn-skip-rest').addEventListener('click', nextStep);
+      $('#btn-extend-rest').addEventListener('click', () => countdown.extend(20));
       return;
     }
 
