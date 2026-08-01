@@ -77,6 +77,17 @@
     elbowB: [120, 64], handB: [144, 66],
   });
 
+  // Curl-Bewegung (Kurzhantel- und Band-Variante geteilt). Die Zwischenpose
+  // mit waagerechtem Unterarm lässt die Hand sichtbar um den Ellbogen
+  // kreisen, statt auf gerader Linie durch den Körper abzukürzen.
+  const CURL_POSES = [
+    STAND,
+    p(STAND, { elbowF: [103, 84], handF: [127, 85], elbowB: [97, 84], handB: [121, 86] }),
+    p(STAND, { elbowF: [103, 84], handF: [112, 64], elbowB: [97, 84], handB: [106, 66] }),
+    p(STAND, { elbowF: [103, 84], handF: [127, 85], elbowB: [97, 84], handB: [121, 86] }),
+  ];
+  const CURL_HOLDS = [true, false, true, false];
+
   // ------------------------------------------------------------------
   // Animationen: { dur (s), poses [...], props [...] }
   // Prop-Typen: dumbbell (joint), band (from/to: Gelenk oder [x,y])
@@ -168,7 +179,9 @@
     },
 
     jumpingjack: {
-      dur: 1.2,
+      dur: 1.3,
+      // Zwischenpose mit waagerechten Armen (T-Position): Die Arme schwingen
+      // sichtbar seitlich über den Bogen nach oben statt durch den Körper.
       poses: [
         {
           head: [100, 44], neck: [100, 58], hip: [100, 112],
@@ -176,22 +189,27 @@
           elbowF: [112, 82], handF: [116, 106], elbowB: [88, 82], handB: [84, 106],
         },
         {
+          head: [100, 42], neck: [100, 56], hip: [100, 110],
+          kneeF: [108, 144], footF: [114, 179], kneeB: [92, 144], footB: [86, 179],
+          elbowF: [126, 56], handF: [150, 57], elbowB: [74, 56], handB: [50, 57],
+        },
+        {
           head: [100, 40], neck: [100, 54], hip: [100, 108],
           kneeF: [112, 144], footF: [124, 180], kneeB: [88, 144], footB: [76, 180],
           elbowF: [116, 44], handF: [108, 22], elbowB: [84, 44], handB: [92, 22],
+        },
+        {
+          head: [100, 42], neck: [100, 56], hip: [100, 110],
+          kneeF: [108, 144], footF: [114, 179], kneeB: [92, 144], footB: [86, 179],
+          elbowF: [126, 56], handF: [150, 57], elbowB: [74, 56], handB: [50, 57],
         },
       ],
     },
 
     curl: {
-      dur: 2,
-      poses: [
-        STAND,
-        p(STAND, {
-          elbowF: [103, 84], handF: [112, 64],
-          elbowB: [97, 84], handB: [106, 66],
-        }),
-      ],
+      dur: 2.4,
+      poses: CURL_POSES,
+      holdMask: CURL_HOLDS,
       props: [{ type: 'dumbbell', joint: 'handF' }, { type: 'dumbbell', joint: 'handB' }],
     },
 
@@ -296,19 +314,32 @@
     },
 
     kickback: {
-      dur: 2,
+      dur: 2.4,
+      // Oberarm bleibt waagerecht fixiert, der Unterarm pendelt sichtbar um
+      // den Ellbogen: senkrecht hängend → 45° → gestreckt nach hinten.
       poses: [
         {
           head: [153, 78], neck: [142, 84], hip: [100, 118],
           kneeF: [103, 149], footF: [104, 182], kneeB: [98, 149], footB: [95, 182],
-          elbowF: [122, 100], handF: [124, 124], elbowB: [118, 98], handB: [120, 122],
+          elbowF: [118, 88], handF: [120, 112], elbowB: [114, 86], handB: [116, 110],
         },
         {
           head: [153, 78], neck: [142, 84], hip: [100, 118],
           kneeF: [103, 149], footF: [104, 182], kneeB: [98, 149], footB: [95, 182],
-          elbowF: [122, 100], handF: [98, 102], elbowB: [118, 98], handB: [94, 100],
+          elbowF: [118, 88], handF: [102, 105], elbowB: [114, 86], handB: [98, 103],
+        },
+        {
+          head: [153, 78], neck: [142, 84], hip: [100, 118],
+          kneeF: [103, 149], footF: [104, 182], kneeB: [98, 149], footB: [95, 182],
+          elbowF: [118, 88], handF: [94, 90], elbowB: [114, 86], handB: [90, 88],
+        },
+        {
+          head: [153, 78], neck: [142, 84], hip: [100, 118],
+          kneeF: [103, 149], footF: [104, 182], kneeB: [98, 149], footB: [95, 182],
+          elbowF: [118, 88], handF: [102, 105], elbowB: [114, 86], handB: [98, 103],
         },
       ],
+      holdMask: [true, false, true, false],
       props: [{ type: 'dumbbell', joint: 'handF' }, { type: 'dumbbell', joint: 'handB' }],
     },
 
@@ -612,14 +643,9 @@
     },
 
     bandcurl: {
-      dur: 2,
-      poses: [
-        STAND,
-        p(STAND, {
-          elbowF: [103, 84], handF: [112, 64],
-          elbowB: [97, 84], handB: [106, 66],
-        }),
-      ],
+      dur: 2.4,
+      poses: CURL_POSES,
+      holdMask: CURL_HOLDS,
       props: [{ type: 'band', from: 'handF', to: 'footF' }],
     },
 
@@ -707,28 +733,30 @@
     return node;
   }
 
-  // Baut aus den Posen-Werten eine SMIL-Spur. Mit useHold verweilt die
-  // Figur kurz in jeder Pose (30 % des Segments) – so sind Anfangs- und
-  // Endposition einer Bewegung deutlich erkennbar. Die Übergänge werden
-  // weich beschleunigt (Spline), Haltephasen bleiben linear.
-  function trackFor(vals, useHold) {
+  // Baut aus den Posen-Werten eine SMIL-Spur. holdMask markiert Posen, in
+  // denen die Figur kurz verweilt – so sind Anfangs- und Endposition einer
+  // Bewegung deutlich erkennbar. Nicht markierte Posen (z. B. Zwischenposen
+  // auf einem Bewegungsbogen) werden fließend durchlaufen. Übergänge werden
+  // weich beschleunigt (Spline), Haltephasen bleiben statisch.
+  function trackFor(vals, holdMask) {
     const n = vals.length;
-    if (!useHold) {
-      const values = vals.concat([vals[0]]);
-      return {
-        values,
-        keyTimes: values.map((_, i) => (i / n).toFixed(4)),
-        splines: new Array(n).fill('.42 0 .58 1'),
-      };
-    }
-    const seg = 1 / n;
-    const hold = seg * 0.3;
+    const held = holdMask || new Array(n).fill(false);
+    const heldCount = held.filter(Boolean).length;
+    const holdFrac = 0.3 / n;
+    const transFrac = (1 - heldCount * holdFrac) / n;
     const values = [];
     const keyTimes = [];
     const splines = [];
+    let t = 0;
     for (let i = 0; i < n; i++) {
-      values.push(vals[i]); keyTimes.push((i * seg).toFixed(4)); splines.push('0 0 1 1');
-      values.push(vals[i]); keyTimes.push((i * seg + hold).toFixed(4)); splines.push('.42 0 .58 1');
+      values.push(vals[i]); keyTimes.push(t.toFixed(4));
+      if (held[i]) {
+        splines.push('0 0 1 1');
+        t += holdFrac;
+        values.push(vals[i]); keyTimes.push(t.toFixed(4));
+      }
+      splines.push('.42 0 .58 1');
+      t += transFrac;
     }
     values.push(vals[0]);
     keyTimes.push('1');
@@ -877,8 +905,10 @@
     const { poses, dur } = anim;
     const props = (anim.props || []).concat(extraProps || []);
     // Halte-Momente nur bei langsamen Übungen – schnelle Cardio-Bewegungen
-    // (High Knees, Hampelmänner …) laufen flüssig durch.
-    const useHold = poses.length > 1 && dur >= 1.6;
+    // (High Knees, Hampelmänner …) laufen flüssig durch. Animationen können
+    // per holdMask selbst festlegen, welche Posen gehalten werden (z. B.
+    // Endposen halten, Zwischenposen auf dem Bewegungsbogen fließend).
+    const useHold = anim.holdMask || poses.map(() => poses.length > 1 && dur >= 1.6);
 
     const svg = el('svg', {
       viewBox: computeViewBox(poses, props),
