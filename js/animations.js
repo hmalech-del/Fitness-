@@ -281,6 +281,48 @@
       ],
     },
 
+    chintuck: {
+      dur: 2.6,
+      // Kopf gleitet waagerecht nach hinten (Doppelkinn), Körper bleibt ruhig
+      poses: [
+        p(STAND, { head: [110, 48] }),
+        p(STAND, { head: [97, 43] }),
+      ],
+    },
+
+    wallangel: {
+      dur: 2.8,
+      // Frontansicht: Arme gleiten von der W-Position in die Y-Position
+      poses: [
+        p(STAND_FRONT, {
+          elbowF: [122, 80], handF: [118, 58],
+          elbowB: [78, 80], handB: [82, 58],
+        }),
+        p(STAND_FRONT, {
+          elbowF: [118, 44], handF: [130, 24],
+          elbowB: [82, 44], handB: [70, 24],
+        }),
+      ],
+    },
+
+    cheststretch: {
+      dur: 3,
+      // Arm hinten an der Wand, Oberkörper dreht sanft von der Wand weg
+      poses: [
+        {
+          head: [101, 44], neck: [100, 58], hip: [100, 112],
+          kneeF: [102, 146], footF: [104, 182], kneeB: [97, 146], footB: [95, 182],
+          elbowF: [82, 64], handF: [66, 70], elbowB: [103, 84], handB: [104, 108],
+        },
+        {
+          head: [104, 45], neck: [103, 59], hip: [101, 112],
+          kneeF: [103, 146], footF: [104, 182], kneeB: [97, 146], footB: [95, 182],
+          elbowF: [83, 65], handF: [66, 70], elbowB: [106, 85], handB: [107, 109],
+        },
+      ],
+      props: [{ type: 'wall', x: 62 }],
+    },
+
     latpulldown: {
       dur: 2.4,
       poses: [

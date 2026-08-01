@@ -87,6 +87,24 @@ const EXERCISES = [
     desc: 'Bauchlage, Arme nach vorn gestreckt. Arme und Beine gleichzeitig anheben, kurz halten, langsam absenken.',
   },
   {
+    id: 'chin_tuck', name: 'Kinn-Retraktion (Chin Tucks)', anim: 'chintuck',
+    equipment: 'none', muscles: ['nacken'], category: 'kraft', level: 1,
+    impact: false, mode: 'reps',
+    desc: 'Aufrecht stehen oder sitzen, Blick geradeaus. Das Kinn waagerecht nach hinten schieben (Doppelkinn machen), 2–3 Sekunden halten, locker lassen. Kräftigt die tiefen Nackenbeuger – die wichtigste Übung gegen eine nach vorn geschobene Kopfhaltung.',
+  },
+  {
+    id: 'wall_angel', name: 'Wand-Engel', anim: 'wallangel',
+    equipment: 'none', muscles: ['schultern', 'ruecken', 'nacken'], category: 'kraft', level: 1,
+    impact: false, mode: 'reps',
+    desc: 'Mit Rücken, Hinterkopf und Armen an eine Wand lehnen, Arme in W-Position. Die Arme langsam an der Wand entlang nach oben in ein Y schieben und wieder zurück – ohne dass Ellbogen oder Handrücken den Kontakt verlieren.',
+  },
+  {
+    id: 'chest_stretch', name: 'Brustöffner an der Wand', anim: 'cheststretch',
+    equipment: 'none', muscles: ['brust', 'schultern'], category: 'mobility', level: 1,
+    impact: false, mode: 'time', holdSec: 30,
+    desc: 'Handfläche seitlich auf Schulterhöhe an eine Wand oder einen Türrahmen legen, Arm gestreckt. Den Oberkörper sanft von der Wand wegdrehen, bis es in der Brust dehnt. Seite wechseln. Öffnet die verkürzte Brustmuskulatur, die die Schultern nach vorn zieht.',
+  },
+  {
     id: 'good_morning', name: 'Good Mornings', anim: 'goodmorning',
     equipment: 'none', muscles: ['ruecken', 'po', 'beine'], category: 'kraft', level: 2,
     impact: false, mode: 'reps',
@@ -368,5 +386,5 @@ const EXERCISE_BY_ID = Object.fromEntries(EXERCISES.map((e) => [e.id, e]));
 const MUSCLE_LABELS = {
   beine: 'Beine', po: 'Po', brust: 'Brust', ruecken: 'Rücken',
   schultern: 'Schultern', arme: 'Arme', core: 'Core',
-  cardio: 'Cardio', ganzkoerper: 'Ganzkörper',
+  cardio: 'Cardio', ganzkoerper: 'Ganzkörper', nacken: 'Nacken',
 };

@@ -119,6 +119,7 @@
           { value: 'ausdauer', emoji: '🏃', label: 'Ausdauer', desc: 'Kondition und Herz-Kreislauf stärken' },
           { value: 'beweglichkeit', emoji: '🧘', label: 'Beweglichkeit', desc: 'Mobilität und Dehnung verbessern' },
           { value: 'ruecken', emoji: '🛡️', label: 'Rückenstärkung', desc: 'Rücken kräftigen, Haltung verbessern' },
+          { value: 'haltung', emoji: '🧍', label: 'Aufrechte Haltung', desc: 'Nacken entlasten, Schultern öffnen, aufrecht werden' },
           { value: 'fitness', emoji: '⚡', label: 'Allgemeine Fitness', desc: 'Rundum fit und gesund bleiben' },
         ], data.goal, 'goal');
       },
