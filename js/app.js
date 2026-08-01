@@ -529,6 +529,24 @@
     return reps.replace('–', ' bis ') + ' Wiederholungen';
   }
 
+  // Display während des Trainings wachhalten (Screen Wake Lock API).
+  // Nicht überall verfügbar – Aufrufe sind abgesichert.
+  let wakeLock = null;
+  async function acquireWakeLock() {
+    try {
+      if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen');
+    } catch { /* z. B. Energiesparmodus – dann eben ohne */ }
+  }
+  function releaseWakeLock() {
+    try {
+      if (wakeLock) { wakeLock.release(); wakeLock = null; }
+    } catch { /* egal */ }
+  }
+  // Nach App-Wechsel geht der Wake Lock verloren – bei Rückkehr neu anfordern
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && state.workout) acquireWakeLock();
+  });
+
   function startWorkout() {
     const day = state.currentDayRef.day;
     state.workout = {
@@ -538,9 +556,26 @@
       timer: null,
     };
     FitSound.unlock(); // Audio braucht eine Nutzer-Interaktion – die ist das hier
+    acquireWakeLock();
     updateAudioButtons();
     renderWorkoutStep();
     show('workout');
+  }
+
+  // Countdown auf Uhrzeit-Basis: läuft auch nach kurzem App-Wechsel korrekt
+  // weiter (setInterval wird im Hintergrund gedrosselt).
+  function startCountdown(w, seconds, displaySel, onDone) {
+    const endAt = Date.now() + seconds * 1000;
+    let last = seconds;
+    w.timer = setInterval(() => {
+      const remaining = Math.max(0, Math.ceil((endAt - Date.now()) / 1000));
+      if (remaining === last) return;
+      last = remaining;
+      const t = $(displaySel);
+      if (t) t.textContent = remaining;
+      if (remaining > 0 && remaining <= 3) FitSound.tick();
+      if (remaining <= 0) onDone();
+    }, 250);
   }
 
   function updateAudioButtons() {
@@ -600,14 +635,7 @@
           <button class="btn btn-ghost" id="btn-skip-rest">Pause überspringen ➜</button>
         </div>`;
       FitSound.speak(`Pause, ${step.sec} Sekunden. Gleich weiter mit: ${nextEx.name}.`);
-      let remaining = step.sec;
-      w.timer = setInterval(() => {
-        remaining--;
-        const t = $('#rest-timer');
-        if (t) t.textContent = remaining;
-        if (remaining > 0 && remaining <= 3) FitSound.tick();
-        if (remaining <= 0) nextStep();
-      }, 1000);
+      startCountdown(w, step.sec, '#rest-timer', nextStep);
       $('#btn-skip-rest').addEventListener('click', nextStep);
       return;
     }
@@ -640,17 +668,10 @@
     FitSound.speak(text);
 
     if (isTimed) {
-      let remaining = step.item.seconds;
-      w.timer = setInterval(() => {
-        remaining--;
-        const t = $('#work-timer');
-        if (t) t.textContent = remaining;
-        if (remaining > 0 && remaining <= 3) FitSound.tick();
-        if (remaining <= 0) {
-          FitSound.finish();
-          nextStep();
-        }
-      }, 1000);
+      startCountdown(w, step.item.seconds, '#work-timer', () => {
+        FitSound.finish();
+        nextStep();
+      });
       $('#btn-skip-work').addEventListener('click', nextStep);
     } else {
       $('#btn-set-done').addEventListener('click', nextStep);
@@ -688,6 +709,7 @@
     $('#done-summary').textContent =
       `${label} abgeschlossen: ${day.blocks.main.length + day.blocks.warmup.length + day.blocks.cooldown.length} Übungen in ${minutes} Minuten. Stark! 💪`;
     state.workout = null;
+    releaseWakeLock();
     FitSound.finish();
     FitSound.speak('Workout geschafft. Stark!');
     show('done');
@@ -697,6 +719,7 @@
     stopTimer();
     FitSound.stop();
     state.workout = null;
+    releaseWakeLock();
     renderDay();
     show('day');
   }
