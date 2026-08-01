@@ -101,10 +101,11 @@
     }
 
     // Zuerst je eine Übung pro gewünschter Muskelgruppe
-    // (bei vorhandenem Equipment bevorzugt die Geräte-Variante)
+    // (bei vorhandenem Equipment bevorzugt die Geräte-Variante –
+    // außer beim Core: Bauchübungen sind klassisch Eigengewicht)
     (preferredMuscles || []).forEach((muscle) => {
       let idx = -1;
-      if (hasEquipment) {
+      if (hasEquipment && muscle !== 'core') {
         idx = candidates.findIndex((ex) => ex.muscles.includes(muscle) && ex.equipment !== 'none');
       }
       if (idx === -1) idx = candidates.findIndex((ex) => ex.muscles.includes(muscle));
@@ -152,7 +153,7 @@
     oberkoerper: {
       name: 'Oberkörper', emoji: '💪',
       filter: (ex) => ex.category === 'kraft' && ex.muscles.some((m) => ['brust', 'ruecken', 'schultern', 'arme', 'core'].includes(m)) && !ex.muscles.includes('beine'),
-      muscles: ['brust', 'ruecken', 'schultern', 'arme'],
+      muscles: ['brust', 'ruecken', 'schultern', 'arme', 'core'],
     },
     unterkoerper: {
       name: 'Unterkörper & Po', emoji: '🦵',

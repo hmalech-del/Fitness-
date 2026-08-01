@@ -438,6 +438,154 @@
       ],
     },
 
+    hollowhold: {
+      dur: 3,
+      // Bananenposition: Schultern und gestreckte Beine knapp über dem
+      // Boden halten, Arme über dem Kopf
+      poses: [
+        {
+          head: [37, 155], neck: [48, 164], hip: [96, 176],
+          kneeF: [124, 168], footF: [151, 160], kneeB: [122, 166], footB: [149, 158],
+          elbowF: [30, 158], handF: [12, 152], elbowB: [28, 156], handB: [10, 150],
+        },
+        {
+          head: [37, 152], neck: [48, 161], hip: [96, 176],
+          kneeF: [124, 165], footF: [151, 155], kneeB: [122, 163], footB: [149, 153],
+          elbowF: [30, 155], handF: [12, 148], elbowB: [28, 153], handB: [10, 146],
+        },
+      ],
+    },
+
+    russiantwist: {
+      dur: 1.6,
+      // V-Sitz, die Hände tippen abwechselnd neben der Hüfte auf –
+      // vorn und hinten als Dreh-Illusion in der Seitenansicht
+      poses: [
+        {
+          head: [78, 114], neck: [84, 126], hip: [100, 162],
+          kneeF: [128, 140], footF: [156, 154], kneeB: [126, 138], footB: [154, 152],
+          elbowF: [108, 138], handF: [128, 152], elbowB: [104, 136], handB: [124, 150],
+        },
+        {
+          head: [78, 114], neck: [84, 126], hip: [100, 162],
+          kneeF: [128, 140], footF: [156, 154], kneeB: [126, 138], footB: [154, 152],
+          elbowF: [96, 148], handF: [86, 164], elbowB: [92, 146], handB: [82, 162],
+        },
+      ],
+      holdMask: [true, true],
+    },
+
+    vup: {
+      dur: 2.6,
+      // Aus der flachen Rückenlage in die V-Position klappen
+      poses: [
+        {
+          head: [30, 167], neck: [42, 172], hip: [96, 176],
+          kneeF: [124, 177], footF: [152, 178], kneeB: [122, 175], footB: [150, 176],
+          elbowF: [20, 170], handF: [2, 168], elbowB: [18, 168], handB: [0, 166],
+        },
+        {
+          head: [56, 126], neck: [66, 136], hip: [96, 174],
+          kneeF: [121, 148], footF: [143, 124], kneeB: [119, 146], footB: [141, 122],
+          elbowF: [88, 120], handF: [110, 106], elbowB: [84, 118], handB: [106, 104],
+        },
+      ],
+    },
+
+    flutterkick: {
+      dur: 0.9,
+      // Rückenlage, gestreckte Beine scheren knapp über dem Boden
+      poses: [
+        {
+          head: [34, 168], neck: [46, 173], hip: [96, 176],
+          kneeF: [118, 160], footF: [140, 146], kneeB: [116, 170], footB: [142, 168],
+          elbowF: [66, 178], handF: [84, 178], elbowB: [64, 176], handB: [82, 176],
+        },
+        {
+          head: [34, 168], neck: [46, 173], hip: [96, 176],
+          kneeF: [116, 172], footF: [142, 170], kneeB: [118, 158], footB: [140, 144],
+          elbowF: [66, 178], handF: [84, 178], elbowB: [64, 176], handB: [82, 176],
+        },
+      ],
+    },
+
+    reversecrunch: {
+      dur: 2.2,
+      // Knie über der Hüfte, dann Knie zur Brust ziehen und Hüfte anheben
+      poses: [
+        {
+          head: [34, 168], neck: [46, 173], hip: [96, 176],
+          kneeF: [100, 150], footF: [118, 158], kneeB: [98, 148], footB: [116, 156],
+          elbowF: [66, 178], handF: [84, 178], elbowB: [64, 176], handB: [82, 176],
+        },
+        {
+          head: [34, 168], neck: [46, 173], hip: [92, 166],
+          kneeF: [76, 142], footF: [98, 148], kneeB: [74, 140], footB: [96, 146],
+          elbowF: [66, 178], handF: [84, 178], elbowB: [64, 176], handB: [82, 176],
+        },
+      ],
+    },
+
+    planktap: {
+      dur: 2.6,
+      // Im hohen Stütz tippen die Hände abwechselnd zur Gegenschulter
+      poses: [
+        PUSHUP_UP,
+        p(PUSHUP_UP, { elbowF: [136, 150], handF: [146, 140] }),
+        PUSHUP_UP,
+        p(PUSHUP_UP, { elbowB: [132, 148], handB: [142, 138] }),
+      ],
+      holdMask: [false, true, false, true],
+    },
+
+    pikepushup: {
+      dur: 2.4,
+      // Umgekehrtes V: Ellbogen beugen, Kopf Richtung Boden senken
+      poses: [
+        {
+          head: [147, 152], neck: [138, 142], hip: [95, 112],
+          kneeF: [70, 146], footF: [45, 178], kneeB: [68, 144], footB: [43, 176],
+          elbowF: [147, 161], handF: [154, 180], elbowB: [143, 159], handB: [150, 178],
+        },
+        {
+          head: [151, 168], neck: [144, 160], hip: [102, 124],
+          kneeF: [72, 150], footF: [45, 178], kneeB: [70, 148], footB: [43, 176],
+          elbowF: [156, 168], handF: [154, 180], elbowB: [152, 166], handB: [150, 178],
+        },
+      ],
+    },
+
+    bulgariansquat: {
+      dur: 2.6,
+      // Ausfallschritt mit hinterem Fuß auf dem Stuhl
+      poses: [
+        {
+          head: [78, 48], neck: [77, 62], hip: [76, 116],
+          kneeF: [72, 148], footF: [70, 182], kneeB: [98, 144], footB: [124, 142],
+          elbowF: [80, 88], handF: [81, 112], elbowB: [74, 88], handB: [75, 112],
+        },
+        {
+          head: [78, 76], neck: [76, 90], hip: [72, 144],
+          kneeF: [86, 156], footF: [70, 182], kneeB: [102, 162], footB: [124, 142],
+          elbowF: [80, 116], handF: [82, 140], elbowB: [74, 116], handB: [76, 140],
+        },
+      ],
+      props: [{ type: 'chair' }],
+    },
+
+    singlelegrdl: {
+      dur: 2.8,
+      // Standwaage: Oberkörper kippt vor, das freie Bein hebt nach hinten
+      poses: [
+        STAND,
+        {
+          head: [158, 100], neck: [146, 102], hip: [98, 116],
+          kneeF: [100, 148], footF: [104, 182], kneeB: [66, 124], footB: [38, 134],
+          elbowF: [142, 126], handF: [143, 148], elbowB: [138, 124], handB: [139, 146],
+        },
+      ],
+    },
+
     sideplank: {
       dur: 3,
       poses: [
