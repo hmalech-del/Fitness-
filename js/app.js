@@ -10,6 +10,13 @@
   const STORAGE_STATS = 'fitplan.stats';
   const STORAGE_SOUND = 'fitplan.sound';
   const STORAGE_SPEAKDESC = 'fitplan.speakdesc';
+  const STORAGE_THEME = 'fitplan.theme';
+
+  // Themes: "studio" (hell, Salbei/Creme) und "neon" (dunkel, Cyberpunk-Gym)
+  const THEMES = {
+    studio: { label: 'Studio', themeColor: '#f4efe6' },
+    neon: { label: 'Neon', themeColor: '#0e1219' },
+  };
 
   const $ = (sel) => document.querySelector(sel);
 
@@ -49,7 +56,21 @@
     workout: null,
     soundOn: true,
     speakDescOn: true,
+    theme: 'studio',
   };
+
+  function applyTheme(theme) {
+    state.theme = THEMES[theme] ? theme : 'studio';
+    if (state.theme === 'studio') delete document.documentElement.dataset.theme;
+    else document.documentElement.dataset.theme = state.theme;
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', THEMES[state.theme].themeColor);
+    saveJSON(STORAGE_THEME, state.theme);
+  }
+
+  function toggleTheme() {
+    applyTheme(state.theme === 'studio' ? 'neon' : 'studio');
+  }
 
   // ------------------------------------------------------------------
   // Pläne: Laden, Speichern, Migration vom alten Einzelplan-Format
@@ -743,6 +764,7 @@
   $('#btn-resume').addEventListener('click', () => { renderPlan(); show('plan'); });
   $('#wizard-next').addEventListener('click', wizardNext);
   $('#wizard-back').addEventListener('click', wizardBack);
+  $('#btn-theme').addEventListener('click', toggleTheme);
   $('#btn-edit-profile').addEventListener('click', () => startWizard('edit'));
   $('#btn-regenerate').addEventListener('click', () => { regeneratePlan(); renderPlan(); });
   $('#btn-delete-plan').addEventListener('click', deletePlan);
@@ -759,6 +781,7 @@
   FitSound.setEnabled(state.soundOn);
   state.speakDescOn = loadJSON(STORAGE_SPEAKDESC);
   if (state.speakDescOn === null) state.speakDescOn = true;
+  applyTheme(loadJSON(STORAGE_THEME) || 'studio');
 
   // Splash-Screen: bei jedem Start kurz zeigen, per Tipp überspringbar
   const splash = document.getElementById('splash');
