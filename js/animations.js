@@ -28,6 +28,13 @@
     { bones: [['neck', 'elbowF'], ['elbowF', 'handF']], cls: 'arm arm-f', dot: ['handF', 'hand hand-f', 3.2] },
   ];
 
+  // Frontansicht: Von vorn betrachtet laufen beide Arme vor dem Rumpf –
+  // sonst verschwindet der hintere Arm hinter dem Oberkörper, sobald die
+  // Hände vor dem Körper zusammenkommen (z. B. Russian Twists).
+  const LAYERS_FRONT = LAYERS
+    .filter((l) => l.cls !== 'arm arm-b')
+    .flatMap((l) => (l.cls === 'arm arm-f' ? [LAYERS[0], l] : [l]));
+
   // ------------------------------------------------------------------
   // Basis-Posen
   // ------------------------------------------------------------------
@@ -454,6 +461,8 @@
           elbowF: [30, 155], handF: [12, 148], elbowB: [28, 153], handB: [10, 146],
         },
       ],
+      // Bananenform: Rücken bleibt gerundet am Boden
+      spine: [8, 9],
     },
 
     russiantwist: {
@@ -462,26 +471,27 @@
       // Seitenansicht bewegen sich die Hände auf den Betrachter zu.
       // Knie angewinkelt, Füße leicht abgehoben, Hände wandern von einer
       // Seite zur anderen, der Kopf dreht mit.
+      armsFront: true,
       poses: [
         {
-          head: [110, 90], neck: [103, 110], hip: [100, 168],
-          kneeF: [114, 138], footF: [122, 162], kneeB: [86, 138], footB: [78, 162],
-          elbowF: [120, 116], handF: [140, 128], elbowB: [113, 132], handB: [137, 133],
+          head: [108, 96], neck: [102, 116], hip: [100, 176],
+          kneeF: [118, 142], footF: [128, 180], kneeB: [82, 142], footB: [72, 180],
+          elbowF: [116, 126], handF: [136, 134], elbowB: [110, 138], handB: [133, 139],
         },
         {
-          head: [100, 88], neck: [100, 108], hip: [100, 168],
-          kneeF: [114, 138], footF: [122, 162], kneeB: [86, 138], footB: [78, 162],
-          elbowF: [112, 122], handF: [106, 142], elbowB: [88, 122], handB: [95, 142],
+          head: [100, 94], neck: [100, 114], hip: [100, 176],
+          kneeF: [118, 142], footF: [128, 180], kneeB: [82, 142], footB: [72, 180],
+          elbowF: [110, 130], handF: [104, 148], elbowB: [90, 130], handB: [97, 148],
         },
         {
-          head: [90, 90], neck: [97, 110], hip: [100, 168],
-          kneeF: [114, 138], footF: [122, 162], kneeB: [86, 138], footB: [78, 162],
-          elbowF: [87, 132], handF: [63, 133], elbowB: [80, 116], handB: [60, 128],
+          head: [92, 96], neck: [98, 116], hip: [100, 176],
+          kneeF: [118, 142], footF: [128, 180], kneeB: [82, 142], footB: [72, 180],
+          elbowF: [90, 138], handF: [67, 139], elbowB: [84, 126], handB: [64, 134],
         },
         {
-          head: [100, 88], neck: [100, 108], hip: [100, 168],
-          kneeF: [114, 138], footF: [122, 162], kneeB: [86, 138], footB: [78, 162],
-          elbowF: [112, 122], handF: [106, 142], elbowB: [88, 122], handB: [95, 142],
+          head: [100, 94], neck: [100, 114], hip: [100, 176],
+          kneeF: [118, 142], footF: [128, 180], kneeB: [82, 142], footB: [72, 180],
+          elbowF: [110, 130], handF: [104, 148], elbowB: [90, 130], handB: [97, 148],
         },
       ],
       holdMask: [true, false, true, false],
@@ -502,6 +512,8 @@
           elbowF: [88, 120], handF: [110, 106], elbowB: [84, 118], handB: [106, 104],
         },
       ],
+      // Der Rumpf rollt beim Zusammenklappen ein
+      spine: [2, 9],
     },
 
     flutterkick: {
@@ -536,6 +548,8 @@
           elbowF: [66, 178], handF: [84, 178], elbowB: [64, 176], handB: [82, 176],
         },
       ],
+      // Becken kippt, unterer Rücken rollt ab
+      spine: [2, 7],
     },
 
     planktap: {
@@ -684,6 +698,8 @@
           elbowF: [62, 142], handF: [52, 140], elbowB: [60, 140], handB: [50, 138],
         },
       ],
+      // Beim Aufrollen rundet sich die Brustwirbelsäule sichtbar
+      spine: [3, 11],
     },
 
     superman: {
@@ -700,6 +716,8 @@
           elbowF: [168, 160], handF: [186, 156], elbowB: [166, 158], handB: [184, 154],
         },
       ],
+      // Beim Anheben streckt sich die Wirbelsäule ins leichte Hohlkreuz
+      spine: [0, -8],
     },
 
     birddog: {
@@ -910,6 +928,8 @@
         RDL_HINGE,
       ],
       holdMask: [true, false, true, false, false, false],
+      // Der Rücken rollt beim Abrollen Wirbel für Wirbel ein
+      spine: [0, -4, -7, -7, -7, -4],
     },
 
     quadstretch: {
@@ -1158,7 +1178,7 @@
       .forEach((pr) => buildProp(pr, poses, dur, svg, useHold));
 
     // Figur ebenenweise aufbauen (hinten → vorn)
-    LAYERS.forEach((layer) => {
+    (anim.armsFront ? LAYERS_FRONT : LAYERS).forEach((layer) => {
       if (layer.head) {
         svg.appendChild(animatedCircle(poses, 'head', 9, dur, 'head', useHold));
         return;
