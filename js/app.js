@@ -84,31 +84,51 @@
     return v.name.replace(/^Microsoft |^Google /, '') + region;
   }
 
+  let showAllVoices = false;
+
   function renderVoicePanel() {
-    const voices = FitSound.getVoices();
+    const german = FitSound.getVoices();
+    const all = FitSound.getAllVoices();
+    const others = all.filter((v) => !german.includes(v));
+    const voices = showAllVoices ? german.concat(others) : german;
     const current = FitSound.getVoice();
     const list = $('#voice-list');
 
-    if (!voices.length) {
-      list.innerHTML = '';
-      $('#voice-hint').textContent = 'Dieses Gerät meldet keine deutschen Stimmen. '
-        + 'Die Ansagen nutzen dann die Systemstimme. Unter Android lassen sich in den '
-        + 'Einstellungen unter „Sprachausgabe" weitere Stimmen nachladen.';
+    const chips = voices.map((v) => `
+      <button class="chip ${v.voiceURI === current || (!current && v.default && german.includes(v)) ? 'selected' : ''}"
+              data-voice="${v.voiceURI}">${voiceLabel(v)}</button>`).join('');
+    const toggle = others.length ? `
+      <button class="chip chip-add" id="btn-all-voices">${showAllVoices
+        ? '− nur deutsche Stimmen' : `＋ ${others.length} weitere Sprachen`}</button>` : '';
+    list.innerHTML = chips + toggle;
+
+    if (!german.length && !all.length) {
+      $('#voice-hint').textContent = 'Dieses Gerät meldet der App noch keine Stimmen. '
+        + 'Tippe einmal auf „Probe hören“ – danach steht die Liste meist bereit.';
+    } else if (!german.length) {
+      $('#voice-hint').textContent = 'Keine deutsche Stimme gefunden. Andere Sprachen sprechen '
+        + 'deutsche Texte nur unsauber aus.';
+    } else if (german.length === 1) {
+      $('#voice-hint').innerHTML = 'Dieses Gerät gibt der App nur eine deutsche Stimme frei. '
+        + '<strong>Auf dem iPhone</strong> stellt Safari Web-Apps nur die Standardstimmen bereit – '
+        + 'Stimmen für „Live-Sprachausgabe“ oder „Gesprochene Inhalte“ bleiben iOS-Apps vorbehalten '
+        + 'und tauchen hier nicht auf. <strong>Auf Android</strong> lassen sich unter Einstellungen → '
+        + 'Sprachausgabe weitere Stimmen laden, die dann hier erscheinen.';
     } else {
-      list.innerHTML = voices.map((v) => `
-        <button class="chip ${v.voiceURI === current || (!current && v.default) ? 'selected' : ''}"
-                data-voice="${v.voiceURI}">${voiceLabel(v)}</button>`).join('');
-      $('#voice-hint').textContent = voices.length === 1
-        ? 'Dieses Gerät bietet nur eine deutsche Stimme an.'
-        : `${voices.length} Stimmen auf diesem Gerät verfügbar.`;
-      list.querySelectorAll('[data-voice]').forEach((chip) => {
-        chip.addEventListener('click', () => {
-          FitSound.setVoice(chip.dataset.voice);
-          saveJSON(STORAGE_VOICE, chip.dataset.voice);
-          renderVoicePanel();
-          FitSound.speak('Kniebeugen. Drei Sätze mit zehn Wiederholungen.');
-        });
+      $('#voice-hint').textContent = `${german.length} deutsche Stimmen auf diesem Gerät verfügbar.`;
+    }
+
+    list.querySelectorAll('[data-voice]').forEach((chip) => {
+      chip.addEventListener('click', () => {
+        FitSound.setVoice(chip.dataset.voice);
+        saveJSON(STORAGE_VOICE, chip.dataset.voice);
+        renderVoicePanel();
+        FitSound.speak('Kniebeugen. Drei Sätze mit zehn Wiederholungen.');
       });
+    });
+    const allBtn = $('#btn-all-voices');
+    if (allBtn) {
+      allBtn.addEventListener('click', () => { showAllVoices = !showAllVoices; renderVoicePanel(); });
     }
 
     const rate = FitSound.getRate();
@@ -134,6 +154,8 @@
     if (wasHidden) {
       FitSound.unlock();
       renderVoicePanel();
+      // iOS meldet die Stimmen teils verzögert nach
+      FitSound.refreshVoices();
     }
   }
 
@@ -881,6 +903,8 @@
     FitSound.unlock();
     FitSound.start();
     FitSound.speak('Ausfallschritte. Satz eins von drei. Zehn bis zwölf Wiederholungen.');
+    // Nach der ersten Ansage kennt iOS die Stimmenliste
+    FitSound.refreshVoices();
   });
   // Stimmen stehen auf manchen Geräten erst verzögert bereit
   FitSound.onVoicesChanged(() => {

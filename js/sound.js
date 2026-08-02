@@ -179,20 +179,41 @@
     try { return window.speechSynthesis.getVoices() || []; } catch { return []; }
   }
 
+  // Android meldet teils "de_DE" statt "de-DE"
   function germanVoices() {
-    return allVoices().filter((v) => /^de/i.test(v.lang));
+    return allVoices().filter((v) => /^de([-_]|$)/i.test(v.lang || ''));
   }
 
   function pickVoice() {
+    const chosen = allVoices().find((v) => v.voiceURI === voiceURI);
+    if (chosen) return chosen;
     const list = germanVoices();
     if (!list.length) return null;
-    return list.find((v) => v.voiceURI === voiceURI) || list.find((v) => v.default) || list[0];
+    return list.find((v) => v.default) || list[0];
+  }
+
+  function notifyVoices() {
+    voiceListeners.forEach((fn) => {
+      try { fn(); } catch { /* Panel evtl. nicht offen */ }
+    });
   }
 
   try {
     // Auf manchen Geräten stehen die Stimmen erst verzögert bereit
-    window.speechSynthesis.onvoiceschanged = () => voiceListeners.forEach((fn) => fn());
+    window.speechSynthesis.onvoiceschanged = notifyVoices;
   } catch { /* keine Sprachausgabe */ }
+
+  // iOS füllt die Stimmenliste teils erst nach der ersten Nutzung der
+  // Sprachausgabe – deshalb mehrfach nachfassen, statt einmalig zu lesen.
+  function refreshVoices() {
+    let tries = 0;
+    const tick = () => {
+      tries++;
+      notifyVoices();
+      if (tries < 5) setTimeout(tick, tries * 350);
+    };
+    tick();
+  }
 
   function speak(text) {
     if (!enabled) return;
@@ -228,6 +249,8 @@
     isEnabled: () => enabled,
     // Stimmen: verfügbare deutsche Stimmen des Geräts, Auswahl und Tempo
     getVoices: germanVoices,
+    getAllVoices: allVoices,
+    refreshVoices,
     getVoice: () => voiceURI,
     setVoice: (uri) => { voiceURI = uri; },
     getRate: () => rate,
