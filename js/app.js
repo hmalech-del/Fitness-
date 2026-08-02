@@ -609,10 +609,14 @@
   // ------------------------------------------------------------------
   // Tagesansicht
   // ------------------------------------------------------------------
+  // Einseitige Übungen (Ausfallschritte, Seitstütz …) gelten je Seite –
+  // sonst ist unklar, ob die Vorgabe für beide Seiten zusammen zählt
+  const perSideNote = (item) => (EXERCISE_BY_ID[item.exId].perSide ? ' je Seite' : '');
+
   function itemMeta(item) {
     const parts = [];
-    if (item.seconds) parts.push(`${item.sets} × ${item.seconds} Sek.`);
-    else parts.push(`${item.sets} × ${item.reps} Wdh.`);
+    if (item.seconds) parts.push(`${item.sets} × ${item.seconds} Sek.${perSideNote(item)}`);
+    else parts.push(`${item.sets} × ${item.reps} Wdh.${perSideNote(item)}`);
     if (item.sets > 1) parts.push(`${item.restSec} Sek. Pause`);
     return parts.join(' · ');
   }
@@ -814,7 +818,7 @@
         <p class="player-kicker">Satz ${step.set} von ${step.item.sets}</p>
         <h2 class="player-title">${ex.name}</h2>
         <div class="player-anim" data-anim-slot="${ex.id}"></div>
-        <p class="player-target">${isTimed ? '' : step.item.reps + ' Wiederholungen'}</p>
+        <p class="player-target">${isTimed ? '' : step.item.reps + ' Wiederholungen' + perSideNote(step.item)}</p>
         ${isTimed ? `<div class="rest-timer work-timer" id="work-timer">${step.item.seconds}</div>` : ''}
         <p class="player-desc">${ex.desc}</p>
         ${isTimed
@@ -825,9 +829,10 @@
 
     // Ansage: Übung, Satz, Vorgabe – und auf Wunsch die Beschreibung
     const setInfo = step.item.sets > 1 ? `Satz ${step.set} von ${step.item.sets}. ` : '';
+    const seite = ex.perSide ? ' je Seite' : '';
     let text = isTimed
-      ? `${ex.name}. ${setInfo}${step.item.seconds} Sekunden.`
-      : `${ex.name}. ${setInfo}${speakableReps(step.item.reps)}.`;
+      ? `${ex.name}. ${setInfo}${step.item.seconds} Sekunden${seite}.`
+      : `${ex.name}. ${setInfo}${speakableReps(step.item.reps)}${seite}.`;
     if (state.speakDescOn && step.set === 1) text += ' ' + ex.desc;
     if (isTimed) text += " Los geht's!";
     FitSound.start();

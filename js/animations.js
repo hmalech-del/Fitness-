@@ -181,15 +181,54 @@
     },
 
     lunge: {
-      dur: 2.6,
+      dur: 3,
+      // Echter Schritt statt Gleiten: Das vordere Bein hebt ab, setzt vorn
+      // auf, dann sinkt das hintere Knie Richtung Boden. Der hintere Fuß
+      // bleibt dabei stehen – vorher rutschten beide Füße über den Boden.
       poses: [
         STAND,
+        p(STAND, {
+          hip: [100, 114],
+          kneeF: [118, 138], footF: [124, 158],
+          elbowF: [104, 86], handF: [110, 104], elbowB: [96, 86], handB: [92, 104],
+        }),
         {
-          head: [101, 72], neck: [100, 86], hip: [100, 140],
-          kneeF: [124, 152], footF: [124, 182], kneeB: [88, 162], footB: [72, 182],
-          elbowF: [108, 106], handF: [102, 122], elbowB: [92, 106], handB: [98, 122],
+          head: [101, 76], neck: [100, 90], hip: [100, 142],
+          kneeF: [124, 154], footF: [128, 182], kneeB: [92, 162], footB: [94, 182],
+          elbowF: [108, 108], handF: [104, 126], elbowB: [92, 108], handB: [96, 126],
         },
+        p(STAND, {
+          hip: [100, 114],
+          kneeF: [118, 138], footF: [124, 158],
+          elbowF: [104, 86], handF: [110, 104], elbowB: [96, 86], handB: [92, 104],
+        }),
       ],
+      holdMask: [true, false, true, false],
+    },
+
+    reverselunge: {
+      dur: 3,
+      // Rückwärts-Variante: Das hintere Bein hebt ab und setzt hinten auf,
+      // das vordere bleibt stehen.
+      poses: [
+        STAND,
+        p(STAND, {
+          hip: [100, 114],
+          kneeB: [88, 140], footB: [76, 162],
+          elbowF: [104, 86], handF: [110, 104], elbowB: [96, 86], handB: [92, 104],
+        }),
+        {
+          head: [101, 76], neck: [100, 90], hip: [100, 142],
+          kneeF: [106, 154], footF: [108, 182], kneeB: [82, 162], footB: [68, 182],
+          elbowF: [108, 108], handF: [104, 126], elbowB: [92, 108], handB: [96, 126],
+        },
+        p(STAND, {
+          hip: [100, 114],
+          kneeB: [88, 140], footB: [76, 162],
+          elbowF: [104, 86], handF: [110, 104], elbowB: [96, 86], handB: [92, 104],
+        }),
+      ],
+      holdMask: [true, false, true, false],
     },
 
     lunge_hold: {
@@ -225,13 +264,13 @@
       poses: [
         {
           head: [152, 146], neck: [141, 152], hip: [92, 160],
-          kneeF: [65, 169], footF: [38, 178], kneeB: [62, 167], footB: [35, 176],
-          elbowF: [146, 178], handF: [164, 178], elbowB: [142, 176], handB: [160, 176],
+          kneeF: [65, 169], footF: [38, 180], kneeB: [62, 167], footB: [35, 179],
+          elbowF: [146, 180], handF: [166, 180], elbowB: [142, 179], handB: [162, 179],
         },
         {
           head: [152, 144], neck: [141, 150], hip: [92, 157],
-          kneeF: [65, 168], footF: [38, 178], kneeB: [62, 166], footB: [35, 176],
-          elbowF: [146, 178], handF: [164, 178], elbowB: [142, 176], handB: [160, 176],
+          kneeF: [65, 168], footF: [38, 180], kneeB: [62, 166], footB: [35, 179],
+          elbowF: [146, 180], handF: [166, 180], elbowB: [142, 179], handB: [162, 179],
         },
       ],
     },
@@ -247,9 +286,11 @@
           elbowF: [112, 82], handF: [116, 106], elbowB: [88, 82], handB: [84, 106],
         },
         {
-          head: [100, 42], neck: [100, 56], hip: [100, 110],
-          kneeF: [108, 144], footF: [114, 179], kneeB: [92, 144], footB: [86, 179],
-          elbowF: [126, 56], handF: [150, 57], elbowB: [74, 56], handB: [50, 57],
+          // Flugphase: Der ganze Körper ist angehoben, beide Füße sind
+          // deutlich vom Boden gelöst, die Arme schwingen seitlich hoch
+          head: [100, 30], neck: [100, 44], hip: [100, 98],
+          kneeF: [110, 132], footF: [118, 166], kneeB: [90, 132], footB: [82, 166],
+          elbowF: [126, 44], handF: [150, 45], elbowB: [74, 44], handB: [50, 45],
         },
         {
           head: [100, 40], neck: [100, 54], hip: [100, 108],
@@ -257,11 +298,12 @@
           elbowF: [116, 44], handF: [108, 22], elbowB: [84, 44], handB: [92, 22],
         },
         {
-          head: [100, 42], neck: [100, 56], hip: [100, 110],
-          kneeF: [108, 144], footF: [114, 179], kneeB: [92, 144], footB: [86, 179],
-          elbowF: [126, 56], handF: [150, 57], elbowB: [74, 56], handB: [50, 57],
+          head: [100, 30], neck: [100, 44], hip: [100, 98],
+          kneeF: [110, 132], footF: [118, 166], kneeB: [90, 132], footB: [82, 166],
+          elbowF: [126, 44], handF: [150, 45], elbowB: [74, 44], handB: [50, 45],
         },
       ],
+      holdMask: [true, false, true, false],
     },
 
     curl: {
@@ -785,15 +827,26 @@
     },
 
     mountainclimber: {
-      dur: 0.9,
+      dur: 1.3,
+      // Ein Knie zieht nach vorn unter den Körper, während das andere
+      // gestreckt bleibt. Die Zwischenposen lassen die Beine aneinander
+      // vorbeilaufen, statt die Rollen hart zu tauschen.
       poses: [
         p(PUSHUP_UP, {
-          kneeF: [108, 150], footF: [96, 168],
-          kneeB: [66, 166], footB: [38, 176],
+          kneeF: [122, 154], footF: [104, 172],
+          kneeB: [66, 166], footB: [38, 178],
         }),
         p(PUSHUP_UP, {
-          kneeF: [68, 168], footF: [40, 178],
-          kneeB: [106, 148], footB: [94, 166],
+          kneeF: [94, 160], footF: [72, 175],
+          kneeB: [94, 164], footB: [72, 177],
+        }),
+        p(PUSHUP_UP, {
+          kneeF: [66, 168], footF: [38, 180],
+          kneeB: [120, 152], footB: [102, 170],
+        }),
+        p(PUSHUP_UP, {
+          kneeF: [94, 160], footF: [72, 175],
+          kneeB: [94, 164], footB: [72, 177],
         }),
       ],
     },

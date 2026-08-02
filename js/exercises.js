@@ -34,6 +34,7 @@ const EXERCISES = [
   },
   {
     id: 'lunge', name: 'Ausfallschritte', anim: 'lunge',
+    perSide: true,
     equipment: 'none', muscles: ['beine', 'po'], category: 'kraft', level: 2,
     impact: false, mode: 'reps',
     desc: 'Großen Schritt nach vorn machen, hinteres Knie Richtung Boden senken. Oberkörper aufrecht halten, dann zurückdrücken. Seiten abwechseln.',
@@ -70,6 +71,7 @@ const EXERCISES = [
   },
   {
     id: 'sl_glute_bridge', name: 'Einbeinige Glute Bridge', anim: 'glutebridge',
+    perSide: true,
     equipment: 'none', muscles: ['po', 'core'], category: 'kraft', level: 2,
     impact: false, mode: 'reps',
     desc: 'Wie die Glute Bridge, aber ein Bein gestreckt in der Luft halten. Seiten abwechseln.',
@@ -100,6 +102,7 @@ const EXERCISES = [
   },
   {
     id: 'chest_stretch', name: 'Brustöffner an der Wand', anim: 'cheststretch',
+    perSide: true,
     equipment: 'none', muscles: ['brust', 'schultern'], category: 'mobility', level: 1,
     impact: false, mode: 'time', holdSec: 30,
     desc: 'Handfläche seitlich auf Schulterhöhe an eine Wand oder einen Türrahmen legen, Arm gestreckt. Den Oberkörper sanft von der Wand wegdrehen, bis es in der Brust dehnt. Seite wechseln. Öffnet die verkürzte Brustmuskulatur, die die Schultern nach vorn zieht.',
@@ -131,7 +134,8 @@ const EXERCISES = [
     desc: 'Aufrecht stehen und langsam auf die Zehenspitzen drücken, oben kurz halten, kontrolliert absenken.',
   },
   {
-    id: 'reverse_lunge', name: 'Ausfallschritte rückwärts', anim: 'lunge',
+    id: 'reverse_lunge', name: 'Ausfallschritte rückwärts', anim: 'reverselunge',
+    perSide: true,
     equipment: 'none', muscles: ['beine', 'po'], category: 'kraft', level: 1,
     impact: false, mode: 'reps',
     desc: 'Großen Schritt nach hinten machen und das hintere Knie Richtung Boden senken – knieschonender als die Vorwärts-Variante. Seiten abwechseln.',
@@ -150,6 +154,7 @@ const EXERCISES = [
   },
   {
     id: 'side_plank', name: 'Seitstütz', anim: 'sideplank',
+    perSide: true,
     equipment: 'none', muscles: ['core'], category: 'kraft', level: 2,
     impact: false, mode: 'time', holdSec: 20,
     desc: 'Seitlich auf dem Unterarm abstützen, Körper bildet eine Linie. Hüfte oben halten, dann die Seite wechseln.',
@@ -210,12 +215,14 @@ const EXERCISES = [
   },
   {
     id: 'bulgarian_squat', name: 'Bulgarische Kniebeugen', anim: 'bulgariansquat',
+    perSide: true,
     equipment: 'none', muscles: ['beine', 'po'], category: 'kraft', level: 2,
     impact: false, mode: 'reps',
     desc: 'Den hinteren Fuß auf einen Stuhl legen, das vordere Bein beugt tief in den Ausfallschritt. Oberkörper aufrecht, dann kraftvoll hochdrücken. Seiten wechseln.',
   },
   {
     id: 'single_leg_rdl', name: 'Einbeiniges Kreuzheben', anim: 'singlelegrdl',
+    perSide: true,
     equipment: 'none', muscles: ['beine', 'po', 'ruecken'], category: 'kraft', level: 2,
     impact: false, mode: 'reps',
     desc: 'Auf einem Bein stehen. Oberkörper mit geradem Rücken nach vorn kippen, während das freie Bein nach hinten hebt (Standwaage), dann aufrichten. Seiten wechseln.',
@@ -266,17 +273,18 @@ const EXERCISES = [
   },
   {
     id: 'db_lunge', name: 'Ausfallschritte mit Kurzhanteln', anim: 'lunge',
+    perSide: true,
     equipment: 'kurzhanteln', muscles: ['beine', 'po'], category: 'kraft', level: 2,
     impact: false, mode: 'reps',
     props: [{ type: 'dumbbell', joint: 'handF' }, { type: 'dumbbell', joint: 'handB' }],
     desc: 'Ausfallschritte mit Kurzhanteln in beiden Händen – Arme hängen seitlich, Oberkörper aufrecht.',
   },
   {
-    id: 'db_calf', name: 'Wadenheben mit Kurzhantel', anim: 'calfraise',
+    id: 'db_calf', name: 'Wadenheben mit Kurzhanteln', anim: 'calfraise',
     equipment: 'kurzhanteln', muscles: ['beine'], category: 'kraft', level: 1,
     impact: false, mode: 'reps',
-    props: [{ type: 'dumbbell', joint: 'handF' }],
-    desc: 'Wadenheben mit zusätzlichem Gewicht in einer Hand, die andere kann sich abstützen.',
+    props: [{ type: 'dumbbell', joint: 'handF' }, { type: 'dumbbell', joint: 'handB' }],
+    desc: 'Beidbeinig stehen, in jeder Hand eine Kurzhantel, Arme hängen locker seitlich. Langsam auf die Zehenspitzen drücken, oben kurz halten, kontrolliert absenken.',
   },
   {
     id: 'db_floorpress', name: 'Bankdrücken am Boden', anim: 'floorpress',
@@ -413,6 +421,7 @@ const EXERCISES = [
   },
   {
     id: 'quad_stretch', name: 'Quadrizeps-Dehnung', anim: 'quadstretch',
+    perSide: true,
     equipment: 'none', muscles: ['beine'], category: 'mobility', level: 1,
     impact: false, mode: 'time', holdSec: 30,
     desc: 'Im Stand eine Ferse zum Gesäß ziehen, Knie zeigen zueinander. Bei Bedarf festhalten. Seite wechseln.',
@@ -431,6 +440,7 @@ const EXERCISES = [
   },
   {
     id: 'lunge_stretch', name: 'Ausfallschritt-Dehnung', anim: 'lunge_hold',
+    perSide: true,
     equipment: 'none', muscles: ['beine', 'po'], category: 'mobility', level: 1,
     impact: false, mode: 'time', holdSec: 30,
     desc: 'Tiefen Ausfallschritt einnehmen und die Hüfte sanft Richtung Boden sinken lassen. Dehnt den Hüftbeuger. Seite wechseln.',
