@@ -178,7 +178,7 @@
     }
 
     // 4. Bleibt danach noch reichlich Zeit, dürfen einzelne Übungen dazu
-    for (let i = 0; i < candidates.length && items.length < maxItems + 2;) {
+    for (let i = 0; i < candidates.length && items.length < maxItems + 1;) {
       if (remaining < 180) break;
       if (underLimit(candidates[i]) && take(i)) continue;
       i++;
@@ -219,7 +219,9 @@
       name: 'Unterkörper & Po', emoji: '🦵',
       // Bauchübungen gehören mit in den Pool, sonst bliebe für den
       // Core-Slot nur die Glute Bridge übrig
-      filter: (ex) => ex.category === 'kraft'
+      // Übungen mit dem Rücken als Zielmuskel (Superman, Rudern …) gehören
+      // auf die Oberkörper-Tage, auch wenn sie den Po mitbelasten
+      filter: (ex) => ex.category === 'kraft' && ex.muscles[0] !== 'ruecken'
         && (ex.muscles.some((m) => ['beine', 'po'].includes(m)) || isCoreFocus(ex)),
       muscles: ['beine', 'po', 'core', 'core'],
       // höchstens eine hüftdominante Übung (Kreuzheben, Good Mornings …),
@@ -234,15 +236,20 @@
     },
     cardio_core: {
       name: 'Cardio & Core', emoji: '🏃',
-      filter: (ex) => ex.category === 'cardio' || (ex.category === 'kraft' && ex.muscles.includes('core')),
+      // nur echte Bauchübungen ergänzen das Cardio – Po-/Bein-Übungen
+      // gehören auf die Kraft-Tage und brauchen dort ihre Regeneration
+      filter: (ex) => ex.category === 'cardio' || (ex.category === 'kraft' && isCoreFocus(ex)),
       muscles: ['cardio', 'core', 'cardio'],
       maxItems: 8,
     },
     mobility: {
       name: 'Mobility & Dehnung', emoji: '🧘',
-      filter: (ex) => ex.category === 'mobility' || ['birddog', 'superman', 'glute_bridge'].includes(ex.id),
-      muscles: ['ruecken', 'beine', 'schultern'],
+      // Reine Mobilisation ohne Kräftigung: Diese Tage liegen zwischen den
+      // belastenden Einheiten und dienen der Regeneration
+      filter: (ex) => ex.category === 'mobility',
+      muscles: ['ruecken', 'beine', 'schultern', 'brust'],
       maxItems: 6,
+      maxMinutes: 30,
     },
     hiit: {
       name: 'HIIT-Intervalle', emoji: '🔥',
@@ -250,12 +257,14 @@
         || (ex.category === 'kraft' && ex.muscles.some((m) => ['beine', 'po', 'brust', 'core'].includes(m))),
       muscles: ['cardio', 'beine', 'core', 'cardio', 'brust'],
       maxItems: 8,
+      maxMinutes: 25,
     },
     bauch: {
       name: 'Bauch & Core', emoji: '💥',
       filter: (ex) => ex.category === 'kraft' && ex.muscles.includes('core'),
       muscles: ['core', 'core', 'core'],
       maxItems: 7,
+      maxMinutes: 20,
     },
     ruecken: {
       name: 'Rücken & Haltung', emoji: '🛡️',
@@ -264,6 +273,7 @@
         || (ex.category === 'kraft' && ex.muscles.includes('core'))
         || ['glute_bridge', 'sl_glute_bridge', 'db_glutebridge', 'cat_cow'].includes(ex.id),
       muscles: ['ruecken', 'core', 'ruecken', 'po'],
+      maxItems: 6, limits: { ruecken: 3 },
     },
     haltung: {
       name: 'Aufrecht & Stark', emoji: '🧍',
@@ -274,6 +284,8 @@
           'db_row', 'superman', 'swimmer', 'birddog', 'cat_cow', 'shoulder_mob',
           'db_lateral', 'band_lateral'].includes(ex.id),
       muscles: ['nacken', 'schultern', 'ruecken', 'brust'],
+      // Haltungsarbeit wirkt über Regelmäßigkeit, nicht über Dauer
+      maxItems: 6, maxMinutes: 30,
     },
   };
 
@@ -283,17 +295,35 @@
     if (goal === 'beweglichkeit') {
       for (let i = 0; i < days; i++) seq.push(i % 3 === 2 ? 'ganzkoerper' : 'mobility');
     } else if (goal === 'ruecken') {
-      // Kräftigung im Wechsel mit Mobilisation, dazu etwas Ganzkörper-Basis
-      const mix = ['ruecken', 'mobility', 'ruecken', 'ganzkoerper', 'ruecken', 'mobility'];
-      for (let i = 0; i < days; i++) seq.push(mix[i % mix.length]);
+      // Kräftigende Einheiten immer durch einen Mobility-Tag getrennt –
+      // der Rücken ist sonst an aufeinanderfolgenden Tagen belastet
+      const mix = {
+        2: ['ruecken', 'mobility'],
+        3: ['ruecken', 'mobility', 'ruecken'],
+        4: ['ruecken', 'mobility', 'ruecken', 'mobility'],
+        5: ['ruecken', 'mobility', 'ruecken', 'ganzkoerper', 'mobility'],
+        6: ['ruecken', 'mobility', 'ruecken', 'mobility', 'ruecken', 'mobility'],
+      }[days] || ['ruecken', 'mobility'];
+      mix.forEach((t) => seq.push(t));
     } else if (goal === 'haltung') {
-      // Haltungsarbeit im Wechsel mit Rückenkräftigung und Ganzkörper-Basis
-      const mix = ['haltung', 'ruecken', 'haltung', 'ganzkoerper', 'haltung', 'mobility'];
-      for (let i = 0; i < days; i++) seq.push(mix[i % mix.length]);
+      // Haltungsarbeit ebenfalls im Wechsel mit lockeren Mobility-Tagen
+      const mix = {
+        2: ['haltung', 'haltung'],
+        3: ['haltung', 'mobility', 'haltung'],
+        4: ['haltung', 'mobility', 'haltung', 'mobility'],
+        5: ['haltung', 'mobility', 'haltung', 'ruecken', 'mobility'],
+        6: ['haltung', 'mobility', 'haltung', 'mobility', 'haltung', 'mobility'],
+      }[days] || ['haltung', 'haltung'];
+      mix.forEach((t) => seq.push(t));
     } else if (goal === 'ausdauer') {
       for (let i = 0; i < days; i++) seq.push(i % 3 === 2 ? 'zirkel' : 'cardio_core');
     } else if (goal === 'abnehmen') {
-      for (let i = 0; i < days; i++) seq.push(i % 2 === 0 ? 'zirkel' : 'cardio_core');
+      // Kraftbetonte Zirkel nie an aufeinanderfolgenden Kalendertagen –
+      // bei 5 Tagen liegen Sonntag und Montag sonst direkt beieinander
+      const mix = days === 5
+        ? ['zirkel', 'cardio_core', 'zirkel', 'cardio_core', 'cardio_core']
+        : null;
+      for (let i = 0; i < days; i++) seq.push(mix ? mix[i] : (i % 2 === 0 ? 'zirkel' : 'cardio_core'));
     } else if (goal === 'muskelaufbau' && days === 5) {
       // Ganzkörper-Tag in die Mitte: So folgen nie zwei Einheiten mit
       // gleichem Schwerpunkt direkt aufeinander.
@@ -304,9 +334,17 @@
     } else if (goal === 'muskelaufbau') {
       for (let i = 0; i < days; i++) seq.push('ganzkoerper');
     } else {
-      // Allgemeine Fitness: Mischung
-      const mix = days >= 3 ? ['ganzkoerper', 'cardio_core', 'ganzkoerper', 'mobility', 'zirkel', 'cardio_core'] : ['ganzkoerper', 'zirkel'];
-      for (let i = 0; i < days; i++) seq.push(mix[i % mix.length]);
+      // Allgemeine Fitness: Kraft, Cardio und Mobility so mischen, dass
+      // kraftbetonte Einheiten nie an Folgetagen liegen – auch nicht am
+      // Wochenübergang von Sonntag auf Montag
+      const mix = {
+        2: ['ganzkoerper', 'zirkel'],
+        3: ['ganzkoerper', 'cardio_core', 'ganzkoerper'],
+        4: ['ganzkoerper', 'cardio_core', 'ganzkoerper', 'mobility'],
+        5: ['ganzkoerper', 'cardio_core', 'ganzkoerper', 'zirkel', 'mobility'],
+        6: ['ganzkoerper', 'cardio_core', 'ganzkoerper', 'mobility', 'zirkel', 'cardio_core'],
+      }[days] || ['ganzkoerper', 'zirkel'];
+      mix.forEach((t) => seq.push(t));
     }
     return seq;
   }
@@ -327,14 +365,16 @@
 
   // Kraft-Tage, bei denen der Bauch nur an jedem zweiten Trainingstag
   // drankommt – auch die Bauchmuskulatur braucht Regeneration.
-  const CORE_ALTERNATING = ['ganzkoerper', 'oberkoerper', 'unterkoerper'];
+  const CORE_ALTERNATING = ['ganzkoerper', 'oberkoerper', 'unterkoerper', 'cardio_core'];
 
   function buildSession(tplId, profile, params, minutes, opts) {
     const withCore = !opts || opts.withCore !== false;
     const allowed = allowedExercises(profile);
     const tpl = DAY_TEMPLATES[tplId];
 
-    const totalSec = minutes * 60;
+    // Manche Trainingsarten profitieren nicht von mehr Zeit: Mobility,
+    // HIIT und reines Bauchtraining werden nicht kuenstlich gestreckt.
+    const totalSec = Math.min(minutes, tpl.maxMinutes || minutes) * 60;
     // Ältere Trainierende: etwas längeres Aufwärmen
     const warmupCount = minutes <= 20 ? 1 : profile.age >= 55 ? 3 : 2;
     const cooldownCount = minutes <= 20 ? 1 : 2;
@@ -349,7 +389,9 @@
 
     // Freie Zeit darf in zusätzliche Sätze fließen – beim Muskelaufbau
     // etwas großzügiger, weil dort das Satzvolumen den Reiz setzt.
-    const maxSets = Math.min(5, params.sets + (profile.goal === 'muskelaufbau' ? 2 : 1));
+    // Bis 4 Saetze pro Uebung ist der Reiz nachweislich wirksam; darueber
+    // steigt vor allem die Ermuedung, nicht der Trainingseffekt.
+    const maxSets = Math.min(4, params.sets + 1);
     const main = fillBlock(pool, mainBudget, params, profile, muscles, {
       maxItems: tpl.maxItems,
       limits: tpl.limits,

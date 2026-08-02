@@ -186,16 +186,21 @@
     },
     {
       key: 'time', title: 'Wie viel Zeit hast du?',
-      sub: 'Der Plan füllt genau die Zeit, die du wirklich hast.',
+      sub: 'Der Plan nutzt deine Zeit sinnvoll – ohne sie künstlich zu strecken.',
       render(data) {
+        const t = timeOptions(data.goal);
+        // Gespeicherte Auswahl verwerfen, wenn sie zum Ziel nicht passt
+        if (data.minutes && !t.options.includes(data.minutes)) data.minutes = null;
         return `
           <div class="field">
             <label>Minuten pro Einheit</label>
-            ${chipRow([15, 20, 30, 45, 60], data.minutes, 'minutes', ' Min.')}
+            ${chipRow(t.options, data.minutes, 'minutes', ' Min.')}
+            ${t.hint ? `<p class="muted field-hint">${t.hint}</p>` : ''}
           </div>
           <div class="field">
             <label>Trainingstage pro Woche</label>
             ${chipRow([2, 3, 4, 5, 6], data.days, 'days', ' Tage')}
+            <p class="muted field-hint">Die Einheiten werden mit Ruhetagen über die Woche verteilt, damit jede Muskelgruppe mindestens 48 Stunden regeneriert.</p>
           </div>`;
       },
       valid: (d) => d.minutes && d.days,
@@ -235,6 +240,25 @@
       valid: () => true,
     },
   ];
+
+  // Sinnvolle Einheitenlängen je Ziel: Mobility und Haltungsarbeit wirken
+  // über Regelmäßigkeit, nicht über Dauer – dort wären 60 Minuten nur
+  // gestreckte Zeit ohne Zusatznutzen.
+  function timeOptions(goal) {
+    if (goal === 'beweglichkeit' || goal === 'haltung') {
+      return {
+        options: [10, 15, 20, 30],
+        hint: 'Kurz und regelmäßig wirkt hier besser als lang und selten.',
+      };
+    }
+    if (goal === 'muskelaufbau') {
+      return {
+        options: [20, 30, 45, 60],
+        hint: 'Freie Zeit fließt in zusätzliche Sätze statt in immer mehr Übungen.',
+      };
+    }
+    return { options: [15, 20, 30, 45, 60], hint: '' };
+  }
 
   function cardGrid(options, selected, field, multi) {
     const isSelected = (v) => multi ? (selected || []).includes(v) : selected === v;
