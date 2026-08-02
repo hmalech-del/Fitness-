@@ -64,6 +64,10 @@
     });
   }
 
+  // Echte Bauchübungen: Core ist der Hauptmuskel (erster Eintrag).
+  // Glute Bridge & Co. tragen zwar 'core', dort arbeitet aber der Po.
+  const isCoreFocus = (ex) => ex.muscles[0] === 'core';
+
   function itemTimeSec(item) {
     const work = item.seconds || item.workSec || 40;
     return item.sets * work + (item.sets - 1) * item.restSec + 20; // +20s Übergang
@@ -105,7 +109,10 @@
     // außer beim Core: Bauchübungen sind klassisch Eigengewicht)
     (preferredMuscles || []).forEach((muscle) => {
       let idx = -1;
-      if (hasEquipment && muscle !== 'core') {
+      if (muscle === 'core') {
+        // Für den Bauch-Slot echte Bauchübungen bevorzugen (Plank, Crunches …)
+        idx = candidates.findIndex(isCoreFocus);
+      } else if (hasEquipment) {
         idx = candidates.findIndex((ex) => ex.muscles.includes(muscle) && ex.equipment !== 'none');
       }
       if (idx === -1) idx = candidates.findIndex((ex) => ex.muscles.includes(muscle));
@@ -148,17 +155,20 @@
     ganzkoerper: {
       name: 'Ganzkörper-Kraft', emoji: '🏋️',
       filter: (ex) => ex.category === 'kraft',
-      muscles: ['beine', 'brust', 'ruecken', 'core'],
+      muscles: ['beine', 'brust', 'ruecken', 'core', 'core'],
     },
     oberkoerper: {
       name: 'Oberkörper', emoji: '💪',
       filter: (ex) => ex.category === 'kraft' && ex.muscles.some((m) => ['brust', 'ruecken', 'schultern', 'arme', 'core'].includes(m)) && !ex.muscles.includes('beine'),
-      muscles: ['brust', 'ruecken', 'schultern', 'arme', 'core'],
+      muscles: ['brust', 'ruecken', 'schultern', 'arme', 'core', 'core'],
     },
     unterkoerper: {
       name: 'Unterkörper & Po', emoji: '🦵',
-      filter: (ex) => ex.category === 'kraft' && ex.muscles.some((m) => ['beine', 'po'].includes(m)),
-      muscles: ['beine', 'po', 'core'],
+      // Bauchübungen gehören mit in den Pool, sonst bliebe für den
+      // Core-Slot nur die Glute Bridge übrig
+      filter: (ex) => ex.category === 'kraft'
+        && (ex.muscles.some((m) => ['beine', 'po'].includes(m)) || isCoreFocus(ex)),
+      muscles: ['beine', 'po', 'core', 'core'],
     },
     zirkel: {
       name: 'Ganzkörper-Zirkel', emoji: '🔥',
