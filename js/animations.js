@@ -457,22 +457,34 @@
     },
 
     russiantwist: {
-      dur: 1.6,
-      // V-Sitz, die Hände tippen abwechselnd neben der Hüfte auf –
-      // vorn und hinten als Dreh-Illusion in der Seitenansicht
+      dur: 2.6,
+      // Frontansicht im Sitzen: Nur so ist die Drehung sichtbar – in der
+      // Seitenansicht bewegen sich die Hände auf den Betrachter zu.
+      // Knie angewinkelt, Füße leicht abgehoben, Hände wandern von einer
+      // Seite zur anderen, der Kopf dreht mit.
       poses: [
         {
-          head: [78, 114], neck: [84, 126], hip: [100, 162],
-          kneeF: [128, 140], footF: [156, 154], kneeB: [126, 138], footB: [154, 152],
-          elbowF: [108, 138], handF: [128, 152], elbowB: [104, 136], handB: [124, 150],
+          head: [110, 90], neck: [103, 110], hip: [100, 168],
+          kneeF: [114, 138], footF: [122, 162], kneeB: [86, 138], footB: [78, 162],
+          elbowF: [120, 116], handF: [140, 128], elbowB: [113, 132], handB: [137, 133],
         },
         {
-          head: [78, 114], neck: [84, 126], hip: [100, 162],
-          kneeF: [128, 140], footF: [156, 154], kneeB: [126, 138], footB: [154, 152],
-          elbowF: [96, 148], handF: [86, 164], elbowB: [92, 146], handB: [82, 162],
+          head: [100, 88], neck: [100, 108], hip: [100, 168],
+          kneeF: [114, 138], footF: [122, 162], kneeB: [86, 138], footB: [78, 162],
+          elbowF: [112, 122], handF: [106, 142], elbowB: [88, 122], handB: [95, 142],
+        },
+        {
+          head: [90, 90], neck: [97, 110], hip: [100, 168],
+          kneeF: [114, 138], footF: [122, 162], kneeB: [86, 138], footB: [78, 162],
+          elbowF: [87, 132], handF: [63, 133], elbowB: [80, 116], handB: [60, 128],
+        },
+        {
+          head: [100, 88], neck: [100, 108], hip: [100, 168],
+          kneeF: [114, 138], footF: [122, 162], kneeB: [86, 138], footB: [78, 162],
+          elbowF: [112, 122], handF: [106, 142], elbowB: [88, 122], handB: [95, 142],
         },
       ],
-      holdMask: [true, true],
+      holdMask: [true, false, true, false],
     },
 
     vup: {
@@ -702,11 +714,15 @@
     },
 
     catcow: {
-      dur: 3.2,
+      dur: 4,
+      // Katze: Rücken rundet sich nach oben, Kopf sinkt zwischen die Arme.
+      // Kuh: Rücken senkt sich ins leichte Hohlkreuz, Blick geht nach vorn.
       poses: [
-        p(QUADRUPED, { head: [152, 126], neck: [141, 135], hip: [92, 137] }),
-        p(QUADRUPED, { head: [144, 146], neck: [140, 130], hip: [92, 131] }),
+        p(QUADRUPED, { head: [148, 148], neck: [140, 138], hip: [92, 140] }),
+        p(QUADRUPED, { head: [152, 124], neck: [141, 132], hip: [92, 134] }),
       ],
+      spine: [13, -9],
+      holdMask: [true, true],
     },
 
     mountainclimber: {
@@ -989,6 +1005,29 @@
     return line;
   }
 
+  // Gebogener Rumpf: Der Wert spine wölbt die Wirbelsäule senkrecht zur
+  // Achse Schulter–Hüfte (positiv = Rundrücken, negativ = Hohlkreuz).
+  // Damit lassen sich Katze-Kuh & Co. darstellen.
+  function torsoPath(pose, spine) {
+    const [nx, ny] = pose.neck;
+    const [hx, hy] = pose.hip;
+    const dx = hx - nx;
+    const dy = hy - ny;
+    const len = Math.hypot(dx, dy) || 1;
+    const cx = (nx + hx) / 2 + (-dy / len) * spine * 2;
+    const cy = (ny + hy) / 2 + (dx / len) * spine * 2;
+    return `M${nx},${ny} Q${cx.toFixed(1)},${cy.toFixed(1)} ${hx},${hy}`;
+  }
+
+  function animatedTorso(poses, spine, dur, useHold) {
+    const path = el('path', { d: torsoPath(poses[0], spine[0]), class: 'torso' });
+    if (poses.length > 1) {
+      const vals = poses.map((pose, i) => torsoPath(pose, spine[i] || 0));
+      path.appendChild(smilEl('d', trackFor(vals, useHold), dur));
+    }
+    return path;
+  }
+
   function animatedCircle(poses, joint, r, dur, cls, useHold) {
     const circle = el('circle', {
       cx: poses[0][joint][0], cy: poses[0][joint][1], r, class: cls,
@@ -1045,7 +1084,7 @@
 
   // Zoomt die Ansicht automatisch auf die Figur samt Requisiten, damit
   // sie den Kasten füllt (statt klein in der 220×200-Fläche zu stehen).
-  function computeViewBox(poses, props) {
+  function computeViewBox(poses, props, spineBulge) {
     let minX = 1e9; let minY = 1e9; let maxX = -1e9; let maxY = -1e9;
     const add = (x, y, r) => {
       minX = Math.min(minX, x - r); maxX = Math.max(maxX, x + r);
@@ -1070,7 +1109,8 @@
     });
     // Bodenlinie zeigen, wenn die Figur am Boden agiert
     if (maxY > 150) maxY = Math.max(maxY, 186);
-    minX -= 10; maxX += 10; minY -= 10; maxY += 8;
+    const bulge = spineBulge || 0;
+    minX -= 10 + bulge; maxX += 10 + bulge; minY -= 10 + bulge; maxY += 8 + bulge;
 
     // Auf das feste Seitenverhältnis 220:200 aufweiten, damit alle
     // Vorschau-Kästen gleich proportioniert bleiben.
@@ -1104,7 +1144,8 @@
     const useHold = anim.holdMask || poses.map(() => poses.length > 1 && dur >= 1.6);
 
     const svg = el('svg', {
-      viewBox: computeViewBox(poses, props),
+      viewBox: computeViewBox(poses, props,
+        anim.spine ? Math.max(...anim.spine.map(Math.abs)) * 2 : 0),
       class: 'exercise-anim',
       'aria-hidden': 'true',
     });
@@ -1120,6 +1161,10 @@
     LAYERS.forEach((layer) => {
       if (layer.head) {
         svg.appendChild(animatedCircle(poses, 'head', 9, dur, 'head', useHold));
+        return;
+      }
+      if (layer.cls === 'torso' && anim.spine) {
+        svg.appendChild(animatedTorso(poses, anim.spine, dur, useHold));
         return;
       }
       layer.bones.forEach(([a, b]) => svg.appendChild(animatedLine(poses, a, b, dur, layer.cls, useHold)));

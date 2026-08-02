@@ -640,7 +640,7 @@ input[type="range"] {
   --db-weight: #35d0e8;
   --wall: #3a465e;
 }
-.exercise-anim line { stroke-linecap: round; fill: none; }
+.exercise-anim line, .exercise-anim path { stroke-linecap: round; fill: none; }
 .exercise-anim .torso { stroke: var(--shirt); stroke-width: 14; }
 .exercise-anim .neck-line { stroke: var(--skin-f); stroke-width: 5; }
 .exercise-anim .arm { stroke-width: 6; }
