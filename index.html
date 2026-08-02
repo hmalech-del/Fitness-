@@ -60,6 +60,7 @@
           <p class="muted" id="plan-subtitle"></p>
         </div>
         <div class="topbar-actions">
+          <button class="btn btn-ghost btn-sm" id="btn-voice" title="Ansagen & Stimme">🎙️</button>
           <button class="btn btn-ghost btn-sm" id="btn-theme" title="Design wechseln">🎨</button>
           <button class="btn btn-ghost btn-sm" id="btn-edit-profile">✏️ Profil</button>
           <button class="btn btn-ghost btn-sm" id="btn-regenerate">🔄 Neu mischen</button>
@@ -67,6 +68,18 @@
         </div>
       </header>
       <div id="plan-switcher" class="plan-switcher"></div>
+      <div id="voice-panel" class="voice-panel hidden">
+        <div class="field">
+          <label>Stimme für die Ansagen</label>
+          <div class="chip-row" id="voice-list"></div>
+          <p class="muted field-hint" id="voice-hint"></p>
+        </div>
+        <div class="field">
+          <label>Sprechtempo</label>
+          <div class="chip-row" id="rate-list"></div>
+        </div>
+        <button class="btn btn-ghost" id="btn-voice-test">▶ Probe hören</button>
+      </div>
       <div id="plan-stats" class="plan-stats"></div>
       <div id="quick-section" class="quick-section"></div>
       <div id="plan-days" class="plan-days"></div>

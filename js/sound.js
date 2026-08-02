@@ -165,6 +165,35 @@
   // ------------------------------------------------------------------
   // Sprachansagen
   // ------------------------------------------------------------------
+  // ------------------------------------------------------------------
+  // Stimmenauswahl
+  // Welche Stimmen zur Verfügung stehen, bestimmt das Gerät – Android,
+  // iOS und Desktop bringen jeweils eigene mit. Wir listen die deutschen
+  // auf und merken uns die Wahl.
+  // ------------------------------------------------------------------
+  let voiceURI = null;
+  let rate = 1.05;
+  const voiceListeners = [];
+
+  function allVoices() {
+    try { return window.speechSynthesis.getVoices() || []; } catch { return []; }
+  }
+
+  function germanVoices() {
+    return allVoices().filter((v) => /^de/i.test(v.lang));
+  }
+
+  function pickVoice() {
+    const list = germanVoices();
+    if (!list.length) return null;
+    return list.find((v) => v.voiceURI === voiceURI) || list.find((v) => v.default) || list[0];
+  }
+
+  try {
+    // Auf manchen Geräten stehen die Stimmen erst verzögert bereit
+    window.speechSynthesis.onvoiceschanged = () => voiceListeners.forEach((fn) => fn());
+  } catch { /* keine Sprachausgabe */ }
+
   function speak(text) {
     if (!enabled) return;
     try {
@@ -172,7 +201,14 @@
       window.speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(text);
       u.lang = 'de-DE';
-      u.rate = 1.05;
+      u.rate = rate;
+      const v = pickVoice();
+      // Eigener Schutz: Schlägt das Setzen der Stimme fehl, soll trotzdem
+      // mit der Systemstimme angesagt werden – die Ansage ist wichtiger
+      // als die Stimmwahl.
+      if (v) {
+        try { u.voice = v; u.lang = v.lang; } catch { /* Systemstimme nutzen */ }
+      }
       window.speechSynthesis.speak(u);
     } catch { /* Sprachausgabe nicht verfügbar */ }
   }
@@ -190,6 +226,13 @@
   global.FitSound = {
     speak, stop, setEnabled, unlock,
     isEnabled: () => enabled,
+    // Stimmen: verfügbare deutsche Stimmen des Geräts, Auswahl und Tempo
+    getVoices: germanVoices,
+    getVoice: () => voiceURI,
+    setVoice: (uri) => { voiceURI = uri; },
+    getRate: () => rate,
+    setRate: (r) => { rate = r; },
+    onVoicesChanged: (fn) => voiceListeners.push(fn),
     tick: () => play('tick'),
     start: () => play('start'),
     finish: () => play('finish'),

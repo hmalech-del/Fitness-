@@ -11,6 +11,8 @@
   const STORAGE_SOUND = 'fitplan.sound';
   const STORAGE_SPEAKDESC = 'fitplan.speakdesc';
   const STORAGE_THEME = 'fitplan.theme';
+  const STORAGE_VOICE = 'fitplan.voice';
+  const STORAGE_RATE = 'fitplan.rate';
 
   // Themes: "studio" (hell, Salbei/Creme), "loft" (Beton & Pflanzen)
   // und "neon" (dunkel, Cyberpunk-Gym). Der 🎨-Knopf schaltet der Reihe nach.
@@ -71,6 +73,68 @@
     const btn = $('#btn-theme');
     if (btn) btn.title = `Design: ${THEMES[state.theme].label} – tippen zum Wechseln`;
     saveJSON(STORAGE_THEME, state.theme);
+  }
+
+  // ------------------------------------------------------------------
+  // Stimmenauswahl: zeigt die deutschen Stimmen des jeweiligen Geräts
+  // ------------------------------------------------------------------
+  function voiceLabel(v) {
+    const regions = { 'de-DE': '', 'de-AT': ' · Österreich', 'de-CH': ' · Schweiz' };
+    const region = v.lang in regions ? regions[v.lang] : ` · ${v.lang}`;
+    return v.name.replace(/^Microsoft |^Google /, '') + region;
+  }
+
+  function renderVoicePanel() {
+    const voices = FitSound.getVoices();
+    const current = FitSound.getVoice();
+    const list = $('#voice-list');
+
+    if (!voices.length) {
+      list.innerHTML = '';
+      $('#voice-hint').textContent = 'Dieses Gerät meldet keine deutschen Stimmen. '
+        + 'Die Ansagen nutzen dann die Systemstimme. Unter Android lassen sich in den '
+        + 'Einstellungen unter „Sprachausgabe" weitere Stimmen nachladen.';
+    } else {
+      list.innerHTML = voices.map((v) => `
+        <button class="chip ${v.voiceURI === current || (!current && v.default) ? 'selected' : ''}"
+                data-voice="${v.voiceURI}">${voiceLabel(v)}</button>`).join('');
+      $('#voice-hint').textContent = voices.length === 1
+        ? 'Dieses Gerät bietet nur eine deutsche Stimme an.'
+        : `${voices.length} Stimmen auf diesem Gerät verfügbar.`;
+      list.querySelectorAll('[data-voice]').forEach((chip) => {
+        chip.addEventListener('click', () => {
+          FitSound.setVoice(chip.dataset.voice);
+          saveJSON(STORAGE_VOICE, chip.dataset.voice);
+          renderVoicePanel();
+          FitSound.speak('Kniebeugen. Drei Sätze mit zehn Wiederholungen.');
+        });
+      });
+    }
+
+    const rate = FitSound.getRate();
+    $('#rate-list').innerHTML = [
+      [0.85, 'Langsam'], [1.05, 'Normal'], [1.25, 'Zügig'], [1.45, 'Schnell'],
+    ].map(([r, label]) => `
+      <button class="chip ${Math.abs(rate - r) < 0.01 ? 'selected' : ''}" data-rate="${r}">${label}</button>`).join('');
+    $('#rate-list').querySelectorAll('[data-rate]').forEach((chip) => {
+      chip.addEventListener('click', () => {
+        const r = parseFloat(chip.dataset.rate);
+        FitSound.setRate(r);
+        saveJSON(STORAGE_RATE, r);
+        renderVoicePanel();
+        FitSound.speak('Noch drei Sekunden. Weiter geht’s!');
+      });
+    });
+  }
+
+  function toggleVoicePanel() {
+    const panel = $('#voice-panel');
+    const wasHidden = panel.classList.contains('hidden');
+    panel.classList.toggle('hidden');
+    if (wasHidden) {
+      FitSound.unlock();
+      renderVoicePanel();
+    }
   }
 
   function toggleTheme() {
@@ -812,6 +876,16 @@
   $('#wizard-next').addEventListener('click', wizardNext);
   $('#wizard-back').addEventListener('click', wizardBack);
   $('#btn-theme').addEventListener('click', toggleTheme);
+  $('#btn-voice').addEventListener('click', toggleVoicePanel);
+  $('#btn-voice-test').addEventListener('click', () => {
+    FitSound.unlock();
+    FitSound.start();
+    FitSound.speak('Ausfallschritte. Satz eins von drei. Zehn bis zwölf Wiederholungen.');
+  });
+  // Stimmen stehen auf manchen Geräten erst verzögert bereit
+  FitSound.onVoicesChanged(() => {
+    if (!$('#voice-panel').classList.contains('hidden')) renderVoicePanel();
+  });
   $('#btn-edit-profile').addEventListener('click', () => startWizard('edit'));
   $('#btn-regenerate').addEventListener('click', () => { regeneratePlan(); renderPlan(); });
   $('#btn-delete-plan').addEventListener('click', deletePlan);
@@ -829,6 +903,10 @@
   state.speakDescOn = loadJSON(STORAGE_SPEAKDESC);
   if (state.speakDescOn === null) state.speakDescOn = true;
   applyTheme(loadJSON(STORAGE_THEME) || 'studio');
+  const savedVoice = loadJSON(STORAGE_VOICE);
+  if (savedVoice) FitSound.setVoice(savedVoice);
+  const savedRate = loadJSON(STORAGE_RATE);
+  if (savedRate) FitSound.setRate(savedRate);
 
   // Splash-Screen: bei jedem Start kurz zeigen, per Tipp überspringbar
   const splash = document.getElementById('splash');
