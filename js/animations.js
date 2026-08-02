@@ -123,6 +123,47 @@
       ],
     },
 
+    gobletsquat: {
+      dur: 2.8,
+      // Die Kurzhantel bleibt dicht vor der Brust, die Ellbogen zeigen nach
+      // unten – die Arme schwingen also nicht wie bei der freien Kniebeuge
+      // nach vorn, sondern behalten ihre Haltung über die ganze Bewegung.
+      poses: [
+        p(STAND, {
+          elbowF: [104, 82], handF: [112, 68],
+          elbowB: [100, 82], handB: [108, 70],
+        }),
+        {
+          head: [98, 82], neck: [95, 95], hip: [86, 146],
+          kneeF: [112, 158], footF: [104, 182], kneeB: [107, 158], footB: [95, 182],
+          elbowF: [99, 119], handF: [107, 105], elbowB: [95, 119], handB: [103, 107],
+        },
+      ],
+      props: [{ type: 'dumbbell', joint: 'handF' }],
+    },
+
+    bandsquat: {
+      dur: 2.8,
+      // Auf dem Band stehend, die Enden auf Schulterhöhe: Die Hände bleiben
+      // an der Schulter und wandern mit ihr nach unten, das Band spannt
+      // sich zwischen Händen und Füßen.
+      poses: [
+        p(STAND, {
+          elbowF: [106, 80], handF: [110, 62],
+          elbowB: [102, 80], handB: [106, 64],
+        }),
+        {
+          head: [98, 82], neck: [95, 95], hip: [86, 146],
+          kneeF: [112, 158], footF: [104, 182], kneeB: [107, 158], footB: [95, 182],
+          elbowF: [101, 117], handF: [104, 99], elbowB: [97, 117], handB: [100, 101],
+        },
+      ],
+      props: [
+        { type: 'band', from: 'handF', to: 'footF' },
+        { type: 'band', from: 'handB', to: 'footB' },
+      ],
+    },
+
     squat_hold: {
       dur: 3,
       poses: [

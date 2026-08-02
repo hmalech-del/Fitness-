@@ -229,9 +229,9 @@ const EXERCISES = [
 
   // ---------------- Kurzhanteln ----------------
   {
-    id: 'goblet_squat', name: 'Goblet Squats', anim: 'squat',
+    id: 'goblet_squat', name: 'Goblet Squats', anim: 'gobletsquat',
     equipment: 'kurzhanteln', muscles: ['beine', 'po'], category: 'kraft', level: 2,
-    impact: false, mode: 'reps', props: [{ type: 'dumbbell', joint: 'handF' }],
+    impact: false, mode: 'reps',
     desc: 'Eine Kurzhantel vor der Brust halten und tief in die Kniebeuge gehen. Ellbogen zeigen nach unten, Rücken gerade.',
   },
   {
@@ -330,7 +330,7 @@ const EXERCISES = [
     desc: 'Band an einem festen Punkt einhängen. Ellbogen nah am Körper nach hinten ziehen, Schulterblätter zusammenführen.',
   },
   {
-    id: 'band_squat', name: 'Band-Kniebeugen', anim: 'squat',
+    id: 'band_squat', name: 'Band-Kniebeugen', anim: 'bandsquat',
     equipment: 'band', muscles: ['beine', 'po'], category: 'kraft', level: 1,
     impact: false, mode: 'reps',
     desc: 'Auf das Band stellen, Enden auf Schulterhöhe halten und gegen den Widerstand Kniebeugen ausführen.',
