@@ -39,6 +39,18 @@
   const WARMUP_POOL = ['march', 'jumping_jack', 'shoulder_mob', 'high_knees', 'squat'];
   const COOLDOWN_POOL = ['forward_fold', 'quad_stretch', 'cat_cow', 'lunge_stretch', 'shoulder_mob'];
 
+  // Wochen-Rhythmus: Die Trainingstage werden so über die Woche verteilt,
+  // dass zwischen zwei Einheiten mit gleichem Schwerpunkt mindestens 48
+  // Stunden Regeneration liegen.
+  const WEEK_SCHEDULES = {
+    2: ['Mo', 'Do'],
+    3: ['Mo', 'Mi', 'Fr'],
+    4: ['Mo', 'Di', 'Do', 'Fr'],
+    5: ['Mo', 'Di', 'Do', 'Sa', 'So'],
+    6: ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'],
+  };
+  const WEEKDAYS = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
+
   // ------------------------------------------------------------------
   // Hilfsfunktionen
   // ------------------------------------------------------------------
@@ -90,10 +102,21 @@
   }
 
   // Wählt aus dem Pool Übungen, bis das Zeitbudget erschöpft ist.
-  // preferredMuscles sorgt für ausgewogene Muskelabdeckung.
+  // preferredMuscles sorgt für ausgewogene Muskelabdeckung, opts steuert
+  // Volumen und Belastungsgrenzen:
+  //   maxItems – Obergrenze an Übungen (Qualität vor Menge)
+  //   limits   – z. B. { ruecken: 1 }: höchstens eine Übung, die den
+  //              Rücken mitbelastet (verhindert versteckte Mehrfachlast)
+  //   maxSets  – bis hierhin darf freie Zeit in zusätzliche Sätze fließen
   // Hat der Nutzer Equipment, werden Übungen damit bevorzugt.
-  function fillBlock(pool, budgetSec, params, profile, preferredMuscles) {
+  function fillBlock(pool, budgetSec, params, profile, preferredMuscles, opts) {
+    const o = opts || {};
+    const maxItems = o.maxItems || 99;
+    const limits = o.limits || {};
+    const maxSets = Math.max(params.sets, o.maxSets || params.sets);
+
     const items = [];
+    const chosen = [];
     let remaining = budgetSec;
     const hasEquipment = profile.equipment.some((e) => e === 'kurzhanteln' || e === 'band');
     let candidates = shuffle(pool);
@@ -104,39 +127,63 @@
         .map((c) => c.ex);
     }
 
-    // Zuerst je eine Übung pro gewünschter Muskelgruppe
+    const underLimit = (ex) => Object.keys(limits).every((m) => !ex.muscles.includes(m)
+      || chosen.filter((c) => c.muscles.includes(m)).length < limits[m]);
+
+    function take(idx) {
+      const ex = candidates[idx];
+      const item = makeItem(ex, params, profile);
+      const t = itemTimeSec(item);
+      if (t > remaining) return false;
+      candidates.splice(idx, 1);
+      items.push(item);
+      chosen.push(ex);
+      remaining -= t;
+      return true;
+    }
+
+    // 1. Je eine Übung pro gewünschter Muskelgruppe
     // (bei vorhandenem Equipment bevorzugt die Geräte-Variante –
     // außer beim Core: Bauchübungen sind klassisch Eigengewicht)
     (preferredMuscles || []).forEach((muscle) => {
+      if (items.length >= maxItems) return;
+      const pick = (test) => candidates.findIndex((ex) => underLimit(ex) && test(ex));
       let idx = -1;
-      if (muscle === 'core') {
-        // Für den Bauch-Slot echte Bauchübungen bevorzugen (Plank, Crunches …)
-        idx = candidates.findIndex(isCoreFocus);
-      } else if (hasEquipment) {
-        idx = candidates.findIndex((ex) => ex.muscles.includes(muscle) && ex.equipment !== 'none');
-      }
-      if (idx === -1) idx = candidates.findIndex((ex) => ex.muscles.includes(muscle));
-      if (idx === -1) return;
-      const ex = candidates.splice(idx, 1)[0];
-      const item = makeItem(ex, params, profile);
-      const t = itemTimeSec(item);
-      if (t <= remaining) {
-        items.push(item);
-        remaining -= t;
-      }
+      if (muscle === 'core') idx = pick(isCoreFocus);
+      else if (hasEquipment) idx = pick((ex) => ex.muscles.includes(muscle) && ex.equipment !== 'none');
+      if (idx === -1) idx = pick((ex) => ex.muscles.includes(muscle));
+      if (idx !== -1) take(idx);
     });
 
-    // Dann auffüllen
-    for (const ex of candidates) {
+    // 2. Bis zur Obergrenze auffüllen
+    for (let i = 0; i < candidates.length && items.length < maxItems;) {
       if (remaining < 60) break;
-      if (items.some((it) => it.exId === ex.id)) continue;
-      const item = makeItem(ex, params, profile);
-      const t = itemTimeSec(item);
-      if (t <= remaining) {
-        items.push(item);
-        remaining -= t;
+      if (underLimit(candidates[i]) && take(i)) continue;
+      i++;
+    }
+
+    // 3. Freie Zeit fließt in zusätzliche Sätze statt in weitere Übungen –
+    //    mehr Volumen pro Muskel bei besserer Ausführungsqualität
+    let bumped = true;
+    while (bumped) {
+      bumped = false;
+      for (const item of items) {
+        if (item.sets >= maxSets) continue;
+        const cost = (item.seconds || item.workSec) + item.restSec;
+        if (cost > remaining) continue;
+        item.sets += 1;
+        remaining -= cost;
+        bumped = true;
       }
     }
+
+    // 4. Bleibt danach noch reichlich Zeit, dürfen einzelne Übungen dazu
+    for (let i = 0; i < candidates.length && items.length < maxItems + 2;) {
+      if (remaining < 180) break;
+      if (underLimit(candidates[i]) && take(i)) continue;
+      i++;
+    }
+
     return items;
   }
 
@@ -155,12 +202,18 @@
     ganzkoerper: {
       name: 'Ganzkörper-Kraft', emoji: '🏋️',
       filter: (ex) => ex.category === 'kraft',
-      muscles: ['beine', 'brust', 'ruecken', 'core', 'core'],
+      muscles: ['beine', 'brust', 'ruecken', 'schultern', 'core', 'core'],
+      maxItems: 6, limits: { ruecken: 2 },
     },
     oberkoerper: {
       name: 'Oberkörper', emoji: '💪',
-      filter: (ex) => ex.category === 'kraft' && ex.muscles.some((m) => ['brust', 'ruecken', 'schultern', 'arme', 'core'].includes(m)) && !ex.muscles.includes('beine'),
+      // Po-Übungen (Glute Bridge & Co.) gehören auf den Unterkörper-Tag –
+      // sonst bekommt die Gesäßmuskulatur nie eine Pause
+      filter: (ex) => ex.category === 'kraft'
+        && ex.muscles.some((m) => ['brust', 'ruecken', 'schultern', 'arme', 'core'].includes(m))
+        && !ex.muscles.includes('beine') && !ex.muscles.includes('po'),
       muscles: ['brust', 'ruecken', 'schultern', 'arme', 'core', 'core'],
+      maxItems: 6,
     },
     unterkoerper: {
       name: 'Unterkörper & Po', emoji: '🦵',
@@ -169,32 +222,40 @@
       filter: (ex) => ex.category === 'kraft'
         && (ex.muscles.some((m) => ['beine', 'po'].includes(m)) || isCoreFocus(ex)),
       muscles: ['beine', 'po', 'core', 'core'],
+      // höchstens eine hüftdominante Übung (Kreuzheben, Good Mornings …),
+      // damit der Rücken nicht an jedem Tag mitarbeitet
+      maxItems: 6, limits: { ruecken: 1 },
     },
     zirkel: {
       name: 'Ganzkörper-Zirkel', emoji: '🔥',
       filter: (ex) => ex.category === 'kraft' || ex.category === 'cardio',
       muscles: ['beine', 'cardio', 'brust', 'core'],
+      maxItems: 8,
     },
     cardio_core: {
       name: 'Cardio & Core', emoji: '🏃',
       filter: (ex) => ex.category === 'cardio' || (ex.category === 'kraft' && ex.muscles.includes('core')),
       muscles: ['cardio', 'core', 'cardio'],
+      maxItems: 8,
     },
     mobility: {
       name: 'Mobility & Dehnung', emoji: '🧘',
       filter: (ex) => ex.category === 'mobility' || ['birddog', 'superman', 'glute_bridge'].includes(ex.id),
       muscles: ['ruecken', 'beine', 'schultern'],
+      maxItems: 6,
     },
     hiit: {
       name: 'HIIT-Intervalle', emoji: '🔥',
       filter: (ex) => ex.category === 'cardio'
         || (ex.category === 'kraft' && ex.muscles.some((m) => ['beine', 'po', 'brust', 'core'].includes(m))),
       muscles: ['cardio', 'beine', 'core', 'cardio', 'brust'],
+      maxItems: 8,
     },
     bauch: {
       name: 'Bauch & Core', emoji: '💥',
       filter: (ex) => ex.category === 'kraft' && ex.muscles.includes('core'),
       muscles: ['core', 'core', 'core'],
+      maxItems: 7,
     },
     ruecken: {
       name: 'Rücken & Haltung', emoji: '🛡️',
@@ -233,9 +294,13 @@
       for (let i = 0; i < days; i++) seq.push(i % 3 === 2 ? 'zirkel' : 'cardio_core');
     } else if (goal === 'abnehmen') {
       for (let i = 0; i < days; i++) seq.push(i % 2 === 0 ? 'zirkel' : 'cardio_core');
+    } else if (goal === 'muskelaufbau' && days === 5) {
+      // Ganzkörper-Tag in die Mitte: So folgen nie zwei Einheiten mit
+      // gleichem Schwerpunkt direkt aufeinander.
+      seq.push('oberkoerper', 'unterkoerper', 'ganzkoerper', 'oberkoerper', 'unterkoerper');
     } else if (goal === 'muskelaufbau' && days >= 4) {
       const split = ['oberkoerper', 'unterkoerper'];
-      for (let i = 0; i < days; i++) seq.push(i === 4 && days === 5 ? 'ganzkoerper' : split[i % 2]);
+      for (let i = 0; i < days; i++) seq.push(split[i % 2]);
     } else if (goal === 'muskelaufbau') {
       for (let i = 0; i < days; i++) seq.push('ganzkoerper');
     } else {
@@ -260,7 +325,12 @@
     return params;
   }
 
-  function buildSession(tplId, profile, params, minutes) {
+  // Kraft-Tage, bei denen der Bauch nur an jedem zweiten Trainingstag
+  // drankommt – auch die Bauchmuskulatur braucht Regeneration.
+  const CORE_ALTERNATING = ['ganzkoerper', 'oberkoerper', 'unterkoerper'];
+
+  function buildSession(tplId, profile, params, minutes, opts) {
+    const withCore = !opts || opts.withCore !== false;
     const allowed = allowedExercises(profile);
     const tpl = DAY_TEMPLATES[tplId];
 
@@ -270,8 +340,21 @@
     const cooldownCount = minutes <= 20 ? 1 : 2;
     const mainBudget = Math.max(300, totalSec - warmupCount * 55 - cooldownCount * 45);
 
-    const pool = allowed.filter(tpl.filter);
-    const main = fillBlock(pool, mainBudget, params, profile, tpl.muscles);
+    let pool = allowed.filter(tpl.filter);
+    let muscles = tpl.muscles;
+    if (!withCore && CORE_ALTERNATING.includes(tplId)) {
+      pool = pool.filter((ex) => !isCoreFocus(ex));
+      muscles = muscles.filter((m) => m !== 'core');
+    }
+
+    // Freie Zeit darf in zusätzliche Sätze fließen – beim Muskelaufbau
+    // etwas großzügiger, weil dort das Satzvolumen den Reiz setzt.
+    const maxSets = Math.min(5, params.sets + (profile.goal === 'muskelaufbau' ? 2 : 1));
+    const main = fillBlock(pool, mainBudget, params, profile, muscles, {
+      maxItems: tpl.maxItems,
+      limits: tpl.limits,
+      maxSets,
+    });
 
     const warmup = buildSupportBlock(WARMUP_POOL, warmupCount, allowed, 40);
     const usedIds = new Set(main.map((it) => it.exId));
@@ -297,9 +380,12 @@
     const params = adjustParams(profile, GOAL_PARAMS[profile.goal] || GOAL_PARAMS.fitness);
     const templates = weekTemplates(profile.goal, profile.days);
 
+    const schedule = WEEK_SCHEDULES[profile.days] || WEEKDAYS.slice(0, profile.days);
+
     const days = templates.map((tplId, i) => Object.assign(
-      buildSession(tplId, profile, params, profile.minutes),
-      { name: `Tag ${i + 1}` }
+      // Bauch nur an jedem zweiten Trainingstag – auch er regeneriert
+      buildSession(tplId, profile, params, profile.minutes, { withCore: i % 2 === 0 }),
+      { name: `Tag ${i + 1}`, weekday: schedule[i] }
     ));
 
     return {
@@ -349,5 +435,7 @@
     return day;
   }
 
-  global.FitPlanner = { generatePlan, generateQuickDay, GOALS, LEVELS, GOAL_PARAMS, QUICK_FOCUS };
+  global.FitPlanner = {
+    generatePlan, generateQuickDay, GOALS, LEVELS, GOAL_PARAMS, QUICK_FOCUS, WEEKDAYS,
+  };
 })(window);

@@ -442,6 +442,26 @@ input[type="range"] {
 .stat span { font-size: .75rem; color: var(--text-muted); }
 
 .plan-days { display: flex; flex-direction: column; gap: 10px; }
+
+/* Wochenansicht: Wochentag links, Training oder Ruhetag rechts */
+.week-row { display: flex; align-items: center; gap: 10px; }
+.week-day {
+  width: 30px;
+  flex-shrink: 0;
+  font-size: .8rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-align: center;
+}
+.week-row .day-card { flex: 1; min-width: 0; }
+.rest-day {
+  flex: 1;
+  padding: 10px 16px;
+  border-radius: var(--radius);
+  border: 1px dashed var(--border);
+  color: var(--text-muted);
+  font-size: .85rem;
+}
 .day-card {
   display: flex;
   align-items: center;

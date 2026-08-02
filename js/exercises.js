@@ -106,7 +106,9 @@ const EXERCISES = [
   },
   {
     id: 'good_morning', name: 'Good Mornings', anim: 'goodmorning',
-    equipment: 'none', muscles: ['ruecken', 'po', 'beine'], category: 'kraft', level: 2,
+    // Zielmuskel ist die Beinrueckseite; der untere Ruecken arbeitet
+    // stabilisierend mit
+    equipment: 'none', muscles: ['beine', 'po', 'ruecken'], category: 'kraft', level: 2,
     impact: false, mode: 'reps',
     desc: 'Hände an die Schläfen, Knie leicht gebeugt. Oberkörper mit geradem Rücken aus der Hüfte nach vorn kippen, bis er fast waagerecht ist, und kontrolliert aufrichten.',
   },

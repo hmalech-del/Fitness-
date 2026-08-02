@@ -18,6 +18,15 @@ und einem geführten Workout-Player mit Timer.
   - Füllt exakt das angegebene Zeitbudget (Aufwärmen → Hauptteil → Dehnen).
   - Altersgerechte Anpassung: ab 55 keine Sprungbelastung, längeres Aufwärmen,
     ab 65 reduziertes Volumen und mehr Pause.
+  - **Regeneration**: Die Trainingstage werden mit Ruhetagen über die Woche
+    verteilt, sodass zwischen zwei Einheiten mit demselben Zielmuskel
+    mindestens 48 Stunden liegen. Muskelgruppen kommen dadurch auf die für
+    Muskelaufbau empfohlenen 2–3 Einheiten pro Woche. Der Bauch wird an
+    jedem zweiten Trainingstag trainiert.
+  - **Volumen statt Übungsflut**: höchstens sechs Hauptübungen pro Einheit;
+    freie Zeit fließt in zusätzliche Sätze statt in weitere Übungen. Pro
+    Unterkörper-Tag ist nur eine hüftdominante Übung erlaubt, damit der
+    untere Rücken nicht mehrfach belastet wird.
 - **Animationen für jede Übung**: SVG-Strichfiguren mit weich interpolierten
   Bewegungsabläufen (SMIL) – inklusive Requisiten wie Kurzhanteln und Bändern.
 - **Workout-Player**: Führt Satz für Satz durch das Training, mit

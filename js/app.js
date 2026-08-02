@@ -431,8 +431,9 @@
       });
     });
 
-    // Wochenplan
-    $('#plan-days').innerHTML = '<h3 class="block-title">📅 Dein Wochenplan</h3>' + p.plan.days.map((day, i) => {
+    // Wochenplan – mit Wochentagen und sichtbaren Ruhetagen, damit der
+    // Regenerations-Rhythmus (48 h je Muskelgruppe) erkennbar ist
+    const dayCard = (day, i) => {
       const count = day.blocks.warmup.length + day.blocks.main.length + day.blocks.cooldown.length;
       const pr = p.progress[i];
       const progressLine = pr
@@ -448,7 +449,23 @@
           </span>
           <span class="day-arrow">→</span>
         </button>`;
-    }).join('');
+    };
+
+    const hasSchedule = p.plan.days.every((d) => d.weekday);
+    let rows;
+    if (hasSchedule) {
+      const byWeekday = {};
+      p.plan.days.forEach((d, i) => { byWeekday[d.weekday] = { d, i }; });
+      rows = FitPlanner.WEEKDAYS.map((wd) => {
+        const entry = byWeekday[wd];
+        return entry
+          ? `<div class="week-row"><span class="week-day">${wd}</span>${dayCard(entry.d, entry.i)}</div>`
+          : `<div class="week-row"><span class="week-day">${wd}</span><div class="rest-day">😴 Ruhetag – Regeneration</div></div>`;
+      }).join('');
+    } else {
+      rows = p.plan.days.map(dayCard).join('');
+    }
+    $('#plan-days').innerHTML = '<h3 class="block-title">📅 Dein Wochenplan</h3>' + rows;
 
     $('#plan-days').querySelectorAll('.day-card').forEach((card) => {
       card.addEventListener('click', () => {
