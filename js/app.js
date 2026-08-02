@@ -12,11 +12,14 @@
   const STORAGE_SPEAKDESC = 'fitplan.speakdesc';
   const STORAGE_THEME = 'fitplan.theme';
 
-  // Themes: "studio" (hell, Salbei/Creme) und "neon" (dunkel, Cyberpunk-Gym)
+  // Themes: "studio" (hell, Salbei/Creme), "loft" (Beton & Pflanzen)
+  // und "neon" (dunkel, Cyberpunk-Gym). Der 🎨-Knopf schaltet der Reihe nach.
   const THEMES = {
     studio: { label: 'Studio', themeColor: '#f4efe6' },
+    loft: { label: 'Loft', themeColor: '#ecebe7' },
     neon: { label: 'Neon', themeColor: '#0e1219' },
   };
+  const THEME_ORDER = Object.keys(THEMES);
 
   const $ = (sel) => document.querySelector(sel);
 
@@ -65,11 +68,14 @@
     else document.documentElement.dataset.theme = state.theme;
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.setAttribute('content', THEMES[state.theme].themeColor);
+    const btn = $('#btn-theme');
+    if (btn) btn.title = `Design: ${THEMES[state.theme].label} – tippen zum Wechseln`;
     saveJSON(STORAGE_THEME, state.theme);
   }
 
   function toggleTheme() {
-    applyTheme(state.theme === 'studio' ? 'neon' : 'studio');
+    const next = (THEME_ORDER.indexOf(state.theme) + 1) % THEME_ORDER.length;
+    applyTheme(THEME_ORDER[next]);
   }
 
   // ------------------------------------------------------------------
