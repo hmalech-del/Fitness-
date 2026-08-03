@@ -16,12 +16,14 @@ const EXERCISES = [
   // ---------------- Eigengewicht: Kraft ----------------
   {
     id: 'squat', name: 'Kniebeugen', anim: 'squat',
+    repBias: 1.5,
     equipment: 'none', muscles: ['beine', 'po'], category: 'kraft', level: 1,
     impact: false, mode: 'reps',
     desc: 'Füße schulterbreit, Rücken gerade. Hüfte nach hinten-unten schieben, als würdest du dich auf einen Stuhl setzen, dann kraftvoll aufstehen.',
   },
   {
     id: 'sumo_squat', name: 'Sumo-Kniebeugen', anim: 'squat',
+    repBias: 1.5,
     equipment: 'none', muscles: ['beine', 'po'], category: 'kraft', level: 1,
     impact: false, mode: 'reps',
     desc: 'Breiter Stand, Fußspitzen zeigen nach außen. Tief in die Hocke gehen, Knie folgen der Fußrichtung.',
@@ -47,6 +49,7 @@ const EXERCISES = [
   },
   {
     id: 'knee_pushup', name: 'Knie-Liegestütze', anim: 'pushup',
+    repBias: 1.3,
     equipment: 'none', muscles: ['brust', 'arme', 'schultern'], category: 'kraft', level: 1,
     impact: false, mode: 'reps',
     desc: 'Wie Liegestütze, aber mit abgelegten Knien – ideal zum Einstieg. Körper von Knie bis Kopf in einer Linie halten.',
@@ -65,6 +68,7 @@ const EXERCISES = [
   },
   {
     id: 'incline_pushup', name: 'Liegestütze mit erhöhten Händen', anim: 'inclinepushup',
+    repBias: 1.3,
     equipment: 'none', muscles: ['brust', 'arme', 'schultern'], category: 'kraft', level: 1,
     impact: false, mode: 'reps',
     desc: 'Hände auf eine Stuhlkante oder Fensterbank stützen, Füße am Boden. Je höher die Auflage, desto leichter – ideal zum Einstieg und für die untere Brust.',
@@ -89,12 +93,14 @@ const EXERCISES = [
   },
   {
     id: 'glute_bridge', name: 'Glute Bridge', anim: 'glutebridge',
+    repBias: 1.5,
     equipment: 'none', muscles: ['po', 'core'], category: 'kraft', level: 1,
     impact: false, mode: 'reps',
     desc: 'Rückenlage, Füße aufgestellt. Hüfte anheben, bis Knie–Hüfte–Schulter eine Linie bilden, oben den Po fest anspannen.',
   },
   {
     id: 'sl_glute_bridge', name: 'Einbeinige Glute Bridge', anim: 'glutebridge',
+    repBias: 1.5,
     perSide: true,
     equipment: 'none', muscles: ['po', 'core'], category: 'kraft', level: 2,
     impact: false, mode: 'reps',
@@ -102,24 +108,28 @@ const EXERCISES = [
   },
   {
     id: 'crunch', name: 'Crunches', anim: 'crunch',
+    repBias: 1.5,
     equipment: 'none', muscles: ['core'], category: 'kraft', level: 1,
     impact: false, mode: 'reps',
     desc: 'Rückenlage, Hände an die Schläfen. Schulterblätter kontrolliert vom Boden abheben, unteren Rücken liegen lassen.',
   },
   {
     id: 'superman', name: 'Superman', anim: 'superman',
+    repBias: 1.5,
     equipment: 'none', muscles: ['ruecken', 'po'], category: 'kraft', level: 1,
     impact: false, mode: 'reps',
     desc: 'Bauchlage, Arme nach vorn gestreckt. Arme und Beine gleichzeitig anheben, kurz halten, langsam absenken.',
   },
   {
     id: 'chin_tuck', name: 'Kinn-Retraktion (Chin Tucks)', anim: 'chintuck',
+    repBias: 1.3,
     equipment: 'none', muscles: ['nacken'], category: 'kraft', level: 1,
     impact: false, mode: 'reps',
     desc: 'Aufrecht stehen oder sitzen, Blick geradeaus. Das Kinn waagerecht nach hinten schieben (Doppelkinn machen), 2–3 Sekunden halten, locker lassen. Kräftigt die tiefen Nackenbeuger – die wichtigste Übung gegen eine nach vorn geschobene Kopfhaltung.',
   },
   {
     id: 'wall_angel', name: 'Wand-Engel', anim: 'wallangel',
+    repBias: 1.3,
     equipment: 'none', muscles: ['schultern', 'ruecken', 'nacken'], category: 'kraft', level: 1,
     impact: false, mode: 'reps',
     desc: 'Mit Rücken, Hinterkopf und Armen an eine Wand lehnen, Arme in W-Position. Die Arme langsam an der Wand entlang nach oben in ein Y schieben und wieder zurück – ohne dass Ellbogen oder Handrücken den Kontakt verlieren.',
@@ -147,12 +157,14 @@ const EXERCISES = [
   },
   {
     id: 'birddog', name: 'Bird Dog', anim: 'birddog',
+    repBias: 1.3,
     equipment: 'none', muscles: ['core', 'ruecken'], category: 'kraft', level: 1,
     impact: false, mode: 'reps',
     desc: 'Vierfüßlerstand. Rechten Arm und linkes Bein gleichzeitig strecken, kurz halten, wechseln. Rumpf bleibt stabil.',
   },
   {
     id: 'calf_raise', name: 'Wadenheben', anim: 'calfraise',
+    repBias: 1.6,
     equipment: 'none', muscles: ['beine'], category: 'kraft', level: 1,
     impact: false, mode: 'reps',
     desc: 'Aufrecht stehen und langsam auf die Zehenspitzen drücken, oben kurz halten, kontrolliert absenken.',
@@ -166,12 +178,14 @@ const EXERCISES = [
   },
   {
     id: 'leg_raise', name: 'Beinheben', anim: 'legraise',
+    repBias: 1.5,
     equipment: 'none', muscles: ['core'], category: 'kraft', level: 2,
     impact: false, mode: 'reps',
     desc: 'Rückenlage, Hände neben dem Körper. Gestreckte Beine langsam bis zur Senkrechten anheben und kontrolliert absenken, ohne ins Hohlkreuz zu fallen.',
   },
   {
     id: 'dead_bug', name: 'Dead Bug', anim: 'deadbug',
+    repBias: 1.5,
     equipment: 'none', muscles: ['core'], category: 'kraft', level: 1,
     impact: false, mode: 'reps',
     desc: 'Rückenlage, Arme senkrecht, Knie über der Hüfte. Gegengleich einen Arm hinter den Kopf und das andere Bein lang ausstrecken, zurück und wechseln.',
@@ -191,6 +205,7 @@ const EXERCISES = [
   },
   {
     id: 'bicycle_crunch', name: 'Bicycle Crunches', anim: 'crunch',
+    repBias: 1.5,
     equipment: 'none', muscles: ['core'], category: 'kraft', level: 2,
     impact: false, mode: 'reps',
     desc: 'Rückenlage, Hände an die Schläfen. Ellbogen und gegenüberliegendes Knie abwechselnd zueinander führen – wie Fahrradfahren.',
@@ -203,12 +218,14 @@ const EXERCISES = [
   },
   {
     id: 'russian_twist', name: 'Russian Twists', anim: 'russiantwist',
+    repBias: 1.5,
     equipment: 'none', muscles: ['core'], category: 'kraft', level: 2,
     impact: false, mode: 'reps',
     desc: 'Sitzen, Oberkörper leicht zurücklehnen, Füße anheben. Den Oberkörper kontrolliert zur Seite drehen und die Hände neben der Hüfte auftippen, dann zur anderen Seite.',
   },
   {
     id: 'v_up', name: 'Klappmesser (V-Ups)', anim: 'vup',
+    repBias: 1.5,
     equipment: 'none', muscles: ['core'], category: 'kraft', level: 3,
     impact: false, mode: 'reps',
     desc: 'Flache Rückenlage, Arme über dem Kopf. Beine und Oberkörper gleichzeitig anheben, bis die Hände Richtung Füße reichen, dann kontrolliert absenken.',
@@ -221,12 +238,14 @@ const EXERCISES = [
   },
   {
     id: 'reverse_crunch', name: 'Reverse Crunches', anim: 'reversecrunch',
+    repBias: 1.5,
     equipment: 'none', muscles: ['core'], category: 'kraft', level: 1,
     impact: false, mode: 'reps',
     desc: 'Rückenlage, Knie über der Hüfte. Die Knie Richtung Brust ziehen und dabei die Hüfte leicht vom Boden abrollen – trainiert den unteren Bauch, ohne den Nacken zu belasten.',
   },
   {
     id: 'plank_tap', name: 'Plank mit Schultertippen', anim: 'planktap',
+    repBias: 1.5,
     equipment: 'none', muscles: ['core', 'schultern'], category: 'kraft', level: 2,
     impact: false, mode: 'reps',
     desc: 'Hoher Stütz auf den Händen. Abwechselnd eine Hand zur gegenüberliegenden Schulter tippen, ohne dass die Hüfte kippt – Anti-Rotations-Training für den Rumpf.',
@@ -305,6 +324,7 @@ const EXERCISES = [
   },
   {
     id: 'db_calf', name: 'Wadenheben mit Kurzhanteln', anim: 'calfraise',
+    repBias: 1.6,
     equipment: 'kurzhanteln', muscles: ['beine'], category: 'kraft', level: 1,
     impact: false, mode: 'reps',
     props: [{ type: 'dumbbell', joint: 'handF' }, { type: 'dumbbell', joint: 'handB' }],
@@ -351,6 +371,7 @@ const EXERCISES = [
   // ---------------- Widerstandsband ----------------
   {
     id: 'band_pullapart', name: 'Band Pull-Aparts', anim: 'pullapart',
+    repBias: 1.5,
     equipment: 'band', muscles: ['schultern', 'ruecken'], category: 'kraft', level: 1,
     impact: false, mode: 'reps',
     desc: 'Band auf Brusthöhe mit gestreckten Armen halten und auseinanderziehen, bis es die Brust berührt. Langsam zurück.',
@@ -381,6 +402,7 @@ const EXERCISES = [
   },
   {
     id: 'band_lateral', name: 'Band-Seitheben', anim: 'bandlateral',
+    repBias: 1.3,
     equipment: 'band', muscles: ['schultern'], category: 'kraft', level: 1,
     impact: false, mode: 'reps',
     desc: 'Auf das Band stellen und die Arme seitlich bis auf Schulterhöhe anheben.',
@@ -393,6 +415,7 @@ const EXERCISES = [
   },
   {
     id: 'band_frontraise', name: 'Band-Frontheben', anim: 'bandfrontraise',
+    repBias: 1.3,
     equipment: 'band', muscles: ['schultern'], category: 'kraft', level: 1,
     impact: false, mode: 'reps',
     desc: 'Auf das Band stellen und die gestreckten Arme gegen den Widerstand nach vorn bis auf Schulterhöhe anheben.',

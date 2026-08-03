@@ -27,13 +27,13 @@
   // Trainingsparameter je Ziel: Sätze, Wiederholungen, Pause,
   // geschätzte Arbeitszeit pro Satz (für die Zeitplanung)
   const GOAL_PARAMS = {
-    muskelaufbau: { sets: 3, reps: '8–12', restSec: 60, workSec: 40 },
-    abnehmen: { sets: 3, reps: '12–15', restSec: 30, workSec: 45 },
-    ausdauer: { sets: 3, reps: '15–20', restSec: 25, workSec: 45 },
+    muskelaufbau: { sets: 3, reps: [8, 12], restSec: 60, workSec: 40 },
+    abnehmen: { sets: 3, reps: [12, 15], restSec: 30, workSec: 45 },
+    ausdauer: { sets: 3, reps: [15, 20], restSec: 25, workSec: 45 },
     beweglichkeit: { sets: 2, reps: null, restSec: 15, workSec: 35 },
-    ruecken: { sets: 3, reps: '10–15', restSec: 45, workSec: 40 },
-    haltung: { sets: 2, reps: '10–12', restSec: 30, workSec: 35 },
-    fitness: { sets: 3, reps: '10–12', restSec: 50, workSec: 40 },
+    ruecken: { sets: 3, reps: [10, 15], restSec: 45, workSec: 40 },
+    haltung: { sets: 2, reps: [10, 12], restSec: 30, workSec: 35 },
+    fitness: { sets: 3, reps: [10, 12], restSec: 50, workSec: 40 },
   };
 
   const WARMUP_POOL = ['march', 'jumping_jack', 'shoulder_mob', 'high_knees', 'squat'];
@@ -85,6 +85,20 @@
     return item.sets * work + (item.sets - 1) * item.restSec + 20; // +20s Übergang
   }
 
+  // Nicht jede Übung verträgt denselben Wiederholungsbereich: Waden und
+  // Bauchmuskulatur sind ermüdungsresistent, und bei Eigengewichtsübungen
+  // lässt sich das Gewicht nicht steigern – dort setzt der Reiz erst bei
+  // höheren Wiederholungszahlen ein. repBias skaliert den Zielbereich.
+  function roundReps(v) {
+    const r = Math.round(v);
+    return r > 12 ? Math.round(r / 5) * 5 : r;
+  }
+
+  function repRange(ex, reps) {
+    const bias = ex.repBias || 1;
+    return `${roundReps(reps[0] * bias)}–${roundReps(reps[1] * bias)}`;
+  }
+
   function makeItem(ex, params, profile) {
     const item = { exId: ex.id, sets: params.sets, restSec: params.restSec, workSec: params.workSec };
     if (params.forceSec) {
@@ -96,7 +110,7 @@
       if (profile.level === 'anfaenger') sec = Math.round(sec * 0.85);
       item.seconds = Math.max(15, Math.round(sec / 5) * 5);
     } else {
-      item.reps = params.reps;
+      item.reps = repRange(ex, params.reps);
     }
     return item;
   }
