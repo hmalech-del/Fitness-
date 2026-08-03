@@ -111,7 +111,7 @@ const EXERCISES = [
     repBias: 1.5,
     equipment: 'none', muscles: ['core'], category: 'kraft', level: 1,
     impact: false, mode: 'reps',
-    desc: 'Rückenlage, Hände an die Schläfen. Schulterblätter kontrolliert vom Boden abheben, unteren Rücken liegen lassen.',
+    desc: 'Rückenlage, Hände locker an die Schläfen – nicht am Kopf ziehen, der Nacken bleibt entspannt. Schulterblätter kontrolliert vom Boden abheben, unteren Rücken liegen lassen.',
   },
   {
     id: 'superman', name: 'Superman', anim: 'superman',
@@ -201,14 +201,14 @@ const EXERCISES = [
     id: 'chair_dip', name: 'Trizeps-Dips am Stuhl', anim: 'dip',
     equipment: 'none', muscles: ['arme', 'brust'], category: 'kraft', level: 2,
     impact: false, mode: 'reps',
-    desc: 'Hände hinter dem Körper auf einer stabilen Stuhlkante. Ellbogen beugen, Körper absenken und wieder hochdrücken.',
+    desc: 'Hände hinter dem Körper auf einer stabilen Stuhlkante. Ellbogen beugen und den Körper absenken, bis die Oberarme etwa waagerecht sind – nicht tiefer, das belastet die Schultern. Dann wieder hochdrücken.',
   },
   {
     id: 'bicycle_crunch', name: 'Bicycle Crunches', anim: 'crunch',
     repBias: 1.5,
     equipment: 'none', muscles: ['core'], category: 'kraft', level: 2,
     impact: false, mode: 'reps',
-    desc: 'Rückenlage, Hände an die Schläfen. Ellbogen und gegenüberliegendes Knie abwechselnd zueinander führen – wie Fahrradfahren.',
+    desc: 'Rückenlage, Hände locker an die Schläfen, ohne am Kopf zu ziehen. Ellbogen und gegenüberliegendes Knie abwechselnd zueinander führen – wie Fahrradfahren.',
   },
   {
     id: 'hollow_hold', name: 'Hollow Hold', anim: 'hollowhold',
@@ -221,7 +221,7 @@ const EXERCISES = [
     repBias: 1.5,
     equipment: 'none', muscles: ['core'], category: 'kraft', level: 2,
     impact: false, mode: 'reps',
-    desc: 'Sitzen, Oberkörper leicht zurücklehnen, Füße anheben. Den Oberkörper kontrolliert zur Seite drehen und die Hände neben der Hüfte auftippen, dann zur anderen Seite.',
+    desc: 'Sitzen, Oberkörper leicht zurücklehnen, Rücken gerade. Den Oberkörper langsam aus der Körpermitte zur Seite drehen und die Hände neben der Hüfte auftippen, dann zur anderen Seite. Nicht schwungvoll reißen – bei Rückenbeschwerden die Füße abgestellt lassen.',
   },
   {
     id: 'v_up', name: 'Klappmesser (V-Ups)', anim: 'vup',

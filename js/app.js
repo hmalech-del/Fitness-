@@ -724,12 +724,17 @@
   // Countdown auf Uhrzeit-Basis: läuft auch nach kurzem App-Wechsel korrekt
   // weiter (setInterval wird im Hintergrund gedrosselt).
   // Rückgabe: extend(sec) verlängert den laufenden Countdown.
-  function startCountdown(w, seconds, displaySel, onDone) {
+  function startCountdown(w, seconds, displaySel, onDone, markAt) {
     let endAt = Date.now() + seconds * 1000;
     let last = seconds;
     w.timer = setInterval(() => {
       const remaining = Math.max(0, Math.ceil((endAt - Date.now()) / 1000));
       if (remaining === last) return;
+      // Halbzeit bei einseitigen Halteübungen: zur anderen Seite wechseln
+      if (markAt && remaining === markAt) {
+        FitSound.start();
+        FitSound.speak('Seite wechseln!');
+      }
       last = remaining;
       const t = $(displaySel);
       if (t) t.textContent = remaining;
@@ -839,10 +844,14 @@
     FitSound.speak(text);
 
     if (isTimed) {
-      startCountdown(w, step.item.seconds, '#work-timer', () => {
+      // Einseitige Halteübungen (Seitstütz, Dehnungen) laufen über beide
+      // Seiten – zur Halbzeit kommt die Ansage zum Wechseln
+      const total = ex.perSide ? step.item.seconds * 2 : step.item.seconds;
+      $('#work-timer').textContent = total;
+      startCountdown(w, total, '#work-timer', () => {
         FitSound.finish();
         nextStep();
-      });
+      }, ex.perSide ? step.item.seconds : 0);
       $('#btn-skip-work').addEventListener('click', nextStep);
     } else {
       $('#btn-set-done').addEventListener('click', nextStep);

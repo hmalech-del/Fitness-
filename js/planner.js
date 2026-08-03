@@ -81,7 +81,11 @@
   const isCoreFocus = (ex) => ex.muscles[0] === 'core';
 
   function itemTimeSec(item) {
-    const work = item.seconds || item.workSec || 40;
+    // Einseitige Übungen werden je Seite ausgeführt und brauchen damit die
+    // doppelte Arbeitszeit – sonst ist die Einheit spürbar länger als angesagt
+    const ex = EXERCISE_BY_ID[item.exId];
+    const sides = ex && ex.perSide ? 2 : 1;
+    const work = (item.seconds || item.workSec || 40) * sides;
     return item.sets * work + (item.sets - 1) * item.restSec + 20; // +20s Übergang
   }
 
@@ -201,9 +205,15 @@
     return items;
   }
 
-  function buildSupportBlock(poolIds, count, allowed, seconds) {
+  // trained: Muskeln der Einheit – Dehnübungen, die dazu passen, kommen
+  // zuerst. Nach dem Training soll das gedehnt werden, was gearbeitet hat.
+  function buildSupportBlock(poolIds, count, allowed, seconds, trained) {
     const allowedIds = new Set(allowed.map((e) => e.id));
     const pool = shuffle(poolIds.filter((id) => allowedIds.has(id)));
+    if (trained) {
+      const passt = (id) => (EXERCISE_BY_ID[id].muscles.some((m) => trained.has(m)) ? 0 : 1);
+      pool.sort((a, b) => passt(a) - passt(b));
+    }
     return pool.slice(0, count).map((id) => ({
       exId: id, sets: 1, seconds, restSec: 10, workSec: seconds,
     }));
@@ -218,6 +228,7 @@
       filter: (ex) => ex.category === 'kraft',
       muscles: ['beine', 'brust', 'ruecken', 'schultern', 'core', 'core'],
       maxItems: 6, limits: { ruecken: 2 },
+      warmup: ['march', 'jumping_jack', 'squat', 'shoulder_mob'],
     },
     oberkoerper: {
       name: 'Oberkörper', emoji: '💪',
@@ -228,6 +239,7 @@
         && !ex.muscles.includes('beine') && !ex.muscles.includes('po'),
       muscles: ['brust', 'ruecken', 'schultern', 'arme', 'core', 'core'],
       maxItems: 6,
+      warmup: ['march', 'shoulder_mob', 'cat_cow', 'jumping_jack'],
     },
     unterkoerper: {
       name: 'Unterkörper & Po', emoji: '🦵',
@@ -241,6 +253,7 @@
       // höchstens eine hüftdominante Übung (Kreuzheben, Good Mornings …),
       // damit der Rücken nicht an jedem Tag mitarbeitet
       maxItems: 6, limits: { ruecken: 1 },
+      warmup: ['march', 'squat', 'high_knees', 'glute_bridge'],
     },
     zirkel: {
       name: 'Ganzkörper-Zirkel', emoji: '🔥',
@@ -279,6 +292,7 @@
       muscles: ['core', 'core', 'core'],
       maxItems: 7,
       maxMinutes: 20,
+      warmup: ['march', 'cat_cow', 'glute_bridge', 'birddog'],
     },
     ruecken: {
       name: 'Rücken & Haltung', emoji: '🛡️',
@@ -288,6 +302,7 @@
         || ['glute_bridge', 'sl_glute_bridge', 'db_glutebridge', 'cat_cow'].includes(ex.id),
       muscles: ['ruecken', 'core', 'ruecken', 'po'],
       maxItems: 6, limits: { ruecken: 3 },
+      warmup: ['march', 'cat_cow', 'shoulder_mob', 'glute_bridge'],
     },
     haltung: {
       name: 'Aufrecht & Stark', emoji: '🧍',
@@ -300,6 +315,7 @@
       muscles: ['nacken', 'schultern', 'ruecken', 'brust'],
       // Haltungsarbeit wirkt über Regelmäßigkeit, nicht über Dauer
       maxItems: 6, maxMinutes: 30,
+      warmup: ['march', 'shoulder_mob', 'cat_cow', 'chin_tuck'],
     },
   };
 
@@ -392,7 +408,9 @@
     // Ältere Trainierende: etwas längeres Aufwärmen
     const warmupCount = minutes <= 20 ? 1 : profile.age >= 55 ? 3 : 2;
     const cooldownCount = minutes <= 20 ? 1 : 2;
-    const mainBudget = Math.max(300, totalSec - warmupCount * 55 - cooldownCount * 45);
+    // Reserve für Aufwärmen und Ausklang großzügig rechnen: Dehnübungen je
+    // Seite brauchen die doppelte Zeit, sonst läuft die Einheit über
+    const mainBudget = Math.max(300, totalSec - warmupCount * 60 - cooldownCount * 80);
 
     let pool = allowed.filter(tpl.filter);
     let muscles = tpl.muscles;
@@ -412,11 +430,15 @@
       maxSets,
     });
 
-    const warmup = buildSupportBlock(WARMUP_POOL, warmupCount, allowed, 40);
+    // Aufwärmen bereitet die Muskeln vor, die gleich arbeiten sollen
+    const warmup = buildSupportBlock(tpl.warmup || WARMUP_POOL, warmupCount, allowed, 40);
+
+    const trained = new Set();
+    main.forEach((it) => EXERCISE_BY_ID[it.exId].muscles.forEach((m) => trained.add(m)));
     const usedIds = new Set(main.map((it) => it.exId));
     const cooldown = buildSupportBlock(
       COOLDOWN_POOL.filter((id) => !usedIds.has(id)),
-      cooldownCount, allowed, 30
+      cooldownCount, allowed, 30, trained
     );
 
     const estSec = [...warmup, ...main, ...cooldown].reduce((s, it) => s + itemTimeSec(it), 0);
