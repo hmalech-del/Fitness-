@@ -58,6 +58,30 @@ const EXERCISES = [
     desc: 'Liegestütze mit deutlich breiterem Handabstand – betont die Brustmuskulatur stärker.',
   },
   {
+    id: 'decline_pushup', name: 'Liegestütze mit erhöhten Füßen', anim: 'declinepushup',
+    equipment: 'none', muscles: ['brust', 'schultern', 'arme'], category: 'kraft', level: 3,
+    impact: false, mode: 'reps',
+    desc: 'Füße auf einen Stuhl oder eine Stufe legen, Hände am Boden. Diese Neigung verlagert die Last auf die obere Brust – das Gegenstück zum Schrägbankdrücken, nur ohne Bank.',
+  },
+  {
+    id: 'incline_pushup', name: 'Liegestütze mit erhöhten Händen', anim: 'inclinepushup',
+    equipment: 'none', muscles: ['brust', 'arme', 'schultern'], category: 'kraft', level: 1,
+    impact: false, mode: 'reps',
+    desc: 'Hände auf eine Stuhlkante oder Fensterbank stützen, Füße am Boden. Je höher die Auflage, desto leichter – ideal zum Einstieg und für die untere Brust.',
+  },
+  {
+    id: 'db_fly', name: 'Fliegende am Boden', anim: 'floorfly',
+    equipment: 'kurzhanteln', muscles: ['brust', 'schultern'], category: 'kraft', level: 2,
+    impact: false, mode: 'reps',
+    desc: 'Rückenlage, Knie angewinkelt, in jeder Hand eine Kurzhantel über der Brust. Die leicht gebeugten Arme im weiten Bogen zur Seite öffnen, bis die Oberarme den Boden berühren, dann über der Brust wieder zusammenführen. Isolationsübung für die Brust – der Boden begrenzt die Bewegung und schützt die Schultern.',
+  },
+  {
+    id: 'band_chestpress', name: 'Band-Brustdrücken', anim: 'bandchestpress',
+    equipment: 'band', muscles: ['brust', 'arme', 'schultern'], category: 'kraft', level: 1,
+    impact: false, mode: 'reps',
+    desc: 'Das Band hinter dem Rücken auf Brusthöhe führen und die Enden greifen. Beide Arme gegen den Widerstand nach vorn drücken, bis die Hände fast zusammenkommen, dann langsam zurück.',
+  },
+  {
     id: 'plank', name: 'Unterarmstütz (Plank)', anim: 'plank',
     equipment: 'none', muscles: ['core'], category: 'kraft', level: 1,
     impact: false, mode: 'time', holdSec: 30,

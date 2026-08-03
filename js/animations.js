@@ -259,6 +259,83 @@
       ],
     },
 
+    floorfly: {
+      dur: 2.8,
+      // Ansicht von oben auf die liegende Figur – nur so ist die Öffnung
+      // der Arme zur Seite sichtbar. In der Seitenansicht bewegen sich die
+      // Hände auf den Betrachter zu. Deshalb ohne Bodenlinie.
+      noFloor: true,
+      armsFront: true,
+      poses: [
+        {
+          head: [100, 40], neck: [100, 58], hip: [100, 118],
+          kneeF: [120, 144], footF: [106, 166], kneeB: [80, 144], footB: [94, 166],
+          elbowF: [117, 62], handF: [107, 46], elbowB: [83, 62], handB: [93, 46],
+        },
+        {
+          head: [100, 40], neck: [100, 58], hip: [100, 118],
+          kneeF: [120, 144], footF: [106, 166], kneeB: [80, 144], footB: [94, 166],
+          elbowF: [128, 70], handF: [152, 76], elbowB: [72, 70], handB: [48, 76],
+        },
+      ],
+      props: [{ type: 'dumbbell', joint: 'handF' }, { type: 'dumbbell', joint: 'handB' }],
+    },
+
+    bandchestpress: {
+      dur: 2.4,
+      // Band läuft hinter dem Rücken, die Hände drücken nach vorn zusammen
+      poses: [
+        p(STAND, {
+          elbowF: [110, 78], handF: [116, 66],
+          elbowB: [106, 80], handB: [112, 68],
+        }),
+        p(STAND, {
+          elbowF: [126, 70], handF: [148, 66],
+          elbowB: [122, 72], handB: [144, 68],
+        }),
+      ],
+      props: [
+        { type: 'band', from: 'handF', to: [76, 66] },
+        { type: 'band', from: 'handB', to: [76, 68] },
+      ],
+    },
+
+    declinepushup: {
+      dur: 2.4,
+      // Füße erhöht: verlagert die Last auf die obere Brust
+      poses: [
+        {
+          head: [162, 126], neck: [150, 132], hip: [96, 146],
+          kneeF: [70, 150], footF: [46, 148], kneeB: [68, 148], footB: [44, 146],
+          elbowF: [149, 156], handF: [148, 182], elbowB: [145, 154], handB: [144, 180],
+        },
+        {
+          head: [163, 156], neck: [150, 160], hip: [96, 156],
+          kneeF: [70, 154], footF: [46, 148], kneeB: [68, 152], footB: [44, 146],
+          elbowF: [163, 172], handF: [148, 182], elbowB: [159, 170], handB: [144, 180],
+        },
+      ],
+      props: [{ type: 'chair', x: 44, top: 148 }],
+    },
+
+    inclinepushup: {
+      dur: 2.4,
+      // Hände erhöht: leichtere Variante, betont die untere Brust
+      poses: [
+        {
+          head: [166, 110], neck: [154, 116], hip: [100, 144],
+          kneeF: [72, 160], footF: [46, 180], kneeB: [70, 158], footB: [44, 178],
+          elbowF: [152, 130], handF: [150, 144], elbowB: [148, 128], handB: [146, 142],
+        },
+        {
+          head: [168, 130], neck: [156, 136], hip: [102, 154],
+          kneeF: [74, 165], footF: [46, 180], kneeB: [72, 163], footB: [44, 178],
+          elbowF: [166, 140], handF: [150, 144], elbowB: [162, 138], handB: [146, 142],
+        },
+      ],
+      props: [{ type: 'chair', x: 150, top: 144 }],
+    },
+
     plank: {
       dur: 3,
       poses: [
@@ -1190,15 +1267,18 @@
         x1: prop.x, y1: 40, x2: prop.x, y2: 182, class: 'prop-wall',
       }));
     } else if (prop.type === 'chair') {
-      svg.appendChild(el('line', { x1: 116, y1: 140, x2: 152, y2: 140, class: 'prop-wall' }));
-      svg.appendChild(el('line', { x1: 120, y1: 140, x2: 120, y2: 182, class: 'prop-wall' }));
-      svg.appendChild(el('line', { x1: 148, y1: 140, x2: 148, y2: 182, class: 'prop-wall' }));
+      // Sitzfläche und Beine – frei platzierbar (Stuhl, Bank, Stufe)
+      const x = prop.x != null ? prop.x : 134;
+      const top = prop.top != null ? prop.top : 140;
+      svg.appendChild(el('line', { x1: x - 18, y1: top, x2: x + 18, y2: top, class: 'prop-wall' }));
+      svg.appendChild(el('line', { x1: x - 14, y1: top, x2: x - 14, y2: 182, class: 'prop-wall' }));
+      svg.appendChild(el('line', { x1: x + 14, y1: top, x2: x + 14, y2: 182, class: 'prop-wall' }));
     }
   }
 
   // Zoomt die Ansicht automatisch auf die Figur samt Requisiten, damit
   // sie den Kasten füllt (statt klein in der 220×200-Fläche zu stehen).
-  function computeViewBox(poses, props, spineBulge) {
+  function computeViewBox(poses, props, spineBulge, noFloor) {
     let minX = 1e9; let minY = 1e9; let maxX = -1e9; let maxY = -1e9;
     const add = (x, y, r) => {
       minX = Math.min(minX, x - r); maxX = Math.max(maxX, x + r);
@@ -1218,11 +1298,13 @@
       } else if (pr.type === 'wall') {
         add(pr.x, 60, 5); add(pr.x, 182, 5);
       } else if (pr.type === 'chair') {
-        add(116, 140, 5); add(152, 182, 5);
+        const cx = pr.x != null ? pr.x : 134;
+        const ctop = pr.top != null ? pr.top : 140;
+        add(cx - 18, ctop, 5); add(cx + 18, 182, 5);
       }
     });
     // Bodenlinie zeigen, wenn die Figur am Boden agiert
-    if (maxY > 150) maxY = Math.max(maxY, 186);
+    if (maxY > 150 && !noFloor) maxY = Math.max(maxY, 186);
     const bulge = spineBulge || 0;
     minX -= 10 + bulge; maxX += 10 + bulge; minY -= 10 + bulge; maxY += 8 + bulge;
 
@@ -1259,13 +1341,15 @@
 
     const svg = el('svg', {
       viewBox: computeViewBox(poses, props,
-        anim.spine ? Math.max(...anim.spine.map(Math.abs)) * 2 : 0),
+        anim.spine ? Math.max(...anim.spine.map(Math.abs)) * 2 : 0, anim.noFloor),
       class: 'exercise-anim',
       'aria-hidden': 'true',
     });
 
-    // Boden
-    svg.appendChild(el('line', { x1: -40, y1: 182, x2: 260, y2: 182, class: 'floor' }));
+    // Boden – bei Ansichten von oben (z. B. Fliegende am Boden) entfällt er
+    if (!anim.noFloor) {
+      svg.appendChild(el('line', { x1: -40, y1: 182, x2: 260, y2: 182, class: 'floor' }));
+    }
 
     // Props (hinter der Figur gezeichnete Bänder/Wände/Stühle zuerst)
     props.filter((pr) => pr.type !== 'dumbbell')
