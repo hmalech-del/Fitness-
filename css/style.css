@@ -383,6 +383,48 @@ h4 { margin: 0 0 2px; font-size: 1.02rem; }
 .voice-panel .field { margin: 14px 0; }
 .voice-panel .chip { font-size: .85rem; padding: 8px 13px; }
 
+/* Progression: Zielvorgabe und nächster Schritt */
+.progress-line {
+  margin: 0 0 6px;
+  font-size: .78rem;
+  color: var(--accent);
+}
+
+/* Optionale Rückmeldung nach der Einheit */
+.feedback-box {
+  width: 100%;
+  max-width: 440px;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  text-align: left;
+}
+.feedback-title { margin: 0 0 10px; font-weight: 600; font-size: .95rem; }
+.feedback-box .chip { font-size: .82rem; padding: 8px 12px; }
+.btn-link {
+  background: none;
+  border: none;
+  padding: 8px 0 0;
+  color: var(--text-muted);
+  font-size: .82rem;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.feedback-list { margin-top: 6px; display: flex; flex-direction: column; gap: 6px; }
+.feedback-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: .82rem;
+  padding-top: 6px;
+  border-top: 1px solid var(--border);
+}
+.feedback-name { flex: 1; min-width: 0; }
+.feedback-actions { display: flex; gap: 4px; flex-shrink: 0; }
+.chip-mini { padding: 4px 10px; font-size: .8rem; min-width: 34px; }
+
 .age-row { display: flex; align-items: center; gap: 16px; }
 .age-value {
   font-size: 1.6rem;

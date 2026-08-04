@@ -16,6 +16,7 @@ const EXERCISES = [
   // ---------------- Eigengewicht: Kraft ----------------
   {
     id: 'squat', name: 'Kniebeugen', anim: 'squat',
+    harder: 'bulgarian_squat',
     repBias: 1.5,
     equipment: 'none', muscles: ['beine', 'po'], category: 'kraft', level: 1,
     impact: false, mode: 'reps',
@@ -36,6 +37,7 @@ const EXERCISES = [
   },
   {
     id: 'lunge', name: 'Ausfallschritte', anim: 'lunge',
+    harder: 'bulgarian_squat',
     perSide: true,
     equipment: 'none', muscles: ['beine', 'po'], category: 'kraft', level: 2,
     impact: false, mode: 'reps',
@@ -43,12 +45,14 @@ const EXERCISES = [
   },
   {
     id: 'pushup', name: 'Liegestütze', anim: 'pushup',
+    harder: 'decline_pushup',
     equipment: 'none', muscles: ['brust', 'arme', 'schultern'], category: 'kraft', level: 2,
     impact: false, mode: 'reps',
     desc: 'Hände unter den Schultern, Körper bildet eine Linie. Brust kontrolliert Richtung Boden senken und wieder hochdrücken.',
   },
   {
     id: 'knee_pushup', name: 'Knie-Liegestütze', anim: 'pushup',
+    harder: 'pushup',
     repBias: 1.3,
     equipment: 'none', muscles: ['brust', 'arme', 'schultern'], category: 'kraft', level: 1,
     impact: false, mode: 'reps',
@@ -68,6 +72,7 @@ const EXERCISES = [
   },
   {
     id: 'incline_pushup', name: 'Liegestütze mit erhöhten Händen', anim: 'inclinepushup',
+    harder: 'pushup',
     repBias: 1.3,
     equipment: 'none', muscles: ['brust', 'arme', 'schultern'], category: 'kraft', level: 1,
     impact: false, mode: 'reps',
@@ -87,12 +92,14 @@ const EXERCISES = [
   },
   {
     id: 'plank', name: 'Unterarmstütz (Plank)', anim: 'plank',
+    harder: 'plank_tap',
     equipment: 'none', muscles: ['core'], category: 'kraft', level: 1,
     impact: false, mode: 'time', holdSec: 30,
     desc: 'Auf den Unterarmen abstützen, Körper bildet eine gerade Linie. Bauch und Po anspannen, nicht durchhängen.',
   },
   {
     id: 'glute_bridge', name: 'Glute Bridge', anim: 'glutebridge',
+    harder: 'sl_glute_bridge',
     repBias: 1.5,
     equipment: 'none', muscles: ['po', 'core'], category: 'kraft', level: 1,
     impact: false, mode: 'reps',
@@ -108,6 +115,7 @@ const EXERCISES = [
   },
   {
     id: 'crunch', name: 'Crunches', anim: 'crunch',
+    harder: 'bicycle_crunch',
     repBias: 1.5,
     equipment: 'none', muscles: ['core'], category: 'kraft', level: 1,
     impact: false, mode: 'reps',
@@ -157,6 +165,7 @@ const EXERCISES = [
   },
   {
     id: 'birddog', name: 'Bird Dog', anim: 'birddog',
+    harder: 'superman',
     repBias: 1.3,
     equipment: 'none', muscles: ['core', 'ruecken'], category: 'kraft', level: 1,
     impact: false, mode: 'reps',
@@ -164,6 +173,7 @@ const EXERCISES = [
   },
   {
     id: 'calf_raise', name: 'Wadenheben', anim: 'calfraise',
+    harder: 'db_calf',
     repBias: 1.6,
     equipment: 'none', muscles: ['beine'], category: 'kraft', level: 1,
     impact: false, mode: 'reps',
@@ -171,6 +181,7 @@ const EXERCISES = [
   },
   {
     id: 'reverse_lunge', name: 'Ausfallschritte rückwärts', anim: 'reverselunge',
+    harder: 'bulgarian_squat',
     perSide: true,
     equipment: 'none', muscles: ['beine', 'po'], category: 'kraft', level: 1,
     impact: false, mode: 'reps',
@@ -178,6 +189,7 @@ const EXERCISES = [
   },
   {
     id: 'leg_raise', name: 'Beinheben', anim: 'legraise',
+    harder: 'v_up',
     repBias: 1.5,
     equipment: 'none', muscles: ['core'], category: 'kraft', level: 2,
     impact: false, mode: 'reps',
@@ -185,6 +197,7 @@ const EXERCISES = [
   },
   {
     id: 'dead_bug', name: 'Dead Bug', anim: 'deadbug',
+    harder: 'hollow_hold',
     repBias: 1.5,
     equipment: 'none', muscles: ['core'], category: 'kraft', level: 1,
     impact: false, mode: 'reps',
@@ -205,6 +218,7 @@ const EXERCISES = [
   },
   {
     id: 'bicycle_crunch', name: 'Bicycle Crunches', anim: 'crunch',
+    harder: 'v_up',
     repBias: 1.5,
     equipment: 'none', muscles: ['core'], category: 'kraft', level: 2,
     impact: false, mode: 'reps',
@@ -238,6 +252,7 @@ const EXERCISES = [
   },
   {
     id: 'reverse_crunch', name: 'Reverse Crunches', anim: 'reversecrunch',
+    harder: 'leg_raise',
     repBias: 1.5,
     equipment: 'none', muscles: ['core'], category: 'kraft', level: 1,
     impact: false, mode: 'reps',

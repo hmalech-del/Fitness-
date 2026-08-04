@@ -29,6 +29,15 @@ und einem geführten Workout-Player mit Timer.
     untere Rücken nicht mehrfach belastet wird.
 - **Animationen für jede Übung**: SVG-Strichfiguren mit weich interpolierten
   Bewegungsabläufen (SMIL) – inklusive Requisiten wie Kurzhanteln und Bändern.
+- **Progression**: Die App führt Buch, was du bei jeder Übung geschafft hast,
+  und steigert nach dem Modell der doppelten Progression: erst
+  Wiederholungen innerhalb des Zielbereichs, dann Last erhöhen bzw. auf die
+  schwerere Variante wechseln und wieder unten beginnen. Wie schnell
+  automatisch gesteigert wird, hängt vom Trainingsstand ab (Einsteiger jede
+  Einheit, Fortgeschrittene alle zwei, Erfahrene alle drei). Nach dem
+  Training gibt es eine **optionale** Rückmeldung („zu schwer" bis „deutlich
+  zu leicht"), wahlweise für die ganze Einheit oder einzelne Übungen – wer
+  nichts angibt, bekommt einfach die automatische Steigerung.
 - **Workout-Player**: Führt Satz für Satz durch das Training, mit
   Countdown-Timern für Halte-/Cardio-Übungen und automatischen Pausen.
 - **Ansagen & Klänge**: Sprachansagen (Web Speech API, Deutsch) sagen die

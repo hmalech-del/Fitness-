@@ -13,6 +13,106 @@
   const STORAGE_THEME = 'fitplan.theme';
   const STORAGE_VOICE = 'fitplan.voice';
   const STORAGE_RATE = 'fitplan.rate';
+  const STORAGE_PROG = 'fitplan.prog';
+
+  // ------------------------------------------------------------------
+  // Progression nach dem Modell der doppelten Progression:
+  // Zuerst innerhalb des Wiederholungsbereichs steigern (8 → 12), erst
+  // dann die Last erhöhen und wieder am unteren Ende beginnen. Bei
+  // Halteübungen wächst die Zeit, bei Eigengewicht ohne Steigerungs-
+  // möglichkeit wechselt die App auf die schwerere Variante.
+  //
+  // Wie schnell automatisch gesteigert wird, hängt vom Trainingsstand ab:
+  // Einsteiger können praktisch jede Einheit zulegen, Fortgeschrittene
+  // brauchen mehrere Einheiten pro Schritt.
+  // ------------------------------------------------------------------
+  const PROG_SESSIONS = { anfaenger: 1, mittel: 2, profi: 3 };
+  const TIME_FACTOR = 1.6; // so weit dürfen Haltezeiten wachsen
+
+  function progOf(exId) {
+    return state.prog[exId] || { step: 0, done: 0, cycle: 0 };
+  }
+
+  function setProg(exId, pr) {
+    state.prog[exId] = pr;
+    saveJSON(STORAGE_PROG, state.prog);
+  }
+
+  // Heutige Vorgabe aus Basis-Item und Fortschritt
+  function targetFor(item) {
+    const pr = progOf(item.exId);
+    if (item.reps) {
+      const [lo, hi] = String(item.reps).split('–').map(Number);
+      const span = Math.max(0, (hi || lo) - lo);
+      const step = Math.min(pr.step, span);
+      return { kind: 'reps', value: lo + step, lo, hi: hi || lo, atTop: step >= span, cycle: pr.cycle };
+    }
+    const max = Math.round(item.seconds * TIME_FACTOR / 5) * 5;
+    const value = Math.min(item.seconds + pr.step * 5, max);
+    return { kind: 'time', value, base: item.seconds, atTop: value >= max, cycle: pr.cycle };
+  }
+
+  // Hinweis, wie es weitergeht, wenn das obere Ende erreicht ist
+  function progressHint(exId) {
+    const ex = EXERCISE_BY_ID[exId];
+    if (ex.equipment === 'kurzhanteln') return 'Schaffst du das sauber? Dann nächstes Mal schwerere Hanteln.';
+    if (ex.equipment === 'band') return 'Schaffst du das sauber? Dann ein stärkeres Band nehmen.';
+    if (ex.harder) return `Schaffst du das sauber? Dann auf ${EXERCISE_BY_ID[ex.harder].name} wechseln.`;
+    return 'Schaffst du das sauber? Dann langsamer ausführen – etwa 3 Sekunden absenken.';
+  }
+
+  const MAX_CYCLE_STEP = 2;
+
+  function shiftProgress(exId, delta) {
+    const pr = Object.assign({}, progOf(exId));
+    const ex = EXERCISE_BY_ID[exId];
+    // Spanne des Wiederholungsbereichs bestimmt, wann die Last steigt
+    const base = state.baseItems[exId];
+    let span = 4;
+    if (base && base.reps) {
+      const [lo, hi] = String(base.reps).split('–').map(Number);
+      span = Math.max(0, (hi || lo) - lo);
+    } else if (base) {
+      span = Math.round(base.seconds * (TIME_FACTOR - 1) / 5);
+    }
+
+    pr.step += delta;
+    pr.done = 0;
+    while (pr.step > span) {
+      // Oberes Ende überschritten: Last erhöhen bzw. Variante wechseln
+      if (pr.cycle >= MAX_CYCLE_STEP && ex.harder) {
+        // Statt endlos zu steigern lieber die schwerere Variante empfehlen
+        pr.cycle = 0;
+        pr.step = 0;
+        break;
+      }
+      pr.cycle += 1;
+      pr.step -= span + 1;
+    }
+    if (pr.step < 0) {
+      if (pr.cycle > 0) { pr.cycle -= 1; pr.step = span; } else pr.step = 0;
+    }
+    setProg(exId, pr);
+  }
+
+  // Nach einer Einheit: automatische Steigerung, wenn genug Einheiten
+  // auf der aktuellen Stufe absolviert wurden
+  function advanceProgress(exIds) {
+    const needed = PROG_SESSIONS[state.plans.length && activePlan()
+      ? activePlan().profile.level : 'mittel'] || 2;
+    exIds.forEach((exId) => {
+      const pr = Object.assign({}, progOf(exId));
+      const t = targetFor(state.baseItems[exId] || { reps: '8–12' });
+      pr.done += 1;
+      // Am oberen Ende wartet die App auf die Rückmeldung, statt blind
+      // weiterzusteigern – die Last erhöht man bewusst, nicht automatisch
+      if (pr.done >= needed && !t.atTop) {
+        pr.step += 1;
+        pr.done = 0;
+      }
+      setProg(exId, pr);
+    });
+  }
 
   // Themes: "studio" (hell, Salbei/Creme), "loft" (Beton & Pflanzen)
   // und "neon" (dunkel, Cyberpunk-Gym). Der 🎨-Knopf schaltet der Reihe nach.
@@ -62,7 +162,16 @@
     soundOn: true,
     speakDescOn: true,
     theme: 'studio',
+    prog: loadJSON(STORAGE_PROG) || {},
+    baseItems: {}, // Basisvorgaben je Übung, für die Progressionsrechnung
   };
+
+  // Basisvorgaben einer Einheit merken, damit die Progression weiß, wie
+  // groß der Wiederholungsbereich ursprünglich war
+  function rememberBase(day) {
+    [...day.blocks.warmup, ...day.blocks.main, ...day.blocks.cooldown]
+      .forEach((it) => { state.baseItems[it.exId] = it; });
+  }
 
   function applyTheme(theme) {
     state.theme = THEMES[theme] ? theme : 'studio';
@@ -614,11 +723,26 @@
   const perSideNote = (item) => (EXERCISE_BY_ID[item.exId].perSide ? ' je Seite' : '');
 
   function itemMeta(item) {
+    const t = targetFor(item);
     const parts = [];
-    if (item.seconds) parts.push(`${item.sets} × ${item.seconds} Sek.${perSideNote(item)}`);
-    else parts.push(`${item.sets} × ${item.reps} Wdh.${perSideNote(item)}`);
+    if (t.kind === 'time') parts.push(`${item.sets} × ${t.value} Sek.${perSideNote(item)}`);
+    else parts.push(`${item.sets} × ${t.value} Wdh.${perSideNote(item)}`);
     if (item.sets > 1) parts.push(`${item.restSec} Sek. Pause`);
     return parts.join(' · ');
+  }
+
+  // Zusatzzeile mit Bereich, Steigerungsstufe und nächstem Schritt
+  function progressLine(item) {
+    const t = targetFor(item);
+    const bits = [];
+    if (t.kind === 'reps' && t.hi > t.lo) bits.push(`Bereich ${t.lo}–${t.hi}`);
+    if (t.cycle > 0) {
+      const ex = EXERCISE_BY_ID[item.exId];
+      const wie = ex.equipment === 'none' ? 'Stufe' : 'Gewichtsstufe';
+      bits.push(`${wie} +${t.cycle}`);
+    }
+    if (t.atTop) bits.push(progressHint(item.exId));
+    return bits.length ? `<p class="progress-line">↗ ${bits.join(' · ')}</p>` : '';
   }
 
   function exerciseCard(item) {
@@ -632,6 +756,7 @@
         <div class="exercise-info">
           <h4>${ex.name}</h4>
           <p class="exercise-meta">${itemMeta(item)}</p>
+          ${progressLine(item)}
           <p class="exercise-desc">${ex.desc}</p>
           <div class="tags">${muscles}</div>
         </div>
@@ -649,6 +774,7 @@
   function renderDay() {
     const ref = state.currentDayRef;
     const day = ref.day;
+    rememberBase(day);
     $('#day-title').textContent = ref.type === 'quick'
       ? `${day.emoji} ${day.focus}`
       : `${day.emoji} ${day.name} – ${day.focus}`;
@@ -708,6 +834,7 @@
 
   function startWorkout() {
     const day = state.currentDayRef.day;
+    rememberBase(day);
     state.workout = {
       steps: buildWorkoutSteps(day),
       index: 0,
@@ -818,13 +945,14 @@
     // Arbeits-Schritt
     const ex = EXERCISE_BY_ID[step.item.exId];
     const isTimed = !!step.item.seconds;
+    const ziel = targetFor(step.item);
     body.innerHTML = `
       <div class="player-work">
         <p class="player-kicker">Satz ${step.set} von ${step.item.sets}</p>
         <h2 class="player-title">${ex.name}</h2>
         <div class="player-anim" data-anim-slot="${ex.id}"></div>
-        <p class="player-target">${isTimed ? '' : step.item.reps + ' Wiederholungen' + perSideNote(step.item)}</p>
-        ${isTimed ? `<div class="rest-timer work-timer" id="work-timer">${step.item.seconds}</div>` : ''}
+        <p class="player-target">${isTimed ? '' : ziel.value + ' Wiederholungen' + perSideNote(step.item)}</p>
+        ${isTimed ? `<div class="rest-timer work-timer" id="work-timer">${ziel.value}</div>` : ''}
         <p class="player-desc">${ex.desc}</p>
         ${isTimed
           ? '<button class="btn btn-ghost" id="btn-skip-work">Überspringen ➜</button>'
@@ -836,8 +964,8 @@
     const setInfo = step.item.sets > 1 ? `Satz ${step.set} von ${step.item.sets}. ` : '';
     const seite = ex.perSide ? ' je Seite' : '';
     let text = isTimed
-      ? `${ex.name}. ${setInfo}${step.item.seconds} Sekunden${seite}.`
-      : `${ex.name}. ${setInfo}${speakableReps(step.item.reps)}${seite}.`;
+      ? `${ex.name}. ${setInfo}${ziel.value} Sekunden${seite}.`
+      : `${ex.name}. ${setInfo}${ziel.value} Wiederholungen${seite}.`;
     if (state.speakDescOn && step.set === 1) text += ' ' + ex.desc;
     if (isTimed) text += " Los geht's!";
     FitSound.start();
@@ -846,12 +974,12 @@
     if (isTimed) {
       // Einseitige Halteübungen (Seitstütz, Dehnungen) laufen über beide
       // Seiten – zur Halbzeit kommt die Ansage zum Wechseln
-      const total = ex.perSide ? step.item.seconds * 2 : step.item.seconds;
+      const total = ex.perSide ? ziel.value * 2 : ziel.value;
       $('#work-timer').textContent = total;
       startCountdown(w, total, '#work-timer', () => {
         FitSound.finish();
         nextStep();
-      }, ex.perSide ? step.item.seconds : 0);
+      }, ex.perSide ? ziel.value : 0);
       $('#btn-skip-work').addEventListener('click', nextStep);
     } else {
       $('#btn-set-done').addEventListener('click', nextStep);
@@ -862,6 +990,63 @@
     stopTimer();
     state.workout.index++;
     renderWorkoutStep();
+  }
+
+  // ------------------------------------------------------------------
+  // Optionale Rückmeldung nach der Einheit
+  // Bewusst erst am Ende und überspringbar – wer nichts sagt, bekommt die
+  // automatische Steigerung. Die Abstufungen entsprechen grob der
+  // Anstrengungseinschätzung (wie viele Wiederholungen blieben übrig).
+  // ------------------------------------------------------------------
+  const FEEDBACK = [
+    { key: 'schwer', label: '😮‍💨 Zu schwer', delta: -1 },
+    { key: 'passt', label: '👍 Passte', delta: 0 },
+    { key: 'leicht', label: '🙂 Etwas zu leicht', delta: 1 },
+    { key: 'sehrleicht', label: '💪 Deutlich zu leicht', delta: 2 },
+  ];
+
+  function renderFeedback(day) {
+    const main = day.blocks.main;
+    $('#feedback-session').innerHTML = FEEDBACK.map((f) => `
+      <button class="chip" data-fb="${f.key}">${f.label}</button>`).join('');
+    $('#feedback-session').querySelectorAll('[data-fb]').forEach((chip) => {
+      chip.addEventListener('click', () => {
+        const f = FEEDBACK.find((x) => x.key === chip.dataset.fb);
+        // "Passte" bestätigt die automatische Steigerung – nichts zu tun
+        if (f.delta) main.forEach((it) => shiftProgress(it.exId, f.delta));
+        $('#feedback-session').querySelectorAll('.chip').forEach((c) => c.classList.remove('selected'));
+        chip.classList.add('selected');
+        renderFeedbackList(day);
+        FitSound.speak(f.delta > 0 ? 'Alles klar, nächstes Mal etwas mehr.'
+          : f.delta < 0 ? 'Verstanden, wir gehen etwas zurück.' : 'Gut, weiter so.');
+      });
+    });
+    $('#feedback-list').classList.add('hidden');
+    $('#btn-feedback-detail').textContent = 'Einzelne Übungen anpassen ▾';
+    renderFeedbackList(day);
+  }
+
+  function renderFeedbackList(day) {
+    $('#feedback-list').innerHTML = day.blocks.main.map((it) => {
+      const ex = EXERCISE_BY_ID[it.exId];
+      const t = targetFor(it);
+      const wert = t.kind === 'time' ? `${t.value} Sek.` : `${t.value} Wdh.`;
+      return `
+        <div class="feedback-row">
+          <span class="feedback-name">${ex.name}<span class="muted"> · nächstes Mal ${wert}</span></span>
+          <span class="feedback-actions">
+            <button class="chip chip-mini" data-ex="${it.exId}" data-delta="-1" title="zu schwer">−</button>
+            <button class="chip chip-mini" data-ex="${it.exId}" data-delta="1" title="etwas zu leicht">+</button>
+            <button class="chip chip-mini" data-ex="${it.exId}" data-delta="2" title="deutlich zu leicht">++</button>
+          </span>
+        </div>`;
+    }).join('');
+    $('#feedback-list').querySelectorAll('[data-ex]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        shiftProgress(btn.dataset.ex, parseInt(btn.dataset.delta, 10));
+        renderFeedbackList(day);
+      });
+    });
   }
 
   function finishWorkout() {
@@ -890,6 +1075,11 @@
       `${label} abgeschlossen: ${day.blocks.main.length + day.blocks.warmup.length + day.blocks.cooldown.length} Übungen in ${minutes} Minuten. Stark! 💪`;
     state.workout = null;
     releaseWakeLock();
+
+    // Automatische Steigerung für die Hauptübungen dieser Einheit
+    advanceProgress(day.blocks.main.map((it) => it.exId));
+    renderFeedback(day);
+
     FitSound.finish();
     FitSound.speak('Workout geschafft. Stark!');
     show('done');
@@ -933,6 +1123,12 @@
   $('#btn-sound').addEventListener('click', toggleSound);
   $('#btn-speak-desc').addEventListener('click', toggleSpeakDesc);
   $('#btn-done-home').addEventListener('click', () => { renderPlan(); show('plan'); });
+  $('#btn-feedback-detail').addEventListener('click', () => {
+    const list = $('#feedback-list');
+    const auf = list.classList.toggle('hidden');
+    $('#btn-feedback-detail').textContent = auf
+      ? 'Einzelne Übungen anpassen ▾' : 'Einzelne Übungen ▴';
+  });
 
   // Einstellungen laden (Standard: Ton und Beschreibungs-Ansage an)
   state.soundOn = loadJSON(STORAGE_SOUND);
