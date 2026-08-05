@@ -15,6 +15,7 @@
   --accent2: #3f5d52;   /* Mattengrün */
   --terracotta: #c26d4f;
   --gradient: linear-gradient(135deg, #6f8f74 0%, #3f5d52 100%);
+  --btn-text: #fdfbf6;   /* Schrift auf dem Verlauf-Knopf */
   --success: #4d7a58;
   --radius: 16px;
   --shadow: 0 10px 28px rgba(72, 82, 62, .16);
@@ -66,6 +67,30 @@
   --hero-aspect: 1.83;
   --bg-img-opacity: .22;
   --bg-img-blur: 9px;
+}
+
+/* ------------- Theme "Iron" (dunkel, Beton, Stahl & warmes Licht) ------------- */
+:root[data-theme="iron"] {
+  --bg: #14161a;
+  --bg-elev: #1c1f24;
+  --bg-elev2: #262a30;
+  --border: #363b43;
+  --text: #eae7e1;
+  --text-muted: #969ba3;
+  --accent: #e0a33f;    /* warmes Regallicht */
+  --accent2: #a8c46b;   /* Pflanzengrün */
+  --terracotta: #cf7a45; /* Kupfer (Bänder) */
+  --gradient: linear-gradient(135deg, #edbc81 0%, #b5762a 100%);
+  --btn-text: #17191d;   /* heller Verlauf braucht dunkle Schrift */
+  --success: #a8c46b;
+  --shadow: 0 10px 28px rgba(0, 0, 0, .55);
+  --hero-img: url("../assets/hero-iron.jpg");
+  /* Ausschnitt zeigt die beleuchteten Regale – der Schriftzug liegt damit
+     nicht auf dem Poster, dessen eigene Typografie sonst konkurriert */
+  --hero-pos: 74% center;
+  --hero-aspect: 1.15;
+  --bg-img-opacity: .16;
+  --bg-img-blur: 13px;
 }
 
 * { box-sizing: border-box; }
@@ -198,7 +223,7 @@ h4 { margin: 0 0 2px; font-size: 1.02rem; }
 
 .btn-primary {
   background: var(--gradient);
-  color: #fdfbf6;
+  color: var(--btn-text);
   box-shadow: 0 6px 18px rgba(63, 93, 82, .32);
 }
 .btn-lg { width: 100%; padding: 16px; font-size: 1.08rem; }
@@ -690,6 +715,17 @@ input[type="range"] {
   --db-bar: #4b5157;
   --db-weight: #2f3438;
   --wall: #b6b2a9;
+}
+:root[data-theme="iron"] .exercise-anim {
+  --shirt: #4a5560;
+  --pants-f: #6d7681;
+  --pants-b: #4c545d;
+  --shoe-f: #e0a33f;
+  --shoe-b: #a8742a;
+  --floor: #4a4f56;
+  --db-bar: #8b9199;
+  --db-weight: #454c55;
+  --wall: #3a3f46;
 }
 :root[data-theme="neon"] .exercise-anim {
   --shirt: #2aa87a;

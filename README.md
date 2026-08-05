@@ -55,6 +55,11 @@ und einem geführten Workout-Player mit Timer.
   15 s Pause).
 - **Mehrere Pläne parallel**: Beliebig viele Trainingspläne anlegen (z. B.
   Muskelaufbau und Ausdauer) und per Chip-Leiste umschalten.
+- **Designs**: Vier Farbwelten, per 🎨-Knopf umschaltbar und gespeichert –
+  *Studio* (hell, Salbeigrün), *Loft* (hell, Beton & Pflanzen), *Neon*
+  (dunkel, Cyberpunk) und *Iron* (dunkel, Beton, Stahl & warmes Licht).
+  Jedes Design bringt sein eigenes Titel-/Hintergrundbild und färbt auch
+  die Übungsfiguren passend ein.
 - **Fortschritt**: Abgeschlossene Workouts und Trainingsminuten werden
   gespeichert; jede Tageskarte zeigt, wie oft und wann zuletzt sie
   absolviert wurde. Alles lokal (LocalStorage) – keine Anmeldung, keine

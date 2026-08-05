@@ -121,6 +121,7 @@
     studio: { label: 'Studio', themeColor: '#f4efe6' },
     loft: { label: 'Loft', themeColor: '#ecebe7' },
     neon: { label: 'Neon', themeColor: '#0e1219' },
+    iron: { label: 'Iron', themeColor: '#14161a' },
   };
   const THEME_ORDER = Object.keys(THEMES);
 
