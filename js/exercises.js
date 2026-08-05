@@ -208,7 +208,7 @@ const EXERCISES = [
     perSide: true,
     equipment: 'none', muscles: ['core'], category: 'kraft', level: 2,
     impact: false, mode: 'time', holdSec: 20,
-    desc: 'Seitlich auf dem Unterarm abstützen, Körper bildet eine Linie. Hüfte oben halten, dann die Seite wechseln.',
+    desc: 'Seitlich auf den Unterarm stützen – Ellbogen direkt unter der Schulter, Unterarm flach am Boden. Hüfte anheben, bis Schulter, Hüfte und Knöchel eine Linie bilden. Die obere Hand liegt entspannt auf der Hüfte; nur wer sicher steht, streckt den Arm zusätzlich nach oben.',
   },
   {
     id: 'chair_dip', name: 'Trizeps-Dips am Stuhl', anim: 'dip',

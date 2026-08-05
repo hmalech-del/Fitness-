@@ -40,6 +40,9 @@ und einem geführten Workout-Player mit Timer.
   nichts angibt, bekommt einfach die automatische Steigerung.
 - **Workout-Player**: Führt Satz für Satz durch das Training, mit
   Countdown-Timern für Halte-/Cardio-Übungen und automatischen Pausen.
+  Einseitige Halteübungen (z. B. Seitstütz) laufen als zwei getrennte
+  Durchgänge mit einer kurzen Umbaupause dazwischen – der Seitenwechsel
+  geht nicht von der Haltezeit ab, beide Seiten werden gleich lang belastet.
 - **Ansagen & Klänge**: Sprachansagen (Web Speech API, Deutsch) sagen die
   nächste Übung, Satz und Vorgabe an – auf Wunsch inklusive der
   Ausführungsbeschreibung (💬-Knopf). Synthetisierte Signaltöne markieren

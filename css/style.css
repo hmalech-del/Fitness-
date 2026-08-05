@@ -631,6 +631,15 @@ input[type="range"] {
   box-shadow: var(--shadow);
 }
 .player-target { margin: 0; font-weight: 700; font-size: 1.15rem; }
+.player-side {
+  margin: 0;
+  font-weight: 700;
+  font-size: .95rem;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.player-side.switching { color: var(--terracotta); }
 .player-desc {
   margin: 0;
   max-width: 420px;

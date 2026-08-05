@@ -28,6 +28,7 @@
   // ------------------------------------------------------------------
   const PROG_SESSIONS = { anfaenger: 1, mittel: 2, profi: 3 };
   const TIME_FACTOR = 1.6; // so weit dürfen Haltezeiten wachsen
+  const SWITCH_SEC = FitPlanner.SIDE_SWITCH_SEC; // Umbaupause zwischen den Seiten
 
   function progOf(exId) {
     return state.prog[exId] || { step: 0, done: 0, cycle: 0 };
@@ -851,17 +852,12 @@
   // Countdown auf Uhrzeit-Basis: läuft auch nach kurzem App-Wechsel korrekt
   // weiter (setInterval wird im Hintergrund gedrosselt).
   // Rückgabe: extend(sec) verlängert den laufenden Countdown.
-  function startCountdown(w, seconds, displaySel, onDone, markAt) {
+  function startCountdown(w, seconds, displaySel, onDone) {
     let endAt = Date.now() + seconds * 1000;
     let last = seconds;
     w.timer = setInterval(() => {
       const remaining = Math.max(0, Math.ceil((endAt - Date.now()) / 1000));
       if (remaining === last) return;
-      // Halbzeit bei einseitigen Halteübungen: zur anderen Seite wechseln
-      if (markAt && remaining === markAt) {
-        FitSound.start();
-        FitSound.speak('Seite wechseln!');
-      }
       last = remaining;
       const t = $(displaySel);
       if (t) t.textContent = remaining;
@@ -952,6 +948,7 @@
         <h2 class="player-title">${ex.name}</h2>
         <div class="player-anim" data-anim-slot="${ex.id}"></div>
         <p class="player-target">${isTimed ? '' : ziel.value + ' Wiederholungen' + perSideNote(step.item)}</p>
+        ${isTimed && ex.perSide ? '<p class="player-side" id="work-side">Seite 1 von 2</p>' : ''}
         ${isTimed ? `<div class="rest-timer work-timer" id="work-timer">${ziel.value}</div>` : ''}
         <p class="player-desc">${ex.desc}</p>
         ${isTimed
@@ -971,15 +968,47 @@
     FitSound.start();
     FitSound.speak(text);
 
-    if (isTimed) {
-      // Einseitige Halteübungen (Seitstütz, Dehnungen) laufen über beide
-      // Seiten – zur Halbzeit kommt die Ansage zum Wechseln
-      const total = ex.perSide ? ziel.value * 2 : ziel.value;
-      $('#work-timer').textContent = total;
-      startCountdown(w, total, '#work-timer', () => {
+    // Seite 1 → Umbaupause → Seite 2. Jede Seite bekommt die volle Haltezeit.
+    function runSide(side) {
+      const label = $('#work-side');
+      if (label) {
+        label.textContent = `Seite ${side} von 2`;
+        label.classList.remove('switching');
+      }
+      $('#work-timer').textContent = ziel.value;
+      startCountdown(w, ziel.value, '#work-timer', () => {
         FitSound.finish();
-        nextStep();
-      }, ex.perSide ? ziel.value : 0);
+        if (side === 1) runSwitch(); else nextStep();
+      });
+    }
+
+    function runSwitch() {
+      const label = $('#work-side');
+      if (label) {
+        label.textContent = 'Seite wechseln';
+        label.classList.add('switching');
+      }
+      FitSound.speak('Seite wechseln!');
+      $('#work-timer').textContent = SWITCH_SEC;
+      startCountdown(w, SWITCH_SEC, '#work-timer', () => {
+        FitSound.start();
+        runSide(2);
+      });
+    }
+
+    if (isTimed) {
+      if (ex.perSide) {
+        // Einseitige Halteübungen laufen über beide Seiten. Dazwischen liegt
+        // eine echte Umbaupause – der Wechsel darf nicht von der Haltezeit
+        // abgehen, sonst ist die zweite Seite kürzer belastet als die erste.
+        runSide(1);
+      } else {
+        $('#work-timer').textContent = ziel.value;
+        startCountdown(w, ziel.value, '#work-timer', () => {
+          FitSound.finish();
+          nextStep();
+        });
+      }
       $('#btn-skip-work').addEventListener('click', nextStep);
     } else {
       $('#btn-set-done').addEventListener('click', nextStep);
@@ -987,6 +1016,7 @@
   }
 
   function nextStep() {
+    if (!state.workout) return; // Klick auf einen Knopf aus einem beendeten Workout
     stopTimer();
     state.workout.index++;
     renderWorkoutStep();

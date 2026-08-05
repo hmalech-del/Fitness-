@@ -743,17 +743,19 @@
 
     bulgariansquat: {
       dur: 2.6,
-      // Ausfallschritt mit hinterem Fuß auf dem Stuhl
+      // Ausfallschritt mit hinterem Fuß auf dem Stuhl. Die Figur schaut nach
+      // links (weg vom Stuhl), also wandert das vordere Knie beim Absenken
+      // nach links über den Fuß – und die Hüfte gleichzeitig etwas zurück.
       poses: [
         {
           head: [78, 48], neck: [77, 62], hip: [76, 116],
-          kneeF: [72, 148], footF: [70, 182], kneeB: [98, 144], footB: [124, 142],
+          kneeF: [72, 148], footF: [70, 182], kneeB: [90, 145], footB: [124, 142],
           elbowF: [80, 88], handF: [81, 112], elbowB: [74, 88], handB: [75, 112],
         },
         {
-          head: [78, 76], neck: [76, 90], hip: [72, 144],
-          kneeF: [86, 156], footF: [70, 182], kneeB: [102, 162], footB: [124, 142],
-          elbowF: [80, 116], handF: [82, 140], elbowB: [74, 116], handB: [76, 140],
+          head: [73, 71], neck: [76, 85], hip: [87, 138],
+          kneeF: [57, 150], footF: [70, 182], kneeB: [101, 167], footB: [124, 142],
+          elbowF: [79, 111], handF: [80, 135], elbowB: [73, 111], handB: [74, 135],
         },
       ],
       props: [{ type: 'chair' }],
@@ -774,18 +776,25 @@
 
     sideplank: {
       dur: 3,
+      // Stützender Unterarm liegt flach am Boden (y = 182), die Schulter steht
+      // senkrecht darüber. Dadurch ist die Körperlinie flach – genau so sieht
+      // ein Unterarm-Seitstütz von der Seite aus. Der obere Arm liegt an der
+      // Hüfte: senkrecht nach oben ist nur eine Variante für Fortgeschrittene.
       poses: [
+        // Start: Hüfte noch abgesenkt
         {
-          head: [148, 115], neck: [136, 122], hip: [95, 146],
-          kneeF: [68, 163], footF: [42, 180], kneeB: [66, 161], footB: [40, 178],
-          elbowF: [138, 150], handF: [156, 152], elbowB: [132, 102], handB: [130, 82],
+          head: [144, 156], neck: [130, 159], hip: [79, 175],
+          kneeF: [48, 178], footF: [15, 181], kneeB: [46, 180], footB: [13, 182],
+          elbowF: [109, 153], handF: [86, 168], elbowB: [130, 181], handB: [156, 181],
         },
+        // Halteposition: Schulter–Hüfte–Knöchel bilden eine Linie
         {
-          head: [148, 118], neck: [136, 125], hip: [95, 152],
-          kneeF: [68, 166], footF: [42, 180], kneeB: [66, 164], footB: [40, 178],
-          elbowF: [138, 152], handF: [156, 154], elbowB: [132, 105], handB: [130, 85],
+          head: [144, 149], neck: [130, 152], hip: [78, 165],
+          kneeF: [47, 172], footF: [14, 180], kneeB: [45, 174], footB: [12, 182],
+          elbowF: [108, 147], handF: [85, 161], elbowB: [130, 181], handB: [156, 181],
         },
       ],
+      holdMask: [false, true],
     },
 
     dip: {

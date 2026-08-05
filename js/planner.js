@@ -80,12 +80,18 @@
   // Glute Bridge & Co. tragen zwar 'core', dort arbeitet aber der Po.
   const isCoreFocus = (ex) => ex.muscles[0] === 'core';
 
+  // Umbauzeit zwischen den beiden Seiten einer einseitigen Übung. Sie geht
+  // NICHT von der Belastungszeit ab: wer sich beim Seitstütz neu aufbaut,
+  // soll danach wieder die volle Haltezeit haben.
+  const SIDE_SWITCH_SEC = 8;
+
   function itemTimeSec(item) {
     // Einseitige Übungen werden je Seite ausgeführt und brauchen damit die
     // doppelte Arbeitszeit – sonst ist die Einheit spürbar länger als angesagt
     const ex = EXERCISE_BY_ID[item.exId];
-    const sides = ex && ex.perSide ? 2 : 1;
-    const work = (item.seconds || item.workSec || 40) * sides;
+    const perSide = !!(ex && ex.perSide);
+    const work = (item.seconds || item.workSec || 40) * (perSide ? 2 : 1)
+      + (perSide ? SIDE_SWITCH_SEC : 0);
     return item.sets * work + (item.sets - 1) * item.restSec + 20; // +20s Übergang
   }
 
@@ -187,7 +193,11 @@
       bumped = false;
       for (const item of items) {
         if (item.sets >= maxSets) continue;
-        const cost = (item.seconds || item.workSec) + item.restSec;
+        // Kosten aus derselben Formel ableiten, mit der das Zeitbudget
+        // gerechnet wird – sonst kosten einseitige Übungen mehr als gedacht
+        item.sets += 1;
+        const cost = itemTimeSec(item) - itemTimeSec(Object.assign({}, item, { sets: item.sets - 1 }));
+        item.sets -= 1;
         if (cost > remaining) continue;
         item.sets += 1;
         remaining -= cost;
@@ -408,9 +418,15 @@
     // Ältere Trainierende: etwas längeres Aufwärmen
     const warmupCount = minutes <= 20 ? 1 : profile.age >= 55 ? 3 : 2;
     const cooldownCount = minutes <= 20 ? 1 : 2;
-    // Reserve für Aufwärmen und Ausklang großzügig rechnen: Dehnübungen je
-    // Seite brauchen die doppelte Zeit, sonst läuft die Einheit über
-    const mainBudget = Math.max(300, totalSec - warmupCount * 60 - cooldownCount * 80);
+    // Aufwärmen bereitet die Muskeln vor, die gleich arbeiten sollen. Es wird
+    // zuerst gebaut, damit der Hauptteil mit der tatsächlichen Restzeit
+    // rechnet statt mit einer Schätzung.
+    const warmup = buildSupportBlock(tpl.warmup || WARMUP_POOL, warmupCount, allowed, 40);
+    const warmupSec = warmup.reduce((s, it) => s + itemTimeSec(it), 0);
+    // Für den Ausklang wird der ungünstigste Fall reserviert (Dehnübung je
+    // Seite inkl. Seitenwechsel) – er kann danach nur billiger ausfallen.
+    const cooldownSec = cooldownCount * (30 * 2 + SIDE_SWITCH_SEC + 20);
+    const mainBudget = Math.max(300, totalSec - warmupSec - cooldownSec);
 
     let pool = allowed.filter(tpl.filter);
     let muscles = tpl.muscles;
@@ -429,9 +445,6 @@
       limits: tpl.limits,
       maxSets,
     });
-
-    // Aufwärmen bereitet die Muskeln vor, die gleich arbeiten sollen
-    const warmup = buildSupportBlock(tpl.warmup || WARMUP_POOL, warmupCount, allowed, 40);
 
     const trained = new Set();
     main.forEach((it) => EXERCISE_BY_ID[it.exId].muscles.forEach((m) => trained.add(m)));
@@ -515,5 +528,6 @@
 
   global.FitPlanner = {
     generatePlan, generateQuickDay, GOALS, LEVELS, GOAL_PARAMS, QUICK_FOCUS, WEEKDAYS,
+    SIDE_SWITCH_SEC,
   };
 })(window);
