@@ -1146,6 +1146,121 @@
       holdMask: [true, true],
     },
 
+    // ---------------- Dehnung & Mobilisation ----------------
+    calfstretch: {
+      dur: 3.2,
+      // Hände an der Wand, hinteres Bein gestreckt mit Ferse am Boden
+      poses: [
+        {
+          head: [112, 46], neck: [110, 60], hip: [106, 114],
+          kneeF: [88, 146], footF: [70, 180], kneeB: [126, 146], footB: [142, 182],
+          elbowF: [86, 64], handF: [58, 70], elbowB: [88, 66], handB: [60, 72],
+        },
+        {
+          head: [106, 46], neck: [104, 60], hip: [100, 114],
+          kneeF: [82, 146], footF: [70, 180], kneeB: [121, 147], footB: [142, 182],
+          elbowF: [80, 64], handF: [56, 68], elbowB: [82, 66], handB: [58, 70],
+        },
+      ],
+      props: [{ type: 'wall', x: 52 }],
+      holdMask: [true, true],
+    },
+
+    childpose: {
+      dur: 3.4,
+      // Fersensitz mit langen Armen – eine Halteposition, die nur noch
+      // sanft nachsinkt
+      poses: [
+        {
+          head: [142, 176], neck: [124, 171], hip: [72, 150],
+          kneeF: [80, 178], footF: [56, 180], kneeB: [78, 176], footB: [54, 178],
+          elbowF: [146, 175], handF: [170, 179], elbowB: [144, 173], handB: [168, 177],
+        },
+        {
+          head: [142, 178], neck: [124, 174], hip: [70, 156],
+          kneeF: [80, 178], footF: [56, 180], kneeB: [78, 176], footB: [54, 178],
+          elbowF: [146, 177], handF: [170, 181], elbowB: [144, 175], handB: [168, 179],
+        },
+      ],
+      spine: [5, 4],
+      holdMask: [true, true],
+    },
+
+    butterfly: {
+      dur: 3.4,
+      // Schneidersitz von vorn: Fußsohlen zusammen, Knie fallen zur Seite
+      noFloor: true,
+      armsFront: true,
+      poses: [
+        {
+          head: [100, 48], neck: [100, 62], hip: [100, 116],
+          kneeF: [130, 132], footF: [100, 148], kneeB: [70, 132], footB: [100, 148],
+          elbowF: [118, 86], handF: [124, 110], elbowB: [82, 86], handB: [76, 110],
+        },
+        {
+          head: [100, 52], neck: [100, 65], hip: [100, 116],
+          kneeF: [131, 134], footF: [100, 149], kneeB: [69, 134], footB: [100, 149],
+          elbowF: [118, 89], handF: [124, 113], elbowB: [82, 89], handB: [76, 113],
+        },
+      ],
+      holdMask: [true, true],
+    },
+
+    supinetwist: {
+      dur: 4,
+      // Draufsicht auf die Rückenlage: Arme bleiben in T-Position liegen,
+      // die Knie kippen abwechselnd zur Seite
+      noFloor: true,
+      armsFront: true,
+      poses: [
+        {
+          head: [100, 40], neck: [100, 56], hip: [100, 110],
+          kneeF: [136, 124], footF: [140, 150], kneeB: [134, 120], footB: [138, 146],
+          elbowF: [124, 56], handF: [148, 56], elbowB: [76, 56], handB: [52, 56],
+        },
+        {
+          head: [100, 40], neck: [100, 56], hip: [100, 110],
+          kneeF: [64, 124], footF: [60, 150], kneeB: [66, 120], footB: [62, 146],
+          elbowF: [124, 56], handF: [148, 56], elbowB: [76, 56], handB: [52, 56],
+        },
+      ],
+      holdMask: [true, true],
+    },
+
+    threadneedle: {
+      dur: 4,
+      // Vierfüßlerstand: ein Arm greift unter dem Körper hindurch, dann
+      // öffnet sich derselbe Arm zur Decke – Rotation der Brustwirbelsäule
+      poses: [
+        p(QUADRUPED, {
+          head: [150, 126],
+          elbowF: [146, 114], handF: [150, 90],
+        }),
+        p(QUADRUPED, {
+          head: [148, 142],
+          elbowF: [128, 152], handF: [108, 160],
+        }),
+      ],
+      holdMask: [true, true],
+    },
+
+    neckstretch: {
+      dur: 4.5,
+      // Frontansicht: Kopf neigt zur Seite, die Hand gibt sanft nach
+      armsFront: true,
+      poses: [
+        p(STAND_FRONT, {
+          head: [110, 46],
+          elbowF: [124, 52], handF: [112, 32],
+        }),
+        p(STAND_FRONT, {
+          head: [90, 46],
+          elbowB: [76, 52], handB: [88, 32],
+        }),
+      ],
+      holdMask: [true, true],
+    },
+
     shouldermob: {
       dur: 2.6,
       poses: [

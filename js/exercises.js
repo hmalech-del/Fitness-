@@ -502,6 +502,44 @@ const EXERCISES = [
     impact: false, mode: 'time', holdSec: 40,
     desc: 'Arme auf Brusthöhe öffnen und schließen, Schulterblätter bewusst zusammenziehen und wieder lösen.',
   },
+  // ---- Dehnung & Mobilisation ----
+  {
+    id: 'calf_stretch', name: 'Wadendehnung an der Wand', anim: 'calfstretch',
+    perSide: true,
+    equipment: 'none', muscles: ['beine'], category: 'mobility', level: 1,
+    impact: false, mode: 'time', holdSec: 30,
+    desc: 'Hände an die Wand, ein Bein weit nach hinten. Das hintere Knie durchgestreckt lassen und die Ferse in den Boden drücken, bis die Wade zieht. Seite wechseln. Verkürzte Waden schränken die Sprunggelenks-Beweglichkeit ein – das wirkt sich bis in die Kniebeuge aus.',
+  },
+  {
+    id: 'child_pose', name: 'Kindhaltung', anim: 'childpose',
+    equipment: 'none', muscles: ['ruecken', 'schultern'], category: 'mobility', level: 1,
+    impact: false, mode: 'time', holdSec: 40,
+    desc: 'Vom Vierfüßlerstand die Hüfte zurück auf die Fersen sinken lassen, Arme lang nach vorn, Stirn ablegen. Ruhig in den Rücken atmen. Dehnt den unteren Rücken und den breiten Rückenmuskel und beruhigt nach fordernden Einheiten.',
+  },
+  {
+    id: 'butterfly', name: 'Schmetterlingssitz', anim: 'butterfly',
+    equipment: 'none', muscles: ['beine', 'po'], category: 'mobility', level: 1,
+    impact: false, mode: 'time', holdSec: 40,
+    desc: 'Aufrecht sitzen, Fußsohlen vor dem Körper zusammenlegen, Knie sinken zur Seite. Rücken lang lassen und mit jeder Ausatmung etwas mehr entspannen – nicht auf die Knie drücken. Dehnt die Innenseite der Oberschenkel, die beim Sitzen und Laufen kaum zum Zug kommt.',
+  },
+  {
+    id: 'supine_twist', name: 'Wirbelsäulendrehung', anim: 'supinetwist',
+    equipment: 'none', muscles: ['ruecken', 'core'], category: 'mobility', level: 1,
+    impact: false, mode: 'time', holdSec: 40,
+    desc: 'Rückenlage, Arme seitlich ausgestreckt. Die angewinkelten Knie langsam zu einer Seite sinken lassen, Blick zur Gegenseite, beide Schultern bleiben am Boden. Seite wechseln. Löst die Rotation der Brust- und Lendenwirbelsäule.',
+  },
+  {
+    id: 'thread_needle', name: 'Brustwirbel-Rotation', anim: 'threadneedle',
+    equipment: 'none', muscles: ['ruecken', 'schultern', 'brust'], category: 'mobility', level: 2,
+    impact: false, mode: 'time', holdSec: 40,
+    desc: 'Vierfüßlerstand. Einen Arm unter dem Körper hindurch zur Gegenseite führen und die Schulter ablegen, dann denselben Arm weit zur Decke öffnen und dem Blick folgen. Langsam wechseln. Mobilisiert die Brustwirbelsäule – genau der Abschnitt, der beim Sitzen steif wird.',
+  },
+  {
+    id: 'neck_stretch', name: 'Seitliche Nackendehnung', anim: 'neckstretch',
+    equipment: 'none', muscles: ['nacken', 'schultern'], category: 'mobility', level: 1,
+    impact: false, mode: 'time', holdSec: 30,
+    desc: 'Aufrecht sitzen oder stehen, Schultern tief. Den Kopf zur Seite neigen und mit der Hand nur das Eigengewicht des Arms wirken lassen – nicht ziehen. Nach 15 Sekunden die Seite wechseln. Löst den oberen Trapez, der bei nach vorn geschobenem Kopf dauerhaft mitarbeitet.',
+  },
   // ---- Haltungsarbeit ohne Geräte (funktioniert auch im Hotelzimmer) ----
   {
     id: 'ytw_raise', name: 'Y-T-W-Heben', anim: 'ytwraise',

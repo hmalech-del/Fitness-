@@ -11,7 +11,7 @@ und einem geführten Workout-Player mit Timer.
   Trainingstage pro Woche und verfügbares Equipment (Kurzhanteln,
   Widerstandsbänder, Matte).
 - **Dynamischer Plangenerator**:
-  - Wählt Übungen passend zu Ziel, Level und Equipment aus über 50 Übungen
+  - Wählt Übungen passend zu Ziel, Level und Equipment aus über 80 Übungen
     aus – vorhandenes Equipment (z. B. Kurzhanteln) wird bevorzugt eingesetzt.
   - Baut sinnvolle Wochen-Splits (Ganzkörper, Oberkörper/Unterkörper, Zirkel,
     Cardio & Core, Mobility) je nach Ziel und Trainingsfrequenz.
@@ -23,12 +23,17 @@ und einem geführten Workout-Player mit Timer.
     mindestens 48 Stunden liegen. Muskelgruppen kommen dadurch auf die für
     Muskelaufbau empfohlenen 2–3 Einheiten pro Woche. Der Bauch wird an
     jedem zweiten Trainingstag trainiert.
-  - **Volumen statt Übungsflut**: höchstens sechs Hauptübungen pro Einheit;
-    freie Zeit fließt in zusätzliche Sätze statt in weitere Übungen. Pro
-    Unterkörper-Tag ist nur eine hüftdominante Übung erlaubt, damit der
-    untere Rücken nicht mehrfach belastet wird.
+  - **Volumen statt Übungsflut**: höchstens sechs Hauptübungen pro Einheit
+    (bei Haltungs- und Mobility-Tagen fünf); freie Zeit fließt in zusätzliche
+    Sätze statt in weitere Übungen. Pro Unterkörper-Tag ist nur eine
+    hüftdominante Übung erlaubt, damit der untere Rücken nicht mehrfach
+    belastet wird. Eine Übung und ihre eigene schwerere Variante kommen nie
+    in dieselbe Einheit.
 - **Animationen für jede Übung**: SVG-Strichfiguren mit weich interpolierten
-  Bewegungsabläufen (SMIL) – inklusive Requisiten wie Kurzhanteln und Bändern.
+  Bewegungsabläufen (SMIL) – inklusive Requisiten wie Kurzhanteln, Bändern,
+  Wand, Stuhl und Tischkante. Übungen, deren Bewegung von der Seite nicht
+  erkennbar ist (Rotationen, Y-T-W-Stellungen), werden von vorn oder von
+  oben gezeigt.
 - **Progression**: Die App führt Buch, was du bei jeder Übung geschafft hast,
   und steigert nach dem Modell der doppelten Progression: erst
   Wiederholungen innerhalb des Zielbereichs, dann Last erhöhen bzw. auf die

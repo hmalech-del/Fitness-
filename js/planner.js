@@ -37,7 +37,8 @@
   };
 
   const WARMUP_POOL = ['march', 'jumping_jack', 'shoulder_mob', 'high_knees', 'squat'];
-  const COOLDOWN_POOL = ['forward_fold', 'quad_stretch', 'cat_cow', 'lunge_stretch', 'shoulder_mob'];
+  const COOLDOWN_POOL = ['forward_fold', 'quad_stretch', 'cat_cow', 'lunge_stretch', 'shoulder_mob',
+    'calf_stretch', 'child_pose', 'butterfly', 'supine_twist', 'neck_stretch'];
 
   // Wochen-Rhythmus: Die Trainingstage werden so über die Woche verteilt,
   // dass zwischen zwei Einheiten mit gleichem Schwerpunkt mindestens 48
@@ -296,7 +297,10 @@
       // belastenden Einheiten und dienen der Regeneration
       filter: (ex) => ex.category === 'mobility',
       muscles: ['ruecken', 'beine', 'schultern', 'brust'],
-      maxItems: 6,
+      // Fünf Dehnübungen, dafür länger gehalten: bei Beweglichkeit bringt
+      // die Haltedauer mehr als die Zahl der Übungen. Nebeneffekt: aus dem
+      // größeren Pool unterscheiden sich die Einheiten spürbar.
+      maxItems: 5,
       maxMinutes: 30,
     },
     hiit: {
