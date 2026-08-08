@@ -49,6 +49,14 @@ und einem geführten Workout-Player mit Timer.
   Start, die letzten drei Sekunden und das Ende von Intervallen; sie laufen
   über den Medien-Kanal (auch bei iOS-Stummschalter hörbar) und sind per
   🔊-Knopf abschaltbar – ganz ohne Audiodateien.
+- **Tägliche Haltungs-Routine**: Ein fester Ablauf von fünf Übungen
+  (ca. 8 Minuten, ohne Geräte) für Tage ohne Trainingseinheit – bewusst
+  jedes Mal identisch, weil Haltung über Wiederholung eines gleichbleibenden
+  Ablaufs korrigiert wird und nicht über Abwechslung. Funktioniert auch im
+  Hotelzimmer.
+- **Empfehlungen**: Fehlt Equipment, das für das gewählte Ziel viel bringen
+  würde, nennt die App auf dem Planbildschirm die konkrete Zahl der
+  Übungen, die damit dazukämen – ohne zu drängen.
 - **Einzel-Workouts**: Ohne Plan sofort loslegen – Schwerpunkt wählen
   (HIIT, Cardio & Core, Bauch, Ganzkörper, Oberkörper, Beine & Po,
   Mobility) und starten. HIIT nutzt ein Intervallformat (30 s Belastung,

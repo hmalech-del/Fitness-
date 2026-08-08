@@ -123,6 +123,7 @@ const EXERCISES = [
   },
   {
     id: 'superman', name: 'Superman', anim: 'superman',
+    harder: 'prone_cobra',
     repBias: 1.5,
     equipment: 'none', muscles: ['ruecken', 'po'], category: 'kraft', level: 1,
     impact: false, mode: 'reps',
@@ -130,13 +131,14 @@ const EXERCISES = [
   },
   {
     id: 'chin_tuck', name: 'Kinn-Retraktion (Chin Tucks)', anim: 'chintuck',
-    repBias: 1.3,
+    harder: 'chin_tuck_resist',
     equipment: 'none', muscles: ['nacken'], category: 'kraft', level: 1,
     impact: false, mode: 'reps',
     desc: 'Aufrecht stehen oder sitzen, Blick geradeaus. Das Kinn waagerecht nach hinten schieben (Doppelkinn machen), 2–3 Sekunden halten, locker lassen. Kräftigt die tiefen Nackenbeuger – die wichtigste Übung gegen eine nach vorn geschobene Kopfhaltung.',
   },
   {
     id: 'wall_angel', name: 'Wand-Engel', anim: 'wallangel',
+    harder: 'floor_angel',
     repBias: 1.3,
     equipment: 'none', muscles: ['schultern', 'ruecken', 'nacken'], category: 'kraft', level: 1,
     impact: false, mode: 'reps',
@@ -499,6 +501,48 @@ const EXERCISES = [
     equipment: 'none', muscles: ['schultern'], category: 'mobility', level: 1,
     impact: false, mode: 'time', holdSec: 40,
     desc: 'Arme auf Brusthöhe öffnen und schließen, Schulterblätter bewusst zusammenziehen und wieder lösen.',
+  },
+  // ---- Haltungsarbeit ohne Geräte (funktioniert auch im Hotelzimmer) ----
+  {
+    id: 'ytw_raise', name: 'Y-T-W-Heben', anim: 'ytwraise',
+    harder: 'prone_cobra',
+    repBias: 0.8,
+    equipment: 'none', muscles: ['ruecken', 'schultern', 'nacken'], category: 'kraft', level: 1,
+    impact: false, mode: 'reps',
+    desc: 'Bauchlage, Stirn abgelegt. Arme nacheinander in drei Stellungen vom Boden abheben: schräg über Kopf (Y), seitlich auf Schulterhöhe (T), Ellbogen angewinkelt eng am Körper (W). Daumen zeigen nach oben, jede Position 2 Sekunden halten. Trainiert gezielt den unteren Trapez – den Muskel, der die Schulterblätter nach unten-hinten zieht.',
+  },
+  {
+    id: 'prone_cobra', name: 'Prone Cobra', anim: 'pronecobra',
+    equipment: 'none', muscles: ['ruecken', 'nacken', 'schultern'], category: 'kraft', level: 2,
+    impact: false, mode: 'time', holdSec: 20,
+    desc: 'Bauchlage, Arme neben dem Körper. Brustbein vom Boden abheben, Handflächen nach außen drehen (Daumen zur Decke), Schulterblätter zusammenziehen und das Kinn leicht einziehen. Beine bleiben liegen. Halten und ruhig weiteratmen – die Ausdauerübung für die gesamte Haltemuskulatur des Oberkörpers.',
+  },
+  {
+    id: 'scap_pushup', name: 'Skapula-Liegestütze', anim: 'scappushup',
+    harder: 'table_row',
+    repBias: 1.3,
+    equipment: 'none', muscles: ['schultern', 'ruecken'], category: 'kraft', level: 2,
+    impact: false, mode: 'reps',
+    desc: 'Liegestützposition mit durchgehend gestreckten Armen. Nur die Schulterblätter arbeiten: Brust zwischen die Schultern sinken lassen (Schulterblätter ziehen zusammen), dann den oberen Rücken nach oben schieben. Kleine Bewegung, langsam ausführen – schult die Kontrolle über die Schulterblätter.',
+  },
+  {
+    id: 'table_row', name: 'Rudern an der Tischkante', anim: 'tablerow',
+    equipment: 'none', muscles: ['ruecken', 'arme', 'schultern'], category: 'kraft', level: 2,
+    impact: false, mode: 'reps',
+    desc: 'Unter eine stabile Tischkante legen, Kante schulterbreit greifen, Fersen am Boden, Körper gestreckt wie ein Brett. Die Brust zur Kante ziehen, Ellbogen nah am Körper nach unten-hinten führen, langsam ablassen. Vorher prüfen, ob der Tisch das Gewicht trägt. Die einzige echte Zugübung ohne Geräte – je aufrechter die Füße stehen, desto leichter.',
+  },
+  {
+    id: 'floor_angel', name: 'Boden-Engel', anim: 'floorangel',
+    repBias: 1.3,
+    equipment: 'none', muscles: ['schultern', 'ruecken', 'nacken'], category: 'kraft', level: 2,
+    impact: false, mode: 'reps',
+    desc: 'Rückenlage, Knie angestellt, Lendenwirbelsäule zum Boden. Arme in W-Position, Handrücken am Boden. Die Arme langsam über Kopf in ein Y schieben, ohne dass Handrücken oder Rippen abheben. Schwerer als der Wand-Engel: Hier führt keine Wand, und die Schwerkraft arbeitet gegen die Arme.',
+  },
+  {
+    id: 'chin_tuck_resist', name: 'Kinn-Retraktion mit Widerstand', anim: 'chintuckresist',
+    equipment: 'none', muscles: ['nacken'], category: 'kraft', level: 2,
+    impact: false, mode: 'reps',
+    desc: 'Wie die Kinn-Retraktion, aber zwei Finger geben an der Stirn sanften Gegendruck. Das Kinn waagerecht nach hinten schieben und 5 Sekunden gegen den Widerstand halten, dann lösen. Nur so viel Druck, dass es nie schmerzt.',
   },
   {
     id: 'lunge_stretch', name: 'Ausfallschritt-Dehnung', anim: 'lunge_hold',

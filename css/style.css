@@ -496,6 +496,38 @@ input[type="range"] {
 .quick-section { margin-bottom: 6px; }
 .quick-row .chip { font-size: .9rem; }
 
+/* Tägliche Routine: hervorgehoben, weil sie kein Workout unter vielen ist */
+.routine-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  width: 100%;
+  padding: 16px;
+  border-radius: var(--radius);
+  background: var(--bg-elev);
+  border: 1px solid var(--accent);
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+  transition: transform .12s ease, box-shadow .15s ease;
+}
+.routine-card:active { transform: scale(.99); }
+.routine-emoji { font-size: 1.8rem; line-height: 1; }
+.routine-info { display: flex; flex-direction: column; gap: 3px; }
+.routine-name { font-weight: 700; }
+.routine-meta { font-size: .85rem; color: var(--accent); font-weight: 600; }
+.routine-note { font-size: .82rem; color: var(--text-muted); }
+
+.advice {
+  margin: 12px 0 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--bg-elev2);
+  border: 1px dashed var(--border);
+  font-size: .88rem;
+}
+.muted-inline { color: var(--text-muted); }
+
 .day-progress {
   font-size: .78rem;
   color: var(--success);

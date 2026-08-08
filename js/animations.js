@@ -1019,6 +1019,133 @@
       props: [{ type: 'band', from: 'handF', to: 'handB' }],
     },
 
+    // ---------------- Haltungsarbeit ohne Geräte ----------------
+    // Draufsicht auf die Bauchlage: nur von oben sind die Y-, T- und
+    // W-Armstellungen unterscheidbar – von der Seite verdecken sie sich.
+    ytwraise: {
+      dur: 4.4,
+      noFloor: true,
+      armsFront: true,
+      poses: [
+        // Y – Arme schräg über Kopf
+        p(STAND_FRONT, {
+          kneeF: [103, 146], footF: [104, 180], kneeB: [97, 146], footB: [96, 180],
+          elbowF: [117, 42], handF: [133, 26],
+          elbowB: [83, 42], handB: [67, 26],
+        }),
+        // T – Arme seitlich auf Schulterhöhe
+        p(STAND_FRONT, {
+          kneeF: [103, 146], footF: [104, 180], kneeB: [97, 146], footB: [96, 180],
+          elbowF: [123, 58], handF: [146, 58],
+          elbowB: [77, 58], handB: [54, 58],
+        }),
+        // W – Ellbogen eng am Körper, Hände nach oben
+        p(STAND_FRONT, {
+          kneeF: [103, 146], footF: [104, 180], kneeB: [97, 146], footB: [96, 180],
+          elbowF: [120, 72], handF: [126, 50],
+          elbowB: [80, 72], handB: [74, 50],
+        }),
+        p(STAND_FRONT, {
+          kneeF: [103, 146], footF: [104, 180], kneeB: [97, 146], footB: [96, 180],
+          elbowF: [123, 58], handF: [146, 58],
+          elbowB: [77, 58], handB: [54, 58],
+        }),
+      ],
+      holdMask: [true, false, true, false],
+    },
+
+    pronecobra: {
+      dur: 3.4,
+      // Bauchlage: Brustbein hebt ab, Beine bleiben liegen (anders als beim
+      // Superman), Arme drehen neben dem Körper nach außen
+      poses: [
+        {
+          head: [160, 171], neck: [148, 176], hip: [96, 177],
+          kneeF: [70, 179], footF: [44, 180], kneeB: [68, 177], footB: [42, 178],
+          elbowF: [128, 180], handF: [108, 179], elbowB: [126, 178], handB: [106, 177],
+        },
+        {
+          head: [160, 158], neck: [147, 162], hip: [96, 177],
+          kneeF: [70, 179], footF: [44, 180], kneeB: [68, 177], footB: [42, 178],
+          elbowF: [127, 167], handF: [107, 163], elbowB: [125, 165], handB: [105, 161],
+        },
+      ],
+      spine: [0, -6],
+      holdMask: [false, true],
+    },
+
+    scappushup: {
+      dur: 2.8,
+      // Arme bleiben gestreckt, nur die Schulterblätter bewegen sich:
+      // oben schiebt sich der obere Rücken rund, unten sinkt die Brust
+      // zwischen die Schultern und die Schulterblätter ziehen zusammen.
+      poses: [
+        {
+          head: [162, 131], neck: [150, 137], hip: [96, 155],
+          kneeF: [68, 166], footF: [40, 177], kneeB: [66, 164], footB: [38, 175],
+          elbowF: [149, 160], handF: [148, 182], elbowB: [145, 158], handB: [144, 180],
+        },
+        {
+          head: [162, 131], neck: [150, 137], hip: [96, 159],
+          kneeF: [68, 168], footF: [40, 178], kneeB: [66, 166], footB: [38, 176],
+          elbowF: [149, 160], handF: [148, 182], elbowB: [145, 158], handB: [144, 180],
+        },
+      ],
+      spine: [4, -2],
+      holdMask: [true, true],
+    },
+
+    tablerow: {
+      dur: 2.6,
+      // Schrägzug unter einer Tischkante: der Körper bleibt gestreckt und
+      // dreht um die Fersen, die Ellbogen ziehen nach unten-hinten.
+      poses: [
+        {
+          head: [151, 142], neck: [138, 146], hip: [91, 164],
+          kneeF: [65, 173], footF: [40, 182], kneeB: [63, 171], footB: [38, 180],
+          elbowF: [134, 120], handF: [130, 98], elbowB: [131, 119], handB: [127, 98],
+        },
+        {
+          head: [142, 123], neck: [130, 130], hip: [87, 155],
+          kneeF: [63, 169], footF: [40, 182], kneeB: [61, 167], footB: [38, 180],
+          elbowF: [111, 112], handF: [130, 98], elbowB: [109, 111], handB: [127, 98],
+        },
+      ],
+      props: [{ type: 'bar', x: 129, y: 98 }],
+      holdMask: [true, true],
+    },
+
+    floorangel: {
+      dur: 3,
+      // Rückenlage von oben: Knie angestellt, Arme gleiten am Boden von der
+      // W- in die Y-Position – ohne Wand, die den Rücken führt.
+      noFloor: true,
+      armsFront: true,
+      poses: [
+        {
+          head: [100, 40], neck: [100, 56], hip: [100, 110],
+          kneeF: [114, 140], footF: [108, 168], kneeB: [86, 140], footB: [92, 168],
+          elbowF: [124, 78], handF: [120, 56], elbowB: [76, 78], handB: [80, 56],
+        },
+        {
+          head: [100, 40], neck: [100, 56], hip: [100, 110],
+          kneeF: [114, 140], footF: [108, 168], kneeB: [86, 140], footB: [92, 168],
+          elbowF: [120, 42], handF: [132, 22], elbowB: [80, 42], handB: [68, 22],
+        },
+      ],
+      holdMask: [true, true],
+    },
+
+    chintuckresist: {
+      dur: 3,
+      // Wie die Kinn-Retraktion, aber die Hand gibt an der Stirn Gegendruck
+      poses: [
+        p(STAND, { head: [110, 48], elbowF: [122, 72], handF: [124, 46] }),
+        p(STAND, { head: [97, 43], elbowF: [121, 71], handF: [120, 44] }),
+      ],
+      holdMask: [true, true],
+    },
+
     shouldermob: {
       dur: 2.6,
       poses: [
@@ -1275,6 +1402,18 @@
       svg.appendChild(el('line', {
         x1: prop.x, y1: 40, x2: prop.x, y2: 182, class: 'prop-wall',
       }));
+    } else if (prop.type === 'bar') {
+      // Tisch-/Kantenprofil: waagerechte Griffkante mit angedeuteter
+      // Platte darüber – bewusst ohne Beine, die sonst die Figur kreuzen
+      svg.appendChild(el('line', {
+        x1: prop.x - 26, y1: prop.y, x2: prop.x + 26, y2: prop.y, class: 'prop-wall',
+      }));
+      svg.appendChild(el('line', {
+        x1: prop.x - 26, y1: prop.y, x2: prop.x - 26, y2: prop.y - 8, class: 'prop-wall',
+      }));
+      svg.appendChild(el('line', {
+        x1: prop.x + 26, y1: prop.y, x2: prop.x + 26, y2: prop.y - 8, class: 'prop-wall',
+      }));
     } else if (prop.type === 'chair') {
       // Sitzfläche und Beine – frei platzierbar (Stuhl, Bank, Stufe)
       const x = prop.x != null ? prop.x : 134;
@@ -1306,6 +1445,8 @@
         });
       } else if (pr.type === 'wall') {
         add(pr.x, 60, 5); add(pr.x, 182, 5);
+      } else if (pr.type === 'bar') {
+        add(pr.x - 26, pr.y - 8, 5); add(pr.x + 26, pr.y, 5);
       } else if (pr.type === 'chair') {
         const cx = pr.x != null ? pr.x : 134;
         const ctop = pr.top != null ? pr.top : 140;

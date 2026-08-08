@@ -636,11 +636,29 @@
       <div class="stat"><strong>${state.stats.minutes}</strong><span>Minuten trainiert</span></div>
       <div class="stat"><strong>${p.plan.days.reduce((s, d) => s + d.blocks.main.length, 0)}</strong><span>Übungen im Plan</span></div>`;
 
-    // Einzel-Workouts
+    // Tägliche Routine + Einzel-Workouts. Die Routine steht bewusst oben
+    // und getrennt: sie ist kein Workout zum Auswählen, sondern das, was
+    // an Tagen ohne Zeit trotzdem laufen sollte.
+    const routineDay = FitPlanner.generateQuickDay(p.profile, 'routine');
+    const advice = FitPlanner.equipmentAdvice(p.profile);
     $('#quick-section').innerHTML = `
+      <h3 class="block-title">🧘‍♂️ Jeden Tag – auch ohne Trainingstag</h3>
+      <button class="routine-card" data-quick="routine">
+        <span class="routine-emoji">🧘‍♂️</span>
+        <span class="routine-info">
+          <span class="routine-name">Tägliche Haltungs-Routine</span>
+          <span class="routine-meta">${routineDay.blocks.main.length} Übungen · ca. ${routineDay.estMinutes} Min. · ohne Geräte</span>
+          <span class="routine-note">Immer derselbe Ablauf – Haltung ändert sich durch Wiederholung, nicht durch Abwechslung. Passt auch ins Hotelzimmer.</span>
+        </span>
+      </button>
+      ${advice.length ? `
+        <p class="advice">💡 <strong>${FitPlanner.EQUIPMENT_LABEL[advice[0].equipment].name}</strong>:
+        ${advice[0].count} weitere Übungen für dein Ziel –
+        ${FitPlanner.EQUIPMENT_LABEL[advice[0].equipment].why}.
+        <span class="muted-inline">${advice[0].names.slice(0, 3).join(', ')}${advice[0].names.length > 3 ? ' …' : ''}</span></p>` : ''}
       <h3 class="block-title">⚡ Einzel-Workout – ohne Plan, sofort starten</h3>
       <div class="chip-row quick-row">
-        ${Object.entries(FitPlanner.QUICK_FOCUS).map(([id, f]) => `
+        ${Object.entries(FitPlanner.QUICK_FOCUS).filter(([, f]) => !f.daily).map(([id, f]) => `
           <button class="chip" data-quick="${id}">${f.emoji} ${f.label}</button>`).join('')}
       </div>`;
     $('#quick-section').querySelectorAll('[data-quick]').forEach((chip) => {
@@ -780,8 +798,9 @@
     $('#day-title').textContent = ref.type === 'quick'
       ? `${day.emoji} ${day.focus}`
       : `${day.emoji} ${day.name} – ${day.focus}`;
-    $('#day-subtitle').textContent =
-      (ref.type === 'quick' ? 'Einzel-Workout · ' : '') + `ca. ${day.estMinutes} Minuten`;
+    const kicker = day.routine ? 'Jeden Tag · ohne Geräte · '
+      : ref.type === 'quick' ? 'Einzel-Workout · ' : '';
+    $('#day-subtitle').textContent = kicker + `ca. ${day.estMinutes} Minuten`;
 
     const block = (title, items) => items.length ? `
       <h3 class="block-title">${title}</h3>

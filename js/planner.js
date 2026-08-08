@@ -101,12 +101,17 @@
   // höheren Wiederholungszahlen ein. repBias skaliert den Zielbereich.
   function roundReps(v) {
     const r = Math.round(v);
-    return r > 12 ? Math.round(r / 5) * 5 : r;
+    return r > 20 ? Math.round(r / 5) * 5 : r;
   }
 
   function repRange(ex, reps) {
     const bias = ex.repBias || 1;
-    return `${roundReps(reps[0] * bias)}–${roundReps(reps[1] * bias)}`;
+    const lo = roundReps(reps[0] * bias);
+    // Beide Enden können auf dieselbe Fünferstufe fallen (z. B. 13 und 16
+    // werden beide zu 15). Dann bliebe kein Bereich übrig, in dem die
+    // doppelte Progression arbeiten kann – also eine Stufe aufmachen.
+    const hi = Math.max(roundReps(reps[1] * bias), lo > 20 ? lo + 5 : lo + 1);
+    return `${lo}–${hi}`;
   }
 
   function makeItem(ex, params, profile) {
@@ -154,6 +159,12 @@
     const underLimit = (ex) => Object.keys(limits).every((m) => !ex.muscles.includes(m)
       || chosen.filter((c) => c.muscles.includes(m)).length < limits[m]);
 
+    // Eine Übung und ihre eigene schwerere Variante gehören nicht in
+    // dieselbe Einheit (z. B. Wand-Engel neben Boden-Engel) – das ist
+    // derselbe Reiz zweimal und verschenkt einen Platz im Programm.
+    const noVariantClash = (ex) => !chosen.some((c) => c.harder === ex.id || ex.harder === c.id);
+    const fits = (ex) => underLimit(ex) && noVariantClash(ex);
+
     function take(idx) {
       const ex = candidates[idx];
       const item = makeItem(ex, params, profile);
@@ -171,7 +182,7 @@
     // außer beim Core: Bauchübungen sind klassisch Eigengewicht)
     (preferredMuscles || []).forEach((muscle) => {
       if (items.length >= maxItems) return;
-      const pick = (test) => candidates.findIndex((ex) => underLimit(ex) && test(ex));
+      const pick = (test) => candidates.findIndex((ex) => fits(ex) && test(ex));
       let idx = -1;
       if (muscle === 'core') idx = pick(isCoreFocus);
       else if (hasEquipment) idx = pick((ex) => ex.muscles.includes(muscle) && ex.equipment !== 'none');
@@ -182,7 +193,7 @@
     // 2. Bis zur Obergrenze auffüllen
     for (let i = 0; i < candidates.length && items.length < maxItems;) {
       if (remaining < 60) break;
-      if (underLimit(candidates[i]) && take(i)) continue;
+      if (fits(candidates[i]) && take(i)) continue;
       i++;
     }
 
@@ -208,7 +219,7 @@
     // 4. Bleibt danach noch reichlich Zeit, dürfen einzelne Übungen dazu
     for (let i = 0; i < candidates.length && items.length < maxItems + 1;) {
       if (remaining < 180) break;
-      if (underLimit(candidates[i]) && take(i)) continue;
+      if (fits(candidates[i]) && take(i)) continue;
       i++;
     }
 
@@ -321,10 +332,13 @@
       filter: (ex) => ex.muscles.includes('nacken')
         || ['wall_angel', 'chest_stretch', 'band_pullapart', 'band_latpull', 'band_row',
           'db_row', 'superman', 'swimmer', 'birddog', 'cat_cow', 'shoulder_mob',
-          'db_lateral', 'band_lateral'].includes(ex.id),
+          'db_lateral', 'band_lateral', 'ytw_raise', 'prone_cobra', 'scap_pushup',
+          'table_row', 'floor_angel'].includes(ex.id),
       muscles: ['nacken', 'schultern', 'ruecken', 'brust'],
-      // Haltungsarbeit wirkt über Regelmäßigkeit, nicht über Dauer
-      maxItems: 6, maxMinutes: 30,
+      // Haltungsarbeit wirkt über Regelmäßigkeit, nicht über Dauer. Fünf
+      // Übungen reichen; die restliche Zeit fließt in Sätze, und der Pool
+      // bleibt groß genug, dass sich die Einheiten spürbar unterscheiden.
+      maxItems: 5, maxMinutes: 30,
       warmup: ['march', 'shoulder_mob', 'cat_cow', 'chin_tuck'],
     },
   };
@@ -499,9 +513,70 @@
     oberkoerper: { tpl: 'oberkoerper', label: 'Oberkörper', emoji: '💪' },
     unterkoerper: { tpl: 'unterkoerper', label: 'Beine & Po', emoji: '🦵' },
     mobility: { tpl: 'mobility', label: 'Mobility', emoji: '🧘' },
+    routine: { tpl: 'haltung', label: 'Haltungs-Routine', emoji: '🧘‍♂️', daily: true },
   };
 
+  // Die tägliche Haltungs-Routine ist bewusst NICHT zufällig: Haltung
+  // ändert sich über Wiederholung eines immer gleichen Ablaufs, nicht über
+  // Abwechslung. Genau so gibt es auch die Physiotherapie mit. Sie kommt
+  // ohne Geräte aus und passt damit auch ins Hotelzimmer.
+  const ROUTINE = [
+    { id: 'chin_tuck', sets: 2 },     // tiefe Nackenbeuger aktivieren
+    { id: 'chest_stretch', sets: 1 }, // verkürzte Brust öffnen
+    { id: 'wall_angel', sets: 2 },    // Bewegungsmuster schulen
+    { id: 'ytw_raise', sets: 2 },     // unteren Trapez kräftigen
+    { id: 'prone_cobra', sets: 2 },   // Halteausdauer
+  ];
+
+  function buildRoutineDay(profile) {
+    const params = adjustParams(profile, GOAL_PARAMS.haltung);
+    const main = ROUTINE.map((r) => {
+      const ex = EXERCISE_BY_ID[r.id];
+      const item = makeItem(ex, Object.assign({}, params, { restSec: 20 }), profile);
+      item.sets = r.sets;
+      return item;
+    });
+    const estSec = main.reduce((s, it) => s + itemTimeSec(it), 0);
+    return {
+      focus: 'Tägliche Haltungs-Routine',
+      emoji: '🧘‍♂️',
+      blocks: { warmup: [], main, cooldown: [] },
+      estMinutes: Math.max(1, Math.round(estSec / 60)),
+      name: 'Tägliche Routine',
+      routine: true,
+    };
+  }
+
+  // Welches Equipment würde für dieses Ziel am meisten bringen? Gezählt
+  // werden nur Übungen, die allein am fehlenden Gerät scheitern – Level und
+  // Alter bleiben also berücksichtigt. Das macht die Empfehlung ehrlich:
+  // sie nennt genau die Zahl der Übungen, die tatsächlich dazukämen.
+  const EQUIPMENT_LABEL = {
+    band: { name: 'Widerstandsband', why: 'Zugübungen gegen Widerstand' },
+    kurzhanteln: { name: 'Kurzhanteln', why: 'steigerbare Last' },
+  };
+
+  function equipmentAdvice(profile) {
+    const level = LEVELS[profile.level] || LEVELS.anfaenger;
+    const maxLevel = level.maxLevel + (level.allowNextLevel && profile.age < 55 ? 1 : 0);
+    const tplIds = [...new Set(weekTemplates(profile.goal, profile.days))];
+    const pools = tplIds.map((id) => DAY_TEMPLATES[id]).filter(Boolean);
+
+    return Object.keys(EQUIPMENT_LABEL)
+      .filter((eq) => !profile.equipment.includes(eq))
+      .map((eq) => {
+        const extra = EXERCISES.filter((ex) => ex.equipment === eq
+          && ex.level <= maxLevel
+          && !(profile.age >= 55 && ex.impact)
+          && pools.some((tpl) => tpl.filter(ex)));
+        return { equipment: eq, count: extra.length, names: extra.map((e) => e.name) };
+      })
+      .filter((a) => a.count > 0)
+      .sort((a, b) => b.count - a.count);
+  }
+
   function generateQuickDay(profile, focusId) {
+    if (focusId === 'routine') return buildRoutineDay(profile);
     const focus = QUICK_FOCUS[focusId] || QUICK_FOCUS.ganzkoerper;
 
     let base;
@@ -528,6 +603,6 @@
 
   global.FitPlanner = {
     generatePlan, generateQuickDay, GOALS, LEVELS, GOAL_PARAMS, QUICK_FOCUS, WEEKDAYS,
-    SIDE_SWITCH_SEC,
+    SIDE_SWITCH_SEC, equipmentAdvice, EQUIPMENT_LABEL,
   };
 })(window);
