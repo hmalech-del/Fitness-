@@ -44,10 +44,30 @@ Geprüft: einzige Fläche über 45° Überhang ist die Decke der LED-Nut — ein
 breite Brücke, die jeder Drucker sauber zieht. Alle Fasen sind exakt 45°, auch
 die Dächer der Rillen und die Einführtrichter an den Zellenrändern.
 
-**Zweifarbig drucken:** Bei `z = 5 mm` einen Filamentwechsel einfügen (M600 oder
-die Pause-Funktion des Slicers), dann ist der Sockel in der einen und der
-Waben-Turm in der anderen Farbe. Mattschwarz mit einem kräftigen Akzent sieht am
-besten aus.
+## Zweifarbig drucken
+
+Mattschwarz für die Türme, ein gesättigter Neonton für den Sockel. Der
+Filamentwechsel gehört auf **z = 11 mm**, nicht auf 5 — dann liegen Sockel *und*
+Frontschild samt Gravur im Akzentton. Bei 5 mm bleibt nur ein dünner Streifen
+übrig, das trägt nicht.
+
+![Farbschemata](farbstudie.png)
+
+| Schema | Sockel | Türme |
+|---|---|---|
+| Neon Noir | Cyan transluzent `#00E5FF` | Mattschwarz `#16181A` |
+| 2077 | Neongelb `#FCEE0A` | Mattschwarz `#16181A` |
+| Synthwave | Magenta `#FF2D95` | Gunmetal `#1C1E24` |
+
+![Wechsel auf Schildhöhe](farbstudie_schild.png)
+
+**Matt statt glänzend** — matte Oberflächen schlucken Licht, lassen die Fasen als
+scharfe Kanten stehen und verstecken Schichtlinien. Ist der Sockel transluzent,
+kommt die LED-Nut erst richtig zur Geltung: dann mit nur 2 Perimetern und 10 %
+Infill drucken, damit Licht durchgeht.
+
+Eigene Farben ausprobieren: `farben.scad`, Zweischritt-Anleitung steht in der
+Datei.
 
 ## Gravur / Name
 
