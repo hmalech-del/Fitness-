@@ -53,33 +53,63 @@ gibt keine vorstehende Lippe, unter die ein Schraubendreher greift.
 
 | Datei | Inhalt |
 |---|---|
-| `safe_kasten.stl` / `.3mf` | Kasten (steht bereits in Drucklage) |
-| `safe_deckel.stl` / `.3mf` | Deckel (liegt bereits auf dem Rücken) |
-| `schluesselsafe.scad` | parametrisches Quellmodell (OpenSCAD) |
-| `vorschau.scad` | erzeugt die Bilder oben |
+| `safe_kasten.stl` / `.3mf` | Kasten, große Variante (steht bereits in Drucklage) |
+| `safe_deckel.stl` / `.3mf` | Deckel, große Variante (liegt bereits auf dem Rücken) |
+| `safe_kompakt_kasten.stl` | Kasten, kompakte Variante |
+| `safe_kompakt_deckel.stl` | Deckel, kompakte Variante |
+| `schluesselsafe.scad` | parametrisches Quellmodell beider Varianten |
+| `vorschau.scad`, `vergleich.scad` | erzeugen die Bilder |
 
-## Maße
+## Zwei Größen, gleiche Konstruktion
 
-| | mm |
-|---|---|
-| Innenraum (B × T × H) | 80 × 45 × 68 |
-| Kasten außen | 88 × 53 × 72, mit Lasche 72 tief |
-| Deckel außen | 94,6 × 59,6, Schürze 20 hoch |
-| Gesamthöhe geschlossen | 77 |
-| Wand / Boden / Deckelplatte | 4 / 4 / 5 |
-| Bügelloch | Ø 9, Mitte 40 über der Standfläche |
-| Materialbedarf | 94 + 51 cm³ ≈ 180 g |
+Beide Varianten stecken in derselben Datei und haben dieselbe Verriegelung,
+dieselbe Labyrinthfuge und dieselben Hebelschutz-Eigenschaften. Die kompakte
+braucht **halb so viel Material**.
 
-Der Innenraum nimmt mehrere Schlüsselbunde samt Autoschlüssel mit Fernbedienung auf.
-Für ein Smartphone `innen_b = 170` setzen.
+![Größenvergleich](bilder/vergleich.png)
+
+| | `gross` | `kompakt` |
+|---|---|---|
+| Innenraum (B × T × H) | 80 × 45 × 68 | **80 × 38 × 32** |
+| Kasten außen | 88 × 53 × 72 | 87 × 45 × 35,5 |
+| Stellfläche mit Lasche | 88 × 72 | 87 × 61 |
+| Deckel außen | 94,6 × 59,6 | 92,6 × 50,6 |
+| Gesamthöhe geschlossen | 77 | **39,5** |
+| Wand / Boden / Deckelplatte | 4 / 4 / 5 | 3,5 / 3,5 / 4 |
+| Schürze außen + Lippe innen | 20 + 6 | 13 + 5 |
+| Bügelloch | Ø 9, Mitte auf 40 | Ø 8, Mitte auf 13,5 |
+| Materialbedarf | 146 cm³ ≈ 180 g | **72 cm³ ≈ 90 g** |
+| Druckzeit gesamt | 13–18 h | **6–8 h** |
+
+Gemessen am Modell, für beide Varianten:
+
+| | `gross` | `kompakt` |
+|---|---|---|
+| Hubspiel des Deckels | 0,8 mm | 0,8 mm |
+| Kippen blockiert ab | ca. 1° | ca. 1° |
+| Querschnitt der Deckellasche | 67 mm² ≈ 1,3 kN | 37 mm² ≈ 0,74 kN |
+
+Die kompakte Lasche hält rechnerisch noch rund 75 kg Zug — von Hand nicht zu
+schaffen, aber eben halb so viel wie die große. Wer das nicht will, nimmt die
+große Variante oder setzt `lasche_b = 6` (dann braucht das Schloss 13 mm lichte
+Weite statt 11).
+
+Der Innenraum der kompakten Variante (97 cm³) nimmt mehrere Schlüsselbunde samt
+Autoschlüssel auf. Für ein Smartphone `innen_b = 170` setzen.
 
 ## Passendes Vorhängeschloss
 
-* **Lichte Bügelweite mindestens 17 mm** – die beiden Laschen sind zusammen 15,6 mm
-  breit. Ein übliches 40-mm-Bügelschloss passt, ein kleines 20-mm-Schloss nicht.
-* **Bügeldurchmesser max. 8 mm.**
-* Bei einem 40-mm-Schloss hängt der Schlosskörper seitlich vor der Vorderwand und
-  endet ca. 10 mm über der Standfläche.
+| | `gross` | `kompakt` |
+|---|---|---|
+| nötige lichte Bügelweite | ≥ 17 mm | ≥ 12 mm |
+| max. Bügeldurchmesser | 8 mm | 7 mm |
+| passende Schlossgröße | 40 mm | 30 oder 40 mm |
+
+Bei der großen Variante hängt der Schlosskörper frei und endet ca. 10 mm über der
+Standfläche. Bei der kompakten Variante reicht die Bauhöhe dafür nicht — das
+Schloss pendelt nach unten, legt sich schräg vor die Vorderwand und stützt sich
+auf der Ablage ab. Das ist normal und hebt den Kasten nicht an: Der Bügel kann
+sich im Loch drehen, das Schlossgewicht geht in die Ablage.
 
 Für den eigentlichen Zweck zählt ohnehin weniger das Schloss als die Frage, wer den
 Schlüssel hat: ein Zahlenschloss mit Code, den jemand anders gesetzt hat, ein
@@ -97,7 +127,7 @@ Schlüssel in der Schublade liegt, ist nur Dekoration.
 | Infill | 40 % |
 | Stützen | **keine** (geprüft: kritische Überhangfläche 3 mm² von 40 000 mm²) |
 | Orientierung | genau so laden, wie die Dateien sind |
-| Druckzeit | grob 9–12 h (Kasten) + 4–6 h (Deckel) |
+| Druckzeit | `gross` 9–12 h + 4–6 h · `kompakt` 4–5 h + 2–3 h |
 
 Zwei Dinge sind beim Deckel wichtig: Die Lasche steht als schmale Säule ganz oben im
 Druck. Mindestschichtzeit auf ca. 10 s stellen (oder mehrere Teile gleichzeitig
@@ -114,8 +144,12 @@ bekommt man das nicht auf.
 Alle Maße stehen oben in `schluesselsafe.scad`:
 
 ```bash
+# grosse Variante
 openscad -D 'teil="kasten"' -o safe_kasten.stl schluesselsafe.scad
 openscad -D 'teil="deckel"' -o safe_deckel.stl schluesselsafe.scad
+# kompakte Variante
+openscad -D 'variante="kompakt"' -D 'teil="kasten"' -o safe_kompakt_kasten.stl schluesselsafe.scad
+openscad -D 'variante="kompakt"' -D 'teil="deckel"' -o safe_kompakt_deckel.stl schluesselsafe.scad
 ```
 
 * **Andere Größe:** `innen_b`, `innen_t`, `innen_h`. Die Überfalle rückt automatisch

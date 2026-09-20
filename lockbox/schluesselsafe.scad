@@ -23,32 +23,35 @@
 // =====================================================================
 
 /* [Was soll erzeugt werden] */
-teil = "beides";      // "kasten", "deckel", "beides" (Vorschau) oder "keins"
+teil     = "beides";   // "kasten", "deckel", "beides" (Vorschau) oder "keins"
+variante = "gross";    // "gross" (hoher Kasten) oder "kompakt" (flache Kassette)
+
+k = (variante == "kompakt");
 
 /* [Innenmasse des Stauraums] */
-innen_b = 80;          // Breite  (X)  - passt ein Autoschluessel mit Fernbedienung
-innen_t = 45;          // Tiefe   (Y)
-innen_h = 68;          // Hoehe   (Z)  - hoch genug, dass das Schloss frei haengt
+innen_b = 80;               // Breite (X) - Autoschluessel mit Fernbedienung passt laengs
+innen_t = k ? 38 : 45;      // Tiefe  (Y)
+innen_h = k ? 32 : 68;      // Hoehe  (Z) - gross: so hoch, dass das Schloss frei haengt
 
 /* [Materialstaerken] */
-wand          = 4;     // Seitenwaende
-boden         = 4;     // Boden
-deckel_dicke  = 5;     // Deckelplatte
-schuerze_h    = 20;    // Ueberlappung aussen (Hebelschutz)
-schuerze_wand = 3;     // Wandstaerke der Schuerze
-lippe_h       = 6;     // Eingriff der Innenlippe (Labyrinthfuge)
-lippe_wand    = 2.5;
-eckradius     = 6;
-fase          = 1.2;   // Kantenfasen
-spiel         = 0.3;   // Passungsspiel pro Seite (0.2 straff ... 0.4 locker)
+wand          = k ? 3.5 : 4;
+boden         = k ? 3.5 : 4;
+deckel_dicke  = k ? 4   : 5;
+schuerze_h    = k ? 13  : 20;   // Ueberlappung aussen (Hebelschutz)
+schuerze_wand = k ? 2.5 : 3;
+lippe_h       = k ? 5   : 6;    // Eingriff der Innenlippe (Labyrinthfuge)
+lippe_wand    = k ? 2.2 : 2.5;
+eckradius     = k ? 5   : 6;
+fase          = k ? 1.0 : 1.2;
+spiel         = 0.3;            // Passungsspiel pro Seite (0.2 straff ... 0.4 locker)
 
 /* [Ueberfalle / Vorhaengeschloss] */
-lasche_b      = 7;     // Dicke je Lasche (X)  -> lichte Buegelweite = 2*7+1.6
-lasche_spalt  = 1.6;   // Luft zwischen den Laschen
-lasche_t      = 19;    // wie weit die Laschen nach vorn stehen (Y)
-buegel_d      = 9;     // Bohrung fuer den Schlossbuegel (Buegel max. 8 mm)
-lasche_rand   = 11;    // Material ueber/unter dem Loch
-lasche_luft   = 1;     // Luft zwischen Kastenlasche und Schuerzenunterkante
+lasche_b      = k ? 5   : 7;    // Dicke je Lasche (X)
+lasche_spalt  = k ? 1.0 : 1.6;  // Luft dazwischen -> noetige lichte Buegelweite
+lasche_t      = k ? 16  : 19;   // wie weit die Laschen nach vorn stehen (Y)
+buegel_d      = k ? 8   : 9;    // Bohrung fuer den Buegel (max. Buegel-Ø minus 1)
+lasche_rand   = k ? 8   : 11;   // Material ueber/unter dem Loch
+lasche_luft   = 1;              // Luft zwischen Kastenlasche und Schuerzenunterkante
 
 /* [Optionen] */
 wandmontage   = false; // Schraubloecher in der Rueckwand (nur von innen zugaenglich)
@@ -81,6 +84,9 @@ deckel_lasche_x = -(lasche_spalt + lasche_b)/2;   // links
 lasche_ok = fuge_z - lasche_luft;        // Oberkante Kastenlasche
 loch_z    = lasche_ok - lasche_rand;     // Hoehe der Lochmitte
 lasche_uk = loch_z - lasche_rand;        // Unterkante Deckellasche
+// Ab hier laeuft die Deckellasche keilfoermig in die Schuerze aus. Beim
+// kompakten Kasten frueher, sonst wird der Keil steiler als 45 Grad.
+lasche_voll_ok = k ? loch_z + 5 : fuge_z;
 
 // ---------------------------------------------------------------- Hilfsmodule
 
@@ -159,7 +165,7 @@ module deckel_lasche() {
     hull() {
         // volle Tiefe unten (dort sitzt das Loch)
         translate([deckel_lasche_x, front_y - spiel - lasche_t/2, lasche_uk])
-            rbox(lasche_b, lasche_t, fuge_z - lasche_uk, 2);
+            rbox(lasche_b, lasche_t, lasche_voll_ok - lasche_uk, 2);
         // laeuft nach oben flach in die Schuerze aus (ca. 36 Grad -> stuetzenfrei)
         translate([deckel_lasche_x, front_y - spiel - schuerze_wand/2, deckel_ok - 6])
             rbox(lasche_b, schuerze_wand, 6, 1);
