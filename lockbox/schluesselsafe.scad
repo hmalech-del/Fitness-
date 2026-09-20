@@ -43,7 +43,10 @@ lippe_h       = k ? 5   : 6;    // Eingriff der Innenlippe (Labyrinthfuge)
 lippe_wand    = k ? 2.2 : 2.5;
 eckradius     = k ? 5   : 6;
 fase          = k ? 1.0 : 1.2;
-spiel         = 0.3;            // Passungsspiel pro Seite (0.2 straff ... 0.4 locker)
+spiel         = 0.5;            // Spiel der Schuerze je Seite - das ist die Passung
+spiel_lippe   = 0.9;            // Spiel der Innenlippe - reine Labyrinthdichtung,
+                                // darf NICHT mitklemmen, sonst hakt die Fuge doppelt
+einfuehr      = 1.2;            // Einfuehrschraege an Kastenrand und Schuerzenmaul
 
 /* [Ueberfalle / Vorhaengeschloss] */
 lasche_b      = k ? 5   : 7;    // Dicke je Lasche (X)
@@ -147,7 +150,7 @@ module kasten() {
     difference() {
         union() {
             difference() {
-                rbox_fase(aussen_b, aussen_t, aussen_h, eckradius, fase, 0);
+                rbox_fase(aussen_b, aussen_t, aussen_h, eckradius, fase, einfuehr);
                 translate([0, 0, boden]) rbox(innen_b, innen_t, innen_h + 1, innen_r);
             }
             kasten_lasche();
@@ -179,21 +182,27 @@ module deckel() {
                 // Aussenkoerper Schuerze + Platte
                 translate([0, 0, fuge_z])
                     rbox_fase(deckel_b, deckel_t, deckel_ok - fuge_z, deckel_r, 1.8, fase);
-                // Platz fuer den Kasten
-                translate([0, 0, fuge_z - 1])
-                    rbox(aussen_b + 2*spiel, aussen_t + 2*spiel,
-                         aussen_h - fuge_z + 1, eckradius + spiel);
+                // Platz fuer den Kasten, unten mit Einfuehrtrichter
+                translate([0, 0, fuge_z + einfuehr])     // exakt bis Kastenoberkante,
+                    rbox(aussen_b + 2*spiel, aussen_t + 2*spiel,   // sonst haengt die Lippe frei
+                         aussen_h - fuge_z - einfuehr, eckradius + spiel);
+                hull() {
+                    translate([0, 0, fuge_z - 1.5]) rbox(aussen_b + 2*spiel + 2*einfuehr,
+                        aussen_t + 2*spiel + 2*einfuehr, 0.01, eckradius + spiel + einfuehr);
+                    translate([0, 0, fuge_z + einfuehr]) rbox(aussen_b + 2*spiel,
+                        aussen_t + 2*spiel, 0.01, eckradius + spiel);
+                }
             }
             // Innenlippe mit Einfuehrschraege
             difference() {
                 hull() {
                     translate([0, 0, aussen_h - lippe_h])
-                        rbox(innen_b - 2*spiel - 1.4, innen_t - 2*spiel - 1.4, 0.01, innen_r);
+                        rbox(innen_b - 2*spiel_lippe - 1.4, innen_t - 2*spiel_lippe - 1.4, 0.01, innen_r);
                     translate([0, 0, aussen_h - lippe_h + 1.4])
-                        rbox(innen_b - 2*spiel, innen_t - 2*spiel, lippe_h - 1.4, innen_r);
+                        rbox(innen_b - 2*spiel_lippe, innen_t - 2*spiel_lippe, lippe_h - 1.4, innen_r);
                 }
                 translate([0, 0, aussen_h - lippe_h - 1])
-                    rbox(innen_b - 2*spiel - 2*lippe_wand, innen_t - 2*spiel - 2*lippe_wand,
+                    rbox(innen_b - 2*spiel_lippe - 2*lippe_wand, innen_t - 2*spiel_lippe - 2*lippe_wand,
                          lippe_h + 2, max(innen_r - lippe_wand, 0.8));
             }
             deckel_lasche();

@@ -86,7 +86,7 @@ Gemessen am Modell, für beide Varianten:
 | | `gross` | `kompakt` |
 |---|---|---|
 | Hubspiel des Deckels | 0,8 mm | 0,8 mm |
-| Kippen blockiert ab | ca. 1° | ca. 1° |
+| Kippen blockiert ab | ca. 2° | ca. 2° |
 | Querschnitt der Deckellasche | 67 mm² ≈ 1,3 kN | 37 mm² ≈ 0,74 kN |
 
 Die kompakte Lasche hält rechnerisch noch rund 75 kg Zug — von Hand nicht zu
@@ -154,13 +154,51 @@ openscad -D 'variante="kompakt"' -D 'teil="deckel"' -o safe_kompakt_deckel.stl s
 
 * **Andere Größe:** `innen_b`, `innen_t`, `innen_h`. Die Überfalle rückt automatisch
   mit, sie sitzt immer direkt unter der Fuge.
-* **Deckel klemmt / sitzt locker:** `spiel` (0,2 straff … 0,4 locker)
+* **Deckel klemmt / sitzt locker:** `spiel` — siehe unten
 * **Kleineres Schloss:** `lasche_b` verkleinern (beide Laschen zusammen plus 1,6 mm
   müssen durch den Bügel passen)
 * **Noch mehr Hebelschutz:** `schuerze_h = 25`, `wand = 5`
 * **Doch Wandmontage:** `wandmontage = true` (Schrauben sind nur bei offenem Deckel
   erreichbar). Angeschraubt kann der Safe nicht „kurz mit in die Werkstatt".
 * **Außeneinsatz:** `drainage = true`
+
+## Passung — wichtig
+
+`spiel = 0.5` (je Seite, Schürze) und `spiel_lippe = 0.9` (Innenlippe). Das ist
+bewusst großzügig, weil die Fuge an **zwei** Stellen gleichzeitig greift: außen
+die Schürze, innen die Lippe. Klemmt eine davon, klemmt der Deckel.
+
+Die Innenlippe ist nur eine Labyrinthdichtung, keine Führung — sie bekommt
+deshalb deutlich mehr Luft als die Schürze. Geführt wird ausschließlich über die
+Schürze.
+
+Dazu kommen Einführschrägen: 1,2 mm Fase an der Kastenoberkante und ein
+trichterförmig aufgeweitetes Schürzenmaul. Der Deckel fädelt dadurch von selbst
+ein, statt an der Kante zu verkanten.
+
+**Deckel sitzt fest und geht nicht mehr ab?**
+
+1. Schraubendreher durch das Loch der **Deckellasche** stecken (nur so tief, dass
+   er nicht in die Kastenlasche greift) und senkrecht nach oben ziehen. Genau
+   dafür ist die Lasche ausgelegt, sie hält rechnerisch 750 kg... nein, 750 N,
+   also rund 75 kg. Nicht seitlich hebeln.
+2. Kasten 30 Minuten in den Kühlschrank, dann den Deckel außen kurz mit dem Föhn
+   anwärmen (PLA: unter 50 °C bleiben!). Außenteil dehnt sich, Innenteil
+   schrumpft — das reicht meistens.
+3. Vorn-hinten wippen statt drehen, dazu Gummihandschuhe für den Griff.
+4. Kasten festhalten, Deckel nach unten, mit der flachen Hand von oben auf den
+   Kastenboden schlagen. Die Massenträgheit zieht den Deckel ab.
+
+Nicht auf den Deckel hämmern — dabei bricht die Lasche.
+
+**Neu drucken muss man nur den Deckel.** Der neue Deckel passt auf den bereits
+gedruckten Kasten (geprüft: 0,0 mm³ Überschneidung), die Einführfase am Kasten
+ist eine Verbesserung, keine Bedingung.
+
+Wer seinen Drucker gut kennt und es knapper mag, geht auf `spiel = 0.35`. Wer
+einen Messschieber hat: Außenbreite des gedruckten Kastens an der Oberkante
+messen, Sollwert ist 87,0 mm bei der kompakten Variante — die Differenz sagt
+genau, wie viel Spiel der Drucker frisst.
 
 ## Was das Ding leistet – und was nicht
 
