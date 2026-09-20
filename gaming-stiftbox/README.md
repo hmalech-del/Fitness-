@@ -112,3 +112,72 @@ zellen = [
 * **Weniger Druckzeit:** die hohen Türme kürzen. 105 → 85 spart rund 1,5 h.
 * **Dickere Stifte / Pinsel:** `zelle_w` erhöhen (alles andere wächst mit).
 * **Mehr geteilte Fächer:** vierte Spalte auf `true`.
+
+---
+
+# Variante „CYBER"
+
+![Cyber-Variante](cyber_farbe.png)
+
+Dieselben fünf Fächer, aber mit dem Formenvokabular, das der cleanen Version
+fehlt. `stiftbox_cyber.scad` / `stiftbox_cyber.stl` — die ursprüngliche Version
+bleibt unverändert daneben liegen.
+
+## Was anders ist
+
+* **Schrägschnitt** am höchsten Turm, 34° — der auffälligste Unterschied.
+  Druckt problemlos, weil die Wände dabei nur unterschiedlich hoch enden.
+* **Gebrochene Symmetrie:** Die kleinste Zelle ist nach rechts versetzt *und* um
+  30° gedreht. Sie steht damit quer zum Wabenraster und wirkt angebaut statt
+  eingeplant.
+* **Schattenfuge** zwischen dieser Zelle und dem Rest — geprüft, oberhalb des
+  Sockels ist da wirklich Luft.
+* **Frontpanel** statt Namensschild: links Warnstreifen als Relief, in der Mitte
+  das Leuchtband, rechts das Code-Feld.
+* **Höherer Sockel** (12 statt 5 mm), massiver Auftritt.
+
+![Front](cyber_front.png) ![Ansicht](cyber_hero.png)
+
+## Das Licht — und warum der Streifen jetzt passt
+
+Die Ringnut der cleanen Version war ein Konstruktionsfehler: Ein LED-Streifen
+lässt sich aufrollen, aber nicht in seiner eigenen Ebene krümmen. Hier läuft er
+deshalb **gerade**, **hochkant** und **hinter einer 0,8-mm-Blende**:
+
+* Tasche 10,5 mm hoch × 3,2 mm tief, 30 mm lang, **nach unten offen** — der
+  Streifen wird von unten eingeschoben, das Kabel kommt an derselben Stelle raus.
+* Nichts muss gebogen, geschnitten oder gelötet werden.
+* **COB-Streifen empfohlen** (5 V, 8 mm breit, Schnittmarke etwa alle 25 mm):
+  Der leuchtet als durchgehende Linie statt als Punktreihe — bei 30 mm Länge
+  macht das den Unterschied.
+* Unbedingt **IP20 ohne Silikonmantel**, die wasserdichte Variante ist mit 4 mm
+  zu dick.
+
+Geprüft am Modell: Die Tasche ist frei (0,0 mm³ Material), die Blende steht
+vollständig (156,8 von 156,8 mm³).
+
+## Maße
+
+| | |
+|---|---|
+| Grundfläche | 105 × 71 mm |
+| Höhe | 110 mm (Schrägschnitt: 96–110) |
+| Material | 114 cm³ ≈ 141 g |
+| Druckzeit | ca. 11–13 h |
+| Überhang über 45° | 117 mm² — die Enden der Warnstreifen, unkritisch |
+
+## Code-Feld
+
+```bash
+openscad -D 'code="07-B"' -o stiftbox_cyber.stl stiftbox_cyber.scad
+```
+
+Vier bis sechs Zeichen passen. Leer gelassen bleibt das Feld glatt.
+Cyberpunk-typischer als ein Name ist ein Kürzel: `07-B`, `NX-04`, `RUN`.
+
+**Farbwechsel** hier auf **z = 12 mm** — genau die Oberkante des Sockels, dann
+sind Panel, Streifen und Code im Akzentton und die Türme schwarz.
+
+**Fuzzy Skin** im Slicer auf die Außenwände legen, wenn der Drucker es kann. Das
+ist der größte Effekt für einen einzigen Haken: raue Gussoberfläche statt glatter
+Plastikflächen.
