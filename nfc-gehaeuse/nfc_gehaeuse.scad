@@ -47,6 +47,14 @@ rast_nase = 0.8;    // Rasthoehe
 rast_z    = 2.0;    // Unterkante der Rastfenster ueber dem Innenboden
 fen_h     = 2.6;    // Hoehe der Rastfenster
 
+/* [Aufhaengeoese] */
+oese_an    = true;
+oese_aus   = 9;     // wie weit der Bogen aus der Wand kommt
+oese_h     = 16;    // Durchmesser des Auges
+oese_d     = 7;     // Dicke der Oese
+oese_loch  = 8.5;   // Bohrung - Buegel bis 7,5 mm, Karabiner, Schnur
+oese_z     = 24;    // Hoehe der Lochmitte ueber dem Innenboden
+
 /* [Halter] */
 kl_lang   = 8;      // Schenkellaenge der Eckwinkel
 kl_wand   = 1.8;
@@ -102,6 +110,21 @@ module rastnasen(b, cy, z, richtung) {
             polygon([[0,0], [-sx*(nase+e), 0], [0, -richtung*nase_h]]);
 }
 
+// Aufhaengeoese an der linken Seitenwand. Das Loch ist als Tropfen
+// ausgefuehrt, damit es in Drucklage ohne Stuetze bleibt.
+module oese() {
+    translate([-(innen_b/2 + wand - 0.5), 0, oese_z]) difference() {
+        rotate([90, 0, 0]) linear_extrude(oese_d, center = true) hull() {
+            square([1.5, oese_h], center = true);
+            translate([-oese_aus, 0]) circle(d = oese_h);
+        }
+        rotate([90, 0, 0]) linear_extrude(oese_d + 2, center = true) hull() {
+            translate([-oese_aus, 0]) circle(d = oese_loch);
+            translate([-oese_aus, -oese_loch*0.62]) circle(d = 0.8);
+        }
+    }
+}
+
 // ---------------------------------------------------------- Schale
 module schale() {
     difference() {
@@ -115,6 +138,7 @@ module schale() {
                     rbox(pn_b + 2*luft, pn_t + 2*luft, pn_tasche + 1, 1.5);
             }
             rastnasen(pn_b, 0, innen_h - pn_tasche, 1);   // haelt die Platine in der Einlassung
+            if (oese_an) oese();
         }
         // Rastfenster in den Laengswaenden
         for (sx = [-1,1], yy = rast_y)

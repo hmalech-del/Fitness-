@@ -54,6 +54,7 @@ Heck auf dem Bett, schwebt die Pad-Decke frei — gemessen 2762 mm² Überhang.
 |---|---|
 | Wandstärke | 2,2 mm, über der Antenne 1,6 mm |
 | Verschluss | vier Schnapparme, kein Werkzeug |
+| Aufhängung | Öse Ø 8,5 mm an der linken Wand |
 
 ## Vor dem Druck nachmessen
 
@@ -199,3 +200,51 @@ tragen ein Blechkästchen mit der Aufschrift ESP-12F.
 **Erst testen, dann einbauen** — das steht in der Anleitung und ist genau
 richtig. `scan: true` im Log zeigt dir sofort, ob die Verkabelung sitzt:
 erscheint `Found i2c device at address 0x24`, stimmt alles.
+
+
+## Aufhängeöse
+
+An der linken Seitenwand sitzt eine Öse mit 8,5 mm Bohrung — passt für einen
+Vorhängeschlossbügel bis 7,5 mm, einen Karabiner oder eine Schnur. Sie steht
+16,5 mm über die Wand hinaus, das Gehäuse wird damit 67,9 mm breit.
+
+Die Öse hängt an der **Schale**, nicht an der Bodenplatte. Beim Tragen zieht die
+Last also nicht an den Schnappern. Der tragende Querschnitt über dem Loch misst
+26 mm² und hält rechnerisch rund 500 N — für ein 60-Gramm-Gehäuse reichlich.
+
+Das Loch ist als Tropfen ausgeführt, damit es in Drucklage ohne Stütze bleibt.
+
+**Ein Hinweis zum Vorhängeschloss:** Metall in der Nähe der Antenne kostet
+Lesereichweite. Die Öse sitzt deshalb 13 mm unterhalb der Antennenebene und auf
+der Seite. Ein Bügelschloss direkt daran wird die Reichweite trotzdem etwas
+drücken — eine Schnur oder ein Kunststoffkarabiner ist unkritisch. Zum
+Abschließen an einem festen Punkt ist das egal, dann hängt das Schloss ohnehin
+an der Befestigung und nicht am Gehäuse.
+
+Öse nicht gewünscht: `-D oese_an=false`.
+
+## Stromversorgung — muss das Kabel dranbleiben?
+
+Ja. Der ESP32 mit aktivem WLAN und das PN532 im Dauerscan ziehen zusammen grob
+**120–180 mA bei 5 V**. Deep Sleep hilft nicht, denn der Reader soll ja
+durchgehend auf Karten lauschen.
+
+| Option | Laufzeit | Aufwand |
+|---|---|---|
+| **Powerbank am USB** | 5000 mAh ≈ 20 h | keiner |
+| LiPo + TP4056 + Step-Up | 2000 mAh ≈ 9 h | löten, und lohnt kaum |
+| Taster + Deep Sleep | Wochen | ESPHome-Umbau, 3–5 s Wartezeit pro Scan |
+
+Die Powerbank ist der pragmatische Weg. Ein Detail: Viele Powerbanks schalten
+unter etwa 50–100 mA ab, weil sie denken, es hängt nichts dran. Hier fließen
+150 mA, das hält die meisten wach — ausprobieren.
+
+`power_save_mode: HIGH` im `wifi:`-Block spart nochmal 30–40 mA, kostet dafür
+etwas Reaktionszeit beim ersten Scan nach einer Pause.
+
+**Der größere Haken beim Herumtragen:** Das Gerät funktioniert nur in
+WLAN-Reichweite. ESPHome puffert Tag-Scans nicht — außerhalb des Netzes wird
+einfach nichts gemeldet, und der Scan ist verloren. Im Haus herumtragen geht,
+unterwegs nicht. Wenn es wirklich offline mitlaufen soll, wäre das ein anderes
+Gerät: Tags lokal zwischenspeichern und beim nächsten WLAN-Kontakt nachreichen —
+das kann ESPHome nicht, dafür müsste man auf Arduino oder ESP-IDF wechseln.
