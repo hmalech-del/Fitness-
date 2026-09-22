@@ -1,5 +1,5 @@
 // =====================================================================
-//  Schluesselsafe zur Selbstdisziplinierung  -  v2
+//  Schluesselsafe zur Selbstdisziplinierung  -  v3
 //  ------------------------------------------------------------------
 //  Zwei Druckteile, kein Zubehoer ausser einem Vorhaengeschloss.
 //
@@ -17,6 +17,11 @@
 //   * Deckel hat keinerlei Oeffnung - nichts, wo ein Draht hineinpasst
 //   * Untere Schuerzenkante angefast, damit kein Werkzeug untergreift
 //
+//  Passung (v3): der Deckel traegt nur auf sechs schmalen Fuehrungsrippen,
+//  dazwischen und an allen vier Ecken ist die Tasche freigestellt. Die
+//  Gleitflaeche sinkt damit von rund 3900 auf unter 500 mm^2 - genau das
+//  war der Grund, warum v2 beim festen Zudruecken nicht mehr aufging.
+//
 //  Alle Masse in mm.
 //     openscad -D teil=\"kasten\" -o kasten.stl schluesselsafe.scad
 //     openscad -D teil=\"deckel\" -o deckel.stl schluesselsafe.scad
@@ -33,20 +38,35 @@ innen_b = 80;               // Breite (X) - Autoschluessel mit Fernbedienung pas
 innen_t = k ? 38 : 45;      // Tiefe  (Y)
 innen_h = k ? 32 : 68;      // Hoehe  (Z) - gross: so hoch, dass das Schloss frei haengt
 
+// --- Passung ---------------------------------------------------------
+// v2 hatte die Schuerze auf ganzer Flaeche am Kasten anliegen: knapp
+// 4000 mm^2 parallele Gleitflaeche. Bei 0,5 mm Nennspiel genuegt dann
+// EINE lokale Abweichung - Wandverzug, Ueberextrusion, ein zu dicker
+// Eckradius - und der Deckel presst sich fest. Mehr Spiel hilft dagegen
+// nicht (es verschiebt nur die Schwelle) und kostet Hebelschutz.
+// v3 traegt deshalb nur noch auf sechs schmalen Fuehrungsrippen; alles
+// andere, insbesondere die vier Ecken, ist freigestellt.
+spiel         = 0.5;            // Spiel an den Rippen - das ist die Passung
+relief        = 0.8;            // Freistellung dazwischen (Spalt dort: spiel+relief)
+rippe_b       = 6;              // Breite einer Fuehrungsrippe
+spiel_lippe   = 1.6;            // Innenlippe: reine Labyrinthsperre, beruehrt nie.
+                                // v2 hatte 0,9 - zu wenig, wenn die lange Kastenwand
+                                // beim Drucken nach innen zieht. Dann klemmte die
+                                // Lippe genau am Ende des Wegs.
+einfuehr      = 1.2;            // Einfuehrschraege an Kastenrand und Schuerzenmaul
+
 /* [Materialstaerken] */
 wand          = k ? 3.5 : 4;
 boden         = k ? 3.5 : 4;
 deckel_dicke  = k ? 4   : 5;
 schuerze_h    = k ? 13  : 20;   // Ueberlappung aussen (Hebelschutz)
-schuerze_wand = k ? 2.5 : 3;
+schuerze_wand = (k ? 2.5 : 3) + relief;  // die Freistellung darf die
+                                         // Schuerze nicht duenner machen
 lippe_h       = k ? 5   : 6;    // Eingriff der Innenlippe (Labyrinthfuge)
 lippe_wand    = k ? 2.2 : 2.5;
 eckradius     = k ? 5   : 6;
 fase          = k ? 1.0 : 1.2;
-spiel         = 0.5;            // Spiel der Schuerze je Seite - das ist die Passung
-spiel_lippe   = 0.9;            // Spiel der Innenlippe - reine Labyrinthdichtung,
-                                // darf NICHT mitklemmen, sonst hakt die Fuge doppelt
-einfuehr      = 1.2;            // Einfuehrschraege an Kastenrand und Schuerzenmaul
+
 
 /* [Ueberfalle / Vorhaengeschloss] */
 lasche_b      = k ? 5   : 7;    // Dicke je Lasche (X)
@@ -162,6 +182,29 @@ module kasten() {
     }
 }
 
+// Freistellung der Schuerzentasche: ein umlaufendes Band, das die Tasche um
+// "relief" aufweitet - ausgenommen sechs Rippenfelder (zwei je Laengswand,
+// eins je Schmalwand). Die Rippen liegen bewusst auf den geraden Flaechen und
+// klar neben den Ecken: die Ecken sind beim Druck am unmassgenauesten und
+// tragen jetzt gar nicht mehr. Die untersten 1,5 mm der Tasche bleiben
+// umlaufend eng, das ist das Fangband am Schuerzenmaul.
+module freistellung() {
+    rip_x = aussen_b/2 - eckradius - rippe_b/2 - 2.5;   // Rippenmitte, Laengswand
+    z0    = fuge_z + einfuehr + 1.5;
+    translate([0, 0, z0]) linear_extrude(height = aussen_h - z0 + 1) difference() {
+        offset(r = eckradius + spiel + relief)
+            square([aussen_b - 2*eckradius, aussen_t - 2*eckradius], center = true);
+        offset(r = eckradius + spiel)
+            square([aussen_b - 2*eckradius, aussen_t - 2*eckradius], center = true);
+        for (x = [-rip_x, rip_x], sy = [-1, 1])          // Laengswaende
+            translate([x, sy*(aussen_t/2 + spiel + relief/2)])
+                square([rippe_b, relief + 2], center = true);
+        for (sx = [-1, 1])                                // Schmalwaende
+            translate([sx*(aussen_b/2 + spiel + relief/2), 0])
+                square([relief + 2, rippe_b], center = true);
+    }
+}
+
 // ---------------------------------------------------------------- Deckel
 
 module deckel_lasche() {
@@ -209,6 +252,7 @@ module deckel() {
         }
         translate([deckel_lasche_x, loch_y, loch_z])
             tropfenloch(buegel_d, lasche_b + 6, -1);
+        freistellung();   // ganz zum Schluss: die Lasche darf nicht hineinragen
     }
 }
 

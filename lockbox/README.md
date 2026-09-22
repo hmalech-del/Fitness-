@@ -154,7 +154,7 @@ openscad -D 'variante="kompakt"' -D 'teil="deckel"' -o safe_kompakt_deckel.stl s
 
 * **Andere Größe:** `innen_b`, `innen_t`, `innen_h`. Die Überfalle rückt automatisch
   mit, sie sitzt immer direkt unter der Fuge.
-* **Deckel klemmt / sitzt locker:** `spiel` — siehe unten
+* **Deckel klemmt / sitzt locker:** `spiel`, `relief`, `rippe_b` — siehe unten
 * **Kleineres Schloss:** `lasche_b` verkleinern (beide Laschen zusammen plus 1,6 mm
   müssen durch den Bügel passen)
 * **Noch mehr Hebelschutz:** `schuerze_h = 25`, `wand = 5`
@@ -162,43 +162,89 @@ openscad -D 'variante="kompakt"' -D 'teil="deckel"' -o safe_kompakt_deckel.stl s
   erreichbar). Angeschraubt kann der Safe nicht „kurz mit in die Werkstatt".
 * **Außeneinsatz:** `drainage = true`
 
-## Passung — wichtig
+## Passung — v3, der eigentliche Fix
 
-`spiel = 0.5` (je Seite, Schürze) und `spiel_lippe = 0.9` (Innenlippe). Das ist
-bewusst großzügig, weil die Fuge an **zwei** Stellen gleichzeitig greift: außen
-die Schürze, innen die Lippe. Klemmt eine davon, klemmt der Deckel.
+**Was in v2 schiefging.** v2 hatte `spiel = 0.5` je Seite. Das Maß stimmt, und
+lose eingesetzt ging der Deckel auch leicht. Aber die Schürze lag auf **2826 mm²**
+parallel am Kasten an (gemessen: Kasten um 0,6 mm aufgedickt, mit dem Deckel
+verschnitten, Volumen durch die Überlappung geteilt). Bei so viel Fläche genügt
+eine einzige lokale Abweichung — eine nach innen gezogene lange Wand, etwas
+Überextrusion, ein zu dicker Eckradius — und beim festen Zudrücken presst sich
+das Ganze zusammen. Danach hält es die Reibung, und Angriffsfläche zum Abziehen
+gibt es konstruktionsbedingt keine.
 
-Die Innenlippe ist nur eine Labyrinthdichtung, keine Führung — sie bekommt
-deshalb deutlich mehr Luft als die Schürze. Geführt wird ausschließlich über die
-Schürze.
+Mehr Spiel ist dagegen **kein** Fix. Es verschiebt nur die Schwelle, ab der es
+klemmt, und kostet direkt Hebelschutz. Der Fehler ist die Fläche, nicht das Maß.
 
-Dazu kommen Einführschrägen: 1,2 mm Fase an der Kastenoberkante und ein
-trichterförmig aufgeweitetes Schürzenmaul. Der Deckel fädelt dadurch von selbst
-ein, statt an der Kante zu verkanten.
+**Was v3 macht.** Die Schürzentasche ist um `relief = 0.8 mm` freigestellt —
+überall außer an sechs schmalen Führungsrippen (zwei je Längswand, eine je
+Schmalwand, jede 6 mm breit). Dort bleibt es bei `spiel = 0.5`. Die vier Ecken
+tragen gar nicht mehr; sie sind beim Druck am unmaßgenauesten und waren genau
+deshalb die erste Klemmstelle.
 
-**Deckel sitzt fest und geht nicht mehr ab?**
+![Querschnitt auf halber Schürzenhöhe](rippen.png)
 
-1. Schraubendreher durch das Loch der **Deckellasche** stecken (nur so tief, dass
-   er nicht in die Kastenlasche greift) und senkrecht nach oben ziehen. Genau
-   dafür ist die Lasche ausgelegt, sie hält rechnerisch 750 kg... nein, 750 N,
-   also rund 75 kg. Nicht seitlich hebeln.
-2. Kasten 30 Minuten in den Kühlschrank, dann den Deckel außen kurz mit dem Föhn
+*Kastenwand im Schnitt, außen das freigestellte Band. Die sechs Lücken darin sind
+die Führungsrippen — nur dort berührt der Deckel den Kasten.*
+
+Dazu bekommt die Innenlippe `spiel_lippe = 1.6` statt 0,9. Sie ist reine
+Labyrinthsperre und soll nie tragen; 0,9 mm reichte nicht, wenn die 87 mm lange
+Kastenwand beim Drucken nach innen zieht — dann klemmte die Lippe genau am Ende
+des Wegs, also erst beim vollständigen Zudrücken. Das passt exakt zum
+beobachteten Fehlerbild.
+
+Damit die Freistellung keine Steifigkeit kostet, ist die Schürzenwand um dieselben
+0,8 mm dicker geworden. Sie misst in den freigestellten Zonen weiterhin 2,5 mm
+(kompakt) bzw. 3,0 mm (groß), an den Rippen 3,3 bzw. 3,8 mm.
+
+| | v2 | v3 |
+|---|---|---|
+| Tragende Gleitfläche, kompakt | 2826 mm² | **788 mm²** |
+| davon im letzten Wegabschnitt | 2316 mm² | **322 mm²** |
+| Tragende Gleitfläche, groß | 4988 mm² | **1127 mm²** |
+| Spalt an den Rippen | 0,5 mm | 0,5 mm |
+| Spalt dazwischen und in den Ecken | 0,5 mm | 1,3 mm |
+| Spalt an der Innenlippe | 0,9 mm | 1,6 mm |
+| Außenmaß Schürze, kompakt | 93,0 × 51,0 mm | 94,6 × 52,6 mm |
+
+Die 1,3 mm in den Ecken kosten keinen Hebelschutz: die Schürze greift weiterhin
+13 mm (kompakt) bzw. 20 mm (groß) über den Kasten, und hinter dem Spalt steht
+massives Material. Ein Werkzeug kommt dort hinein, aber nicht weiter.
+
+Die untersten 1,5 mm der Tasche bleiben umlaufend eng. Dieses Fangband zentriert
+den Deckel beim Einfädeln und sitzt am Maul, nicht am Ende des Wegs — es kann
+also nicht das Verklemmen verursachen, um das es hier geht.
+
+Unverändert bleiben die Einführschrägen: 1,2 mm Fase an der Kastenoberkante und
+ein trichterförmig aufgeweitetes Schürzenmaul.
+
+**Neu drucken muss man nur den Deckel.** Der Kasten ist geometrisch identisch
+geblieben (Volumen auf 0,000 mm³ gleich), der neue Deckel passt auf den bereits
+gedruckten Kasten — geprüft: 0,0 mm³ Überschneidung im geschlossenen Zustand.
+
+### Deckel sitzt fest und geht nicht mehr ab?
+
+1. **Die beiden Laschen zusammendrücken.** Die Deckellasche hängt direkt neben
+   der Kastenlasche und reicht deutlich tiefer. Daumen unter das untere Ende der
+   Deckellasche, Finger oben auf die Kastenlasche, zusammendrücken — das ist
+   genau die Abziehrichtung, mit gutem Griff und kurzem Hebel. Der einfachste
+   Weg, und er verlangt kein Werkzeug.
+2. Schraubendreher durch das Loch der **Deckellasche** stecken (nur so tief, dass
+   er nicht in die Kastenlasche greift) und senkrecht nach oben ziehen. Dafür ist
+   die Lasche ausgelegt, sie hält rund 750 N. Nicht seitlich hebeln.
+3. Kasten 30 Minuten in den Kühlschrank, dann den Deckel außen kurz mit dem Föhn
    anwärmen (PLA: unter 50 °C bleiben!). Außenteil dehnt sich, Innenteil
    schrumpft — das reicht meistens.
-3. Vorn-hinten wippen statt drehen, dazu Gummihandschuhe für den Griff.
 4. Kasten festhalten, Deckel nach unten, mit der flachen Hand von oben auf den
    Kastenboden schlagen. Die Massenträgheit zieht den Deckel ab.
 
 Nicht auf den Deckel hämmern — dabei bricht die Lasche.
 
-**Neu drucken muss man nur den Deckel.** Der neue Deckel passt auf den bereits
-gedruckten Kasten (geprüft: 0,0 mm³ Überschneidung), die Einführfase am Kasten
-ist eine Verbesserung, keine Bedingung.
-
-Wer seinen Drucker gut kennt und es knapper mag, geht auf `spiel = 0.35`. Wer
-einen Messschieber hat: Außenbreite des gedruckten Kastens an der Oberkante
-messen, Sollwert ist 87,0 mm bei der kompakten Variante — die Differenz sagt
-genau, wie viel Spiel der Drucker frisst.
+**Am schon gedruckten v2-Deckel** lässt sich derselbe Effekt von Hand nachholen:
+mit Schlüsselfeile oder Schleifpapier auf einem Klotz 0,3–0,4 mm aus der
+Schürzeninnenseite nehmen, und zwar in den Ecken und in der Mitte der Wände —
+die sechs Rippenfelder stehen lassen. Das ist v3 mit der Hand. Schneller ist es,
+den neuen Deckel zu drucken.
 
 ## Was das Ding leistet – und was nicht
 
