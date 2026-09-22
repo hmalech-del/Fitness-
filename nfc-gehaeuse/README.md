@@ -210,7 +210,9 @@ Vorhängeschlossbügel bis 7,5 mm, einen Karabiner oder eine Schnur. Sie steht
 
 Die Öse hängt an der **Schale**, nicht an der Bodenplatte. Beim Tragen zieht die
 Last also nicht an den Schnappern. Der tragende Querschnitt über dem Loch misst
-26 mm² und hält rechnerisch rund 500 N — für ein 60-Gramm-Gehäuse reichlich.
+(am Modell nachgemessen) 87 mm² — bei 20 MPa zulässiger Zugspannung im PETG
+entspricht das rund 1700 N. Für ein 60-Gramm-Gehäuse ist das weit jenseits
+dessen, was je anliegt.
 
 Das Loch ist als Tropfen ausgeführt, damit es in Drucklage ohne Stütze bleibt.
 
