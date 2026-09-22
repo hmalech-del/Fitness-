@@ -18,13 +18,42 @@ Die hängenden Buchsen des PN532 haben vorn einen 9 mm breiten Freiraum, weil de
 ESP32 nach hinten versetzt sitzt — die Kabel laufen also diagonal durch den
 Innenraum, ohne geknickt zu werden.
 
+## Die Bauhöhe hängt an der Verkabelung
+
+| | `verkabelung = "dupont"` | `verkabelung = "geloetet"` |
+|---|---|---|
+| Außenmaße | 51,4 × 54,4 × **39,3** mm | 51,4 × 54,4 × **17,8** mm |
+| Material | 28 cm³ ≈ 35 g | 19 cm³ ≈ 23 g |
+| Druckzeit | ca. 3,5 h | ca. 2 h |
+
+Der Unterschied kommt allein von den Dupont-Steckern:
+
+```
+Buchsenleiste auf dem D1 Mini      8,5 mm
+Steckerkörper sitzt obenauf       14,0 mm
+Kabelbogen                         3,0 mm
+                                  -------
+über der ESP-Platine              25,5 mm
+```
+
+Das ist der Boden, unter den man mit aufgesteckten Dupont-Kabeln nicht kommt —
+unabhängig davon, wie man die Platinen anordnet. Vier gelötete Drähte statt der
+Stecker machen aus 39 mm gute 18 mm.
+
+Umschalten:
+
+```bash
+openscad -D 'verkabelung="geloetet"' -D 'teil="schale"' -o schale.stl nfc_gehaeuse.scad
+```
+
+Ein gestuftes Gehäuse (flache Lesefläche vorn, hohes Heck hinten) habe ich
+gebaut und wieder verworfen: Es lässt sich nicht stützenfrei drucken. Liegt das
+Heck auf dem Bett, schwebt die Pad-Decke frei — gemessen 2762 mm² Überhang.
+
 | | |
 |---|---|
-| Außenmaße | 51,4 × 54,4 × 30,8 mm |
 | Wandstärke | 2,2 mm, über der Antenne 1,6 mm |
-| Material | 24 cm³ ≈ 30 g |
-| Druckzeit | ca. 2,5–3 h für beide Teile |
-| Schrauben | 4 × M3 Blechschraube, 10 mm |
+| Verschluss | vier Schnapparme, kein Werkzeug |
 
 ## Vor dem Druck nachmessen
 
@@ -76,7 +105,17 @@ kann den Reader unbrauchbar machen. Normales PLA ist völlig unkritisch.
 4. ESP32 in die Eckwinkel auf der Bodenplatte legen, USB-Buchse Richtung
    Ausschnitt.
 5. Kabel in einem weiten Bogen legen, nicht knicken.
-6. Bodenplatte aufsetzen, vier Schrauben von unten.
+6. Bodenplatte von unten eindrücken, bis die vier Schnapper hörbar einrasten.
+
+Zum Öffnen: die vier Nasen sind durch die Fenster in den Seitenwänden sichtbar.
+Mit dem Fingernagel oder einem flachen Schraubendreher nach innen drücken, dann
+löst sich die Platte.
+
+**Zur Schraubenfrage:** Gewinde müssen nie gedruckt werden. Blechschrauben
+schneiden sich ihr Gewinde selbst in ein glattes Loch von etwa 0,6 mm unter
+Nenndurchmesser — das ist der Normalfall bei gedruckten Gehäusen und hält
+erstaunlich gut. Hier sind trotzdem Schnapper verbaut, weil das Gehäuse leicht
+ist und nie unter Last steht.
 
 Wenn das PN532 in der Einlassung wackelt: ein Tropfen Heißkleber an einer Ecke.
 Nicht die ganze Platine verkleben, sonst kommst du nie wieder ran.
