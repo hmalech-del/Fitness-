@@ -225,6 +225,30 @@ an der Befestigung und nicht am Gehäuse.
 
 Öse nicht gewünscht: `-D oese_an=false`.
 
+### Zwei Ösen fürs Nackenband
+
+`-D oese_seiten=2` spiegelt die Öse auf die rechte Wand. Das Gehäuse wird damit
+84,4 mm breit. Mit einer Schnur durch beide Ösen hängt der Reader **flach an der
+Brust**, das NFC-Fenster nach oben — der Tag wird von oben aufgelegt. Mit nur
+einer Öse kippt die Box am Band weg und dreht sich.
+
+    openscad -o nfc_schale_band.stl -D 'teil="schale"' -D oese_seiten=2 nfc_gehaeuse.scad
+
+Geprüft: 0 offene Kanten, echter Überhang 486 mm² (vorher 326), die Zunahme sind
+allein die Tangentialflächen am Augenkreis — dieselbe Geometrie wie bei der
+ersten Öse.
+
+Zwei Hinweise fürs Tragen:
+
+* **Sicherheitsverschluss ans Band.** Ein starres Gehäuse mit Powerbank kommt
+  auf 150–200 g. Ein Lanyard mit Breakaway-Clip ist hier kein Zubehör, sondern
+  Pflicht.
+* **USB-Winkelkabel.** Die Buchse sitzt in der Seitenwand und zeigt am Band
+  waagerecht nach vorn oder hinten. Ein gerades Kabel knickt direkt am Stecker
+  ab; ein 90°-USB-C-Kabel führt sauber nach unten Richtung Tasche.
+
+## Powerbank am Hals — drei Wege
+
 ## Stromversorgung — muss das Kabel dranbleiben?
 
 Ja. Der ESP32 mit aktivem WLAN und das PN532 im Dauerscan ziehen zusammen grob
@@ -250,3 +274,31 @@ einfach nichts gemeldet, und der Scan ist verloren. Im Haus herumtragen geht,
 unterwegs nicht. Wenn es wirklich offline mitlaufen soll, wäre das ein anderes
 Gerät: Tags lokal zwischenspeichern und beim nächsten WLAN-Kontakt nachreichen —
 das kann ESPHome nicht, dafür müsste man auf Arduino oder ESP-IDF wechseln.
+
+### 1. Powerbank in der Tasche (empfohlen)
+
+Flache Karten-Powerbank (5000 mAh, ca. 95 × 65 × 10 mm, 110 g) in Hemd- oder
+Hosentasche, 50 cm Winkelkabel am Band entlang nach oben. Am Hals hängen dann
+nur die 80 g Gehäuse. Läuft rund 20 Stunden. Kein Umbau nötig.
+
+### 2. Powerbank als Gegengewicht im Nacken
+
+Stick-Powerbank (2500 mAh, Ø 22 × 90 mm, ca. 60 g) in einer kleinen Tasche
+hinten am Nackenband, Kabel innen am Band nach vorn. Das ist der Aufbau, den
+Tourguide-Sender benutzen: das Gewicht balanciert den Reader vorn aus, statt
+sich dazuzuaddieren. Laufzeit ca. 10 Stunden.
+
+### 3. Akku unter dem Boden (Umbau)
+
+Die Bodenplatte gegen eine 14 mm tiefe Akkuwanne tauschen: 103450-LiPo
+(10 × 34 × 50 mm, 2000 mAh), TP4056-Lademodul mit USB-C, Schiebeschalter in der
+Seitenwand. Der Innenraum der Schale bleibt unangetastet, die Schnappverbindung
+auch. Ergibt ein Gerät ohne Kabel, ca. 140 g, Laufzeit 8–11 Stunden. Ist noch
+nicht gebaut — sag Bescheid, wenn du das willst.
+
+Rechnung zu 3: 2000 mAh × 3,7 V = 7,4 Wh, Boost auf 5 V mit 85 % → 6,3 Wh.
+Bei 150 mA sind das 8,4 h, mit `power_save_mode: HIGH` bei ~110 mA knapp 11 h.
+Ein Arbeitstag, nicht mehr.
+
+**Gilt für alle drei:** Der Reader meldet nur innerhalb deines WLANs. ESPHome
+puffert Scans nicht — außerhalb der Reichweite passiert schlicht nichts.

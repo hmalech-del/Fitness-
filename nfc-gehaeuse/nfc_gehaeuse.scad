@@ -48,7 +48,8 @@ rast_z    = 2.0;    // Unterkante der Rastfenster ueber dem Innenboden
 fen_h     = 2.6;    // Hoehe der Rastfenster
 
 /* [Aufhaengeoese] */
-oese_an    = true;
+oese_an     = true;
+oese_seiten = 1;    // 1 = nur links, 2 = beide Seiten (Band um den Hals)
 oese_aus   = 9;     // wie weit der Bogen aus der Wand kommt
 oese_h     = 16;    // Durchmesser des Auges
 oese_d     = 7;     // Dicke der Oese
@@ -138,7 +139,10 @@ module schale() {
                     rbox(pn_b + 2*luft, pn_t + 2*luft, pn_tasche + 1, 1.5);
             }
             rastnasen(pn_b, 0, innen_h - pn_tasche, 1);   // haelt die Platine in der Einlassung
-            if (oese_an) oese();
+            if (oese_an) {
+                oese();
+                if (oese_seiten == 2) mirror([1, 0, 0]) oese();
+            }
         }
         // Rastfenster in den Laengswaenden
         for (sx = [-1,1], yy = rast_y)
