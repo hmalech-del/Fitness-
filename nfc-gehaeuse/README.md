@@ -54,7 +54,7 @@ Heck auf dem Bett, schwebt die Pad-Decke frei — gemessen 2762 mm² Überhang.
 |---|---|
 | Wandstärke | 2,2 mm, über der Antenne 1,6 mm |
 | Verschluss | vier Schnapparme, kein Werkzeug |
-| Aufhängung | Öse Ø 8,5 mm an der linken Wand |
+| Aufhängung | Öse Ø 8,5 mm an der linken Wand, stützenfrei, 20 mm breit angebunden |
 
 ## Vor dem Druck nachmessen
 
@@ -202,41 +202,78 @@ richtig. `scan: true` im Log zeigt dir sofort, ob die Verkabelung sitzt:
 erscheint `Found i2c device at address 0x24`, stimmt alles.
 
 
-## Aufhängeöse
+## Aufhängeöse — v2, nach einem Bruch
 
-An der linken Seitenwand sitzt eine Öse mit 8,5 mm Bohrung — passt für einen
-Vorhängeschlossbügel bis 7,5 mm, einen Karabiner oder eine Schnur. Sie steht
-16,5 mm über die Wand hinaus, das Gehäuse wird damit 67,9 mm breit.
+**Was passiert ist.** Die erste Öse ist seitlich weggebrochen. Die Ursache steht
+im Modell, nicht im Material: in Drucklage (Fenster auf dem Bett) fing der Steg
+bei **5,3 mm Druckhöhe mit 66,8 mm² waagerecht in der Luft** an. Diese ersten
+Lagen hatten nichts unter sich, auf dem sie haften konnten — die ganze Öse stand
+auf einer Schicht hängender Fäden. Genau dort reißt sie ab. Dazu kam ein
+7 × 16 mm kleiner Anbindungsfleck auf der nur 2,2 mm dünnen Seitenwand, die unter
+Seitenlast selbst nachgibt.
 
-Die Öse hängt an der **Schale**, nicht an der Bodenplatte. Beim Tragen zieht die
-Last also nicht an den Schnappern. Der tragende Querschnitt über dem Loch misst
-(am Modell nachgemessen) 87 mm² — bei 20 MPa zulässiger Zugspannung im PETG
-entspricht das rund 1700 N. Für ein 60-Gramm-Gehäuse ist das weit jenseits
-dessen, was je anliegt.
+**Drei Änderungen, alle stützenfrei:**
 
-Das Loch ist als Tropfen ausgeführt, damit es in Drucklage ohne Stütze bleibt.
+1. **45-Grad-Deckel.** Die Oberkante der Öse wird hart auf eine 45-Grad-Linie ab
+   der Schalenoberkante beschnitten. Damit beginnt sie in Drucklage auf dem
+   Druckbett und wächst nach außen, ohne dass je eine Lage im Leeren anfängt.
+2. **Wandpolster bis an den Oberrand.** 2 mm dick, 20 mm breit, von z = 6 bis
+   ganz nach oben. Die Traglast geht in den steifen Rand statt in die Mitte der
+   dünnen Wand.
+3. **Strebe im Steg.** Der Steg ist an der Wand 20 mm breit und verjüngt sich zum
+   Auge hin auf 10 mm. Diese Verjüngung liegt in senkrechten Flächen — sie kostet
+   keinen einzigen mm² Überhang. Eine abstehende Strebe wäre schwächer und müsste
+   gestützt werden.
 
-**Ein Hinweis zum Vorhängeschloss:** Metall in der Nähe der Antenne kostet
-Lesereichweite. Die Öse sitzt deshalb 13 mm unterhalb der Antennenebene und auf
-der Seite. Ein Bügelschloss direkt daran wird die Reichweite trotzdem etwas
-drücken — eine Schnur oder ein Kunststoffkarabiner ist unkritisch. Zum
-Abschließen an einem festen Punkt ist das egal, dann hängt das Schloss ohnehin
-an der Befestigung und nicht am Gehäuse.
+Das Auge rückte dafür näher an die Wand (8 statt 9 mm) und wurde kleiner
+(Ø 15 statt 16). Der Hebelarm wird kürzer, das Gehäuse **schmaler** statt breiter.
 
-Öse nicht gewünscht: `-D oese_an=false`.
+| | v1 (gebrochen) | v2 |
+|---|---|---|
+| Fläche, die in der Luft anfängt | 66,8 mm² | **0** |
+| Biegesteifigkeit Wurzel, seitlich | 459 mm⁴ | **20168 mm⁴** |
+| Biegesteifigkeit Mitte, seitlich | 322 mm⁴ | **6563 mm⁴** |
+| Ring über der Bohrung | 87 mm² (1745 N) | **157 mm² (3137 N)** |
+| Gehäusebreite, eine Öse | 67,9 mm | **66,9 mm** |
+| Gehäusebreite, zwei Ösen | 84,4 mm | **82,4 mm** |
+| Lochmitte über Innenboden | 24 mm | 21 mm |
+
+Die seitliche Biegesteifigkeit — die Richtung, in der sie gebrochen ist — steigt
+an der Wurzel um das 44-fache, in der Mitte des Stegs um das 20-fache. Der
+Querschnitt der Öse wächst in Drucklage lückenlos von 0,7 mm² am Bett auf
+167 mm²; es gibt keine Höhe mehr, an der Material ohne Unterlage anfängt.
+
+**Support brauchst du nicht** — und solltest du hier auch nicht einsetzen. Support
+unter einer tragenden Struktur erzeugt genau die schlechte Grenzfläche, die v1
+zum Verhängnis wurde. Wenn du Support ohnehin an hast, schadet er hier nichts,
+bringt aber auch nichts.
+
+**Höhe des Lochs.** 21 mm ist kein Zufall: der Schwerpunkt des bestückten
+Gehäuses liegt bei z = 17,2 mm (Schale 30,8 g, Boden 9,4 g, PN532 oben 9 g,
+ESP32 unten 9 g, Kabelbaum 6 g). Die Aufhängung muss darüber liegen, sonst kippt
+das Gehäuse am Band durch und hängt mit dem Fenster nach unten. Nach oben
+begrenzt die 45-Grad-Linie: `oese_z + oese_loch/2 + Ring + oese_aus` darf die
+Schalenoberkante nicht überschreiten. Zwischen 17,2 und 22,8 bleibt das Fenster,
+in dem beides geht.
+
+**Vorhängeschloss.** Der Steg ist am Auge 10 mm dick, die Bohrung Ø 8,5 mm sitzt
+8 mm vor der Wand. Ein Bügel bis 7,5 mm passt durch und hat 1,75 mm Luft zum
+Wandpolster. Metall nah an der Antenne kostet Lesereichweite; das Loch sitzt
+deshalb 16 mm unterhalb der Antennenebene und seitlich. Eine Schnur oder ein
+Kunststoffkarabiner ist unkritisch.
+
+![Öse in Drucklage](oese.png)
+
+Öse ganz weg: `-D oese_an=false`.
 
 ### Zwei Ösen fürs Nackenband
 
 `-D oese_seiten=2` spiegelt die Öse auf die rechte Wand. Das Gehäuse wird damit
-84,4 mm breit. Mit einer Schnur durch beide Ösen hängt der Reader **flach an der
+82,4 mm breit. Mit einer Schnur durch beide Ösen hängt der Reader **flach an der
 Brust**, das NFC-Fenster nach oben — der Tag wird von oben aufgelegt. Mit nur
 einer Öse kippt die Box am Band weg und dreht sich.
 
     openscad -o nfc_schale_band.stl -D 'teil="schale"' -D oese_seiten=2 nfc_gehaeuse.scad
-
-Geprüft: 0 offene Kanten, echter Überhang 486 mm² (vorher 326), die Zunahme sind
-allein die Tangentialflächen am Augenkreis — dieselbe Geometrie wie bei der
-ersten Öse.
 
 Zwei Hinweise fürs Tragen:
 

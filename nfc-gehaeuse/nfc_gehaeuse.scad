@@ -48,13 +48,26 @@ rast_z    = 2.0;    // Unterkante der Rastfenster ueber dem Innenboden
 fen_h     = 2.6;    // Hoehe der Rastfenster
 
 /* [Aufhaengeoese] */
+// v1 hatte einen 7 mm duennen Steg, der in Drucklage mit 67 mm^2 waagerecht
+// IN DER LUFT anfing - die ersten Lagen wurden ins Leere gedruckt. Dazu sass
+// er auf einem 7x16-Fleck der nur 2,2 mm dicken Wand, die dabei nachgibt.
+// v2: Steg wandert nach unten, damit seine Oberkante in Drucklage an der
+// Schalenoberkante (= Druckbett) anfaengt und unter 45 Grad nach aussen
+// waechst. Dazu ein Wandpolster, das die Last bis in den steifen Oberrand
+// verteilt statt sie auf einen Fleck zu setzen.
 oese_an     = true;
 oese_seiten = 1;    // 1 = nur links, 2 = beide Seiten (Band um den Hals)
-oese_aus   = 9;     // wie weit der Bogen aus der Wand kommt
-oese_h     = 16;    // Durchmesser des Auges
-oese_d     = 7;     // Dicke der Oese
+oese_aus   = 8;     // Augenmitte, gemessen ab Wandaussenflaeche
+oese_h     = 15;    // Durchmesser des Auges -> 3,25 mm Ring um die Bohrung
+oese_d     = 10;    // Dicke des Stegs
 oese_loch  = 8.5;   // Bohrung - Buegel bis 7,5 mm, Karabiner, Schnur
-oese_z     = 24;    // Hoehe der Lochmitte ueber dem Innenboden
+oese_z     = 21;    // Lochmitte. Muss UEBER dem Schwerpunkt (z = 17,2) liegen,
+                    // sonst kippt das Gehaeuse am Band durch. Nach oben begrenzt
+                    // durch die 45-Grad-Linie: oese_z + oese_loch/2 + Ring
+                    // + oese_aus <= Schalenoberkante.
+oese_uk    = 6;     // Unterkante der Anbindung an die Wand
+oese_pad   = 2.0;   // Wandpolster: wie weit es aus der Wand steht
+oese_pad_b = 20;    // seine Breite (y)
 
 /* [Halter] */
 kl_lang   = 8;      // Schenkellaenge der Eckwinkel
@@ -111,23 +124,56 @@ module rastnasen(b, cy, z, richtung) {
             polygon([[0,0], [-sx*(nase+e), 0], [0, -richtung*nase_h]]);
 }
 
-// Aufhaengeoese an der linken Seitenwand. Das Loch ist als Tropfen
-// ausgefuehrt, damit es in Drucklage ohne Stuetze bleibt.
+// Aufhaengeoese an der linken Seitenwand.
+//  * Die Oberkante wird hart auf 45 Grad ab der Schalenoberkante beschnitten.
+//    In Drucklage (Fenster auf dem Bett) faengt die Oese damit AUF DEM BETT an
+//    und waechst stuetzenfrei nach aussen. v1 fing mit 67 mm^2 in der Luft an -
+//    die ersten Lagen des Stegs wurden ins Leere gedruckt.
+//  * Das Wandpolster reicht bis an die Oberkante: die Traglast geht in den
+//    steifen Rand statt in die Mitte der 2,2-mm-Wand, die sonst nachgibt.
+//  * Die Bohrung ist ein Tropfen, Spitze in Drucklage nach oben.
 module oese() {
-    translate([-(innen_b/2 + wand - 0.5), 0, oese_z]) difference() {
-        rotate([90, 0, 0]) linear_extrude(oese_d, center = true) hull() {
-            square([1.5, oese_h], center = true);
-            translate([-oese_aus, 0]) circle(d = oese_h);
+    wx = -(innen_b/2 + wand);       // Wandaussenflaeche
+    ok = innen_h + fenster;         // Schalenoberkante = Druckbett
+    difference() {
+        union() {
+            // Wandpolster, unten auslaufend (in Drucklage nach oben -> frei)
+            hull() {
+                translate([wx - oese_pad/2 + 0.5, 0, (oese_uk + 3 + ok)/2])
+                    cube([oese_pad + 1, oese_pad_b, ok - oese_uk - 3], center = true);
+                translate([wx + 0.25, 0, oese_uk + 0.01])
+                    cube([0.5, oese_pad_b, 0.02], center = true);
+            }
+            // Steg: an der Wand so breit wie das Polster, zum Auge hin auf
+            // oese_d verjuengt. Diese Verjuengung liegt in SENKRECHTEN Flaechen
+            // und kostet deshalb keinen einzigen mm^2 Ueberhang - das ist die
+            // Strebe, ohne dass etwas absteht.
+            hull() {
+                translate([wx + 0.25, 0, (oese_uk + ok)/2])
+                    cube([0.5, oese_pad_b, ok - oese_uk], center = true);
+                translate([wx - oese_aus, 0, oese_z])
+                    rotate([90, 0, 0]) cylinder(h = oese_d, d = oese_h, center = true);
+            }
         }
-        rotate([90, 0, 0]) linear_extrude(oese_d + 2, center = true) hull() {
-            translate([-oese_aus, 0]) circle(d = oese_loch);
-            translate([-oese_aus, -oese_loch*0.62]) circle(d = 0.8);
-        }
+        // 45-Grad-Schnitt ab der Oberkante - das ist der stuetzenfreie Deckel
+        rotate([90, 0, 0]) linear_extrude(oese_pad_b + 20, center = true)
+            polygon([[wx + 1, ok + 1], [wx + 1, ok + 90],
+                     [wx - 90, ok + 90], [wx - 90, ok - 90]]);
+        // Tropfenbohrung
+        translate([wx - oese_aus, 0, oese_z]) rotate([90, 0, 0])
+            linear_extrude(oese_d + 8, center = true) hull() {
+                circle(d = oese_loch);
+                translate([0, -oese_loch*0.62]) circle(d = 0.8);
+            }
     }
 }
 
 // ---------------------------------------------------------- Schale
 module schale() {
+  union() {
+    // Die Oese kommt NACH der difference dazu: der Fasenschnitt an der
+    // Oberkante wuerde sonst eine Kerbe ins Wandpolster schneiden.
+    if (oese_an) { oese(); if (oese_seiten == 2) mirror([1, 0, 0]) oese(); }
     difference() {
         union() {
             difference() {
@@ -139,10 +185,6 @@ module schale() {
                     rbox(pn_b + 2*luft, pn_t + 2*luft, pn_tasche + 1, 1.5);
             }
             rastnasen(pn_b, 0, innen_h - pn_tasche, 1);   // haelt die Platine in der Einlassung
-            if (oese_an) {
-                oese();
-                if (oese_seiten == 2) mirror([1, 0, 0]) oese();
-            }
         }
         // Rastfenster in den Laengswaenden
         for (sx = [-1,1], yy = rast_y)
@@ -157,6 +199,7 @@ module schale() {
                 offset(r = eckradius) square([aussen_b - 2*eckradius, aussen_t - 2*eckradius], center = true);
         }
     }
+  }
 }
 
 // ---------------------------------------------------------- Bodenplatte
