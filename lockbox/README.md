@@ -78,7 +78,7 @@ braucht **halb so viel Material**.
 | Wand / Boden / Deckelplatte | 4 / 4 / 5 | 3,5 / 3,5 / 4 |
 | Schürze außen + Lippe innen | 20 + 6 | 13 + 5 |
 | Bügelloch | Ø 9, Mitte auf 40 | Ø 8, Mitte auf 13,5 |
-| Materialbedarf | 146 cm³ ≈ 180 g | **72 cm³ ≈ 90 g** |
+| Materialbedarf | 152 cm³ ≈ 193 g | **76 cm³ ≈ 97 g** |
 | Druckzeit gesamt | 13–18 h | **6–8 h** |
 
 Gemessen am Modell, für beide Varianten:
@@ -87,12 +87,11 @@ Gemessen am Modell, für beide Varianten:
 |---|---|---|
 | Hubspiel des Deckels | 0,8 mm | 0,8 mm |
 | Kippen blockiert ab | ca. 2° | ca. 2° |
-| Querschnitt der Deckellasche | 67 mm² ≈ 1,3 kN | 37 mm² ≈ 0,74 kN |
+| Zugfestigkeit der Deckellasche | ≈ 1,3 kN | ≈ 0,74 kN |
+| Seitenlast bis Bruch (v3) | 194 N ≈ 20 kg | 163 N ≈ 17 kg |
 
-Die kompakte Lasche hält rechnerisch noch rund 75 kg Zug — von Hand nicht zu
-schaffen, aber eben halb so viel wie die große. Wer das nicht will, nimmt die
-große Variante oder setzt `lasche_b = 6` (dann braucht das Schloss 13 mm lichte
-Weite statt 11).
+Zug hält die Lasche reichlich aus. Die kritische Richtung ist **seitlich** —
+dazu der eigene Abschnitt unten.
 
 Der Innenraum der kompakten Variante (97 cm³) nimmt mehrere Schlüsselbunde samt
 Autoschlüssel auf. Für ein Smartphone `innen_b = 170` setzen.
@@ -101,9 +100,15 @@ Autoschlüssel auf. Für ein Smartphone `innen_b = 170` setzen.
 
 | | `gross` | `kompakt` |
 |---|---|---|
-| nötige lichte Bügelweite | ≥ 17 mm | ≥ 12 mm |
+| nötige lichte Bügelweite | ≥ 18 mm | ≥ 15 mm |
 | max. Bügeldurchmesser | 8 mm | 7 mm |
-| passende Schlossgröße | 40 mm | 30 oder 40 mm |
+| passende Schlossgröße | 40 oder 50 mm | 40 mm |
+
+Die lichte Bügelweite ist gegenüber v2 um 3 mm gestiegen (17,6 statt 15,6 bzw.
+14,0 statt 11,0 mm), weil die Laschen dicker geworden sind — siehe unten. Ein
+40-mm-Vorhängeschloss hat typisch 20–24 mm lichte Weite, das reicht für beide
+Varianten. Wer ein kleineres Schloss hat, setzt `lasche_b` zurück; die
+Seitensteifigkeit fällt dann mit dem Quadrat.
 
 Bei der großen Variante hängt der Schlosskörper frei und endet ca. 10 mm über der
 Standfläche. Bei der kompakten Variante reicht die Bauhöhe dafür nicht — das
@@ -245,6 +250,70 @@ mit Schlüsselfeile oder Schleifpapier auf einem Klotz 0,3–0,4 mm aus der
 Schürzeninnenseite nehmen, und zwar in den Ecken und in der Mitte der Wände —
 die sechs Rippenfelder stehen lassen. Das ist v3 mit der Hand. Schneller ist es,
 den neuen Deckel zu drucken.
+
+## Laschen — v3, nach einem Bruch
+
+**Was passiert ist.** Eine Lasche ist seitlich weggebrochen. Nachgemessen am
+v2-Modell ist das kein Wunder: die Deckellasche hatte an ihren beiden kritischen
+Stellen ein Widerstandsmoment von 41,8 mm³ (wo sie aus der Schürze austritt) und
+16,7 mm³ (im Schnitt durch das Bügelloch). Bei Seitenlast am unteren Ende — und
+genau da greift man hin, wenn man den Deckel abgenommen in die Hand nimmt —
+bricht sie rechnerisch bei **54 N, also 5,5 kg**. Quer zu den Drucklagen, denn
+die Deckellasche hängt in Z nach unten und wird bei Seitenlast über die
+Schichtgrenzen gebogen.
+
+Dazu kam, dass die volle Tiefe der Lasche schon bei `loch_z + 5` endete.
+Zwischen dort und der Schürze war sie ein dünner, frei hängender Lappen.
+
+**Drei Änderungen:**
+
+1. **Volle Tiefe bis zur Fuge.** `lasche_voll_ok = fuge_z` statt `loch_z + 5`.
+   Die Lasche ist jetzt bis zur Schürzenunterkante voll ausgebildet und läuft
+   erst darüber aus. Der Auslaufkeil beginnt direkt an der Deckeloberkante,
+   damit er unter 45 Grad bleibt.
+2. **Wurzelkeil.** Beide Laschen sind im Band zwischen Wand und Bügelloch nach
+   außen verbreitert (`lasche_keil`, 5 mm kompakt / 6 mm groß). Dort liegt weder
+   Bügel noch Schlosskörper — der Platz ist gratis. Und dort sitzt das größte
+   Biegemoment.
+3. **Dicker und tiefer.** `lasche_b` 5 → 6,5 (kompakt) bzw. 7 → 8 (groß);
+   `lasche_t` 16 → 19 bzw. 19 → 21. Die Dicke geht quadratisch in die
+   Seitensteifigkeit ein, die Tiefe lässt neben dem Bügelloch mehr Material
+   stehen.
+
+![Überfalle mit Wurzelkeilen](laschen.png)
+
+| kompakt | v2 | v3 |
+|---|---|---|
+| W an der Fuge | 41,8 mm³ | **164,6 mm³** |
+| W im Schnitt durchs Bügelloch | 16,7 mm³ | **50,2 mm³** |
+| W an der Wurzel der Kastenlasche | 83,9 mm³ | **459,2 mm³** |
+| Seitenlast am Ende bis Bruch | 54 N (5,5 kg) | **163 N (16,6 kg)** |
+| nötige lichte Bügelweite | 11,0 mm | 14,0 mm |
+
+| groß | v2 | v3 |
+|---|---|---|
+| W an der Fuge | 119,9 mm³ | **263,5 mm³** |
+| W im Schnitt durchs Bügelloch | 46,2 mm³ | **82,3 mm³** |
+| Seitenlast am Ende bis Bruch | 109 N (11,1 kg) | **194 N (19,8 kg)** |
+| nötige lichte Bügelweite | 15,6 mm | 17,6 mm |
+
+Gerechnet mit 26 MPa, also der Festigkeit **quer** zu den Drucklagen — das ist
+die Richtung, in der die Lasche tatsächlich belastet wird. Längs zur Lage wären
+es die üblichen 45 MPa und entsprechend höhere Werte.
+
+**Der Wurzelkeil kostet keinen Überhang.** Geprüft in Drucklage: der Deckel hat
+mit und ohne Keil dieselben 181 mm² waagerechte Fläche (das ist die Stufe der
+Schürzen-Freistellung, nichts davon gehört zu den Laschen). Der Keil ist in
+Drucklage am Druckbett am breitesten und verjüngt sich nach oben.
+
+**Geprüft:** beide Teile dicht, 0,000 mm³ Durchdringung im geschlossenen
+Zustand, ein Bügel Ø 7,5 (kompakt) bzw. Ø 8,0 (groß) geht kollisionsfrei durch
+beide Laschen.
+
+**Diesmal müssen beide Teile neu.** Anders als beim Passungs-Fix hat sich auch
+der Kasten geändert (dickere Lasche, Wurzelkeil). Ein neuer Deckel passt nicht
+mit einem alten Kasten zusammen — die Löcher fluchten nicht mehr, weil
+`lasche_b` und damit `kasten_lasche_x` anders liegen.
 
 ## Was das Ding leistet – und was nicht
 

@@ -69,12 +69,24 @@ fase          = k ? 1.0 : 1.2;
 
 
 /* [Ueberfalle / Vorhaengeschloss] */
-lasche_b      = k ? 5   : 7;    // Dicke je Lasche (X)
+// Dicke je Lasche. Das ist die eine Stellschraube, die das Schloss begrenzt:
+// 2*lasche_b + lasche_spalt muss durch die lichte Buegelweite passen
+// (kompakt 14,0 mm, gross 17,6 mm). Ein 40-mm-Vorhaengeschloss hat typisch
+// 20-24 mm, ein 50-mm-Schloss mehr. Wer ein kleineres Schloss hat, geht hier
+// runter - die Seitensteifigkeit faellt dann mit dem Quadrat.
+lasche_b      = k ? 6.5 : 8;    // Dicke je Lasche (X)
 lasche_spalt  = k ? 1.0 : 1.6;  // Luft dazwischen -> noetige lichte Buegelweite
-lasche_t      = k ? 16  : 19;   // wie weit die Laschen nach vorn stehen (Y)
+// Tiefer heisst: neben dem Buegelloch bleibt mehr Material stehen. Kostet
+// nichts ausser Bauraum, weil der Hebel fuer Seitenlast in Z liegt.
+lasche_t      = k ? 19  : 21;   // wie weit die Laschen nach vorn stehen (Y)
 buegel_d      = k ? 8   : 9;    // Bohrung fuer den Buegel (max. Buegel-Ø minus 1)
 lasche_rand   = k ? 8   : 11;   // Material ueber/unter dem Loch
 lasche_luft   = 1;              // Luft zwischen Kastenlasche und Schuerzenunterkante
+// Wurzelkeil: die Laschen sind in X duenn, weil der Schlossbuegel ueber beide
+// zusammen passen muss. Verbreitern laesst sich aber das Band ZWISCHEN Wand
+// und Buegelloch - dort liegt weder Buegel noch Schlosskoerper. Genau dort
+// sitzt auch das groesste Biegemoment.
+lasche_keil   = k ? 5   : 6;    // Verbreiterung der Wurzel nach aussen (X)
 
 /* [Optionen] */
 wandmontage   = false; // Schraubloecher in der Rueckwand (nur von innen zugaenglich)
@@ -107,9 +119,12 @@ deckel_lasche_x = -(lasche_spalt + lasche_b)/2;   // links
 lasche_ok = fuge_z - lasche_luft;        // Oberkante Kastenlasche
 loch_z    = lasche_ok - lasche_rand;     // Hoehe der Lochmitte
 lasche_uk = loch_z - lasche_rand;        // Unterkante Deckellasche
-// Ab hier laeuft die Deckellasche keilfoermig in die Schuerze aus. Beim
-// kompakten Kasten frueher, sonst wird der Keil steiler als 45 Grad.
-lasche_voll_ok = k ? loch_z + 5 : fuge_z;
+// Die Deckellasche bleibt bis zur Fuge auf voller Tiefe und laeuft erst
+// darueber in die Schuerze aus. Vorher endete die volle Tiefe schon bei
+// loch_z + 5; dazwischen war sie ein duenner, frei haengender Lappen, der
+// bei Seitenlast an der Schuerzenkante abbrach.
+lasche_voll_ok = fuge_z;
+lasche_keil_t  = lasche_t/2 - buegel_d/2 - 0.5;   // Tiefe des schlossfreien Bandes
 
 // ---------------------------------------------------------------- Hilfsmodule
 
@@ -152,6 +167,15 @@ module kasten_lasche() {
     }
 }
 
+// Wurzelkeil der Kastenlasche - waechst nach aussen, weg von der Deckellasche
+module kasten_keil() {
+    x0 = kasten_lasche_x + lasche_b/2;
+    hull() {
+        translate([x0, front_y + 0.5, 0]) rbox(2*lasche_keil, 3, lasche_ok, 0.6);
+        translate([x0, front_y - lasche_keil_t, 0]) rbox(0.02, 0.02, lasche_ok - 5, 0.01);
+    }
+}
+
 module montageloecher() {
     for (p = [[-25, aussen_h - 12], [25, aussen_h - 12], [0, 14]])
         translate([p[0], 0, p[1]]) {
@@ -174,6 +198,7 @@ module kasten() {
                 translate([0, 0, boden]) rbox(innen_b, innen_t, innen_h + 1, innen_r);
             }
             kasten_lasche();
+            kasten_keil();
         }
         translate([kasten_lasche_x, loch_y, loch_z])
             tropfenloch(buegel_d, lasche_b + 6, +1);
@@ -209,12 +234,26 @@ module freistellung() {
 
 module deckel_lasche() {
     hull() {
-        // volle Tiefe unten (dort sitzt das Loch)
+        // volle Tiefe bis hinauf zur Fuge
         translate([deckel_lasche_x, front_y - spiel - lasche_t/2, lasche_uk])
             rbox(lasche_b, lasche_t, lasche_voll_ok - lasche_uk, 2);
-        // laeuft nach oben flach in die Schuerze aus (ca. 36 Grad -> stuetzenfrei)
-        translate([deckel_lasche_x, front_y - spiel - schuerze_wand/2, deckel_ok - 6])
-            rbox(lasche_b, schuerze_wand, 6, 1);
+        // darueber flach in die Schuerze auslaufend. Der Keil beginnt ganz
+        // oben, damit er unter 45 Grad bleibt - in Drucklage liegt die
+        // Oberkante auf dem Bett und die Lasche waechst nach unten heraus.
+        translate([deckel_lasche_x, front_y - spiel - schuerze_wand/2, deckel_ok - 2.5])
+            rbox(lasche_b, schuerze_wand, 2.5, 1);
+    }
+    // Wurzelkeil: verbreitert die Lasche genau da, wo sie aus der Schuerze
+    // tritt - das ist die Bruchstelle. Liegt im Band hinter dem Buegel und
+    // ist in Drucklage am Bett am breitesten, waechst also stuetzenfrei.
+    hull() {
+        translate([deckel_lasche_x - lasche_b/2, front_y - spiel - lasche_keil_t/2,
+                   loch_z + buegel_d/2 + 2])          // rbox extrudiert ab z=0,
+            rbox(2*lasche_keil, lasche_keil_t,        // also Unterkante angeben
+                 deckel_ok - loch_z - buegel_d/2 - 2, 0.6);
+        translate([deckel_lasche_x - lasche_b/2, front_y - spiel - lasche_keil_t/2,
+                   loch_z + buegel_d/2 - 1])
+            rbox(0.02, lasche_keil_t, 0.02, 0.01);
     }
 }
 
