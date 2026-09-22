@@ -1,0 +1,162 @@
+# Gehäuse für NFC-Reader (ESP32 D1 Mini + PN532)
+
+Zweiteilig, vier Schrauben, beide Teile drucken flach **ohne Stützen**.
+
+![Explosionsansicht](teile.png) ![Montage](montage.png)
+
+## Aufbau
+
+Das PN532 sitzt in einer **Einlassung direkt unter der Deckfläche** — die
+Antennenseite liegt flach an der 1,6 mm dünnen Wand an, das ist die Lesefläche.
+Zwei Rastnasen halten die Platine, sie wird von unten eingeschoben und klickt ein.
+
+Darunter bleiben **18,5 mm freie Höhe** für die aufgesteckten Dupont-Stecker des
+ESP32. Der ESP32 selbst liegt auf der Bodenplatte in vier Eckwinkeln mit zwei
+Auflageleisten, der USB-Anschluss zeigt durch den Ausschnitt in der Rückwand.
+
+Die hängenden Buchsen des PN532 haben vorn einen 9 mm breiten Freiraum, weil der
+ESP32 nach hinten versetzt sitzt — die Kabel laufen also diagonal durch den
+Innenraum, ohne geknickt zu werden.
+
+| | |
+|---|---|
+| Außenmaße | 51,4 × 54,4 × 30,8 mm |
+| Wandstärke | 2,2 mm, über der Antenne 1,6 mm |
+| Material | 24 cm³ ≈ 30 g |
+| Druckzeit | ca. 2,5–3 h für beide Teile |
+| Schrauben | 4 × M3 Blechschraube, 10 mm |
+
+## Vor dem Druck nachmessen
+
+Die Modulmaße sind **Annahmen**. Drei Werte entscheiden, ob es passt — sie stehen
+oben in `nfc_gehaeuse.scad`:
+
+| Parameter | Annahme | was messen |
+|---|---|---|
+| `pn_b`, `pn_t` | 43 × 41 mm | Platinenkanten des PN532 |
+| `esp_b`, `esp_t` | 26 × 34,5 mm | Platinenkanten des D1 Mini |
+| `esp_oben` | 17 mm | **der kritische Wert:** Höhe von der Platinenoberseite bis zur Oberkante der aufgesteckten Dupont-Stecker, inklusive Kabelbogen |
+
+`esp_oben` bestimmt die Bauhöhe. Steckst du die Kabel auf und misst vom Board bis
+zur höchsten Stelle, hast du den Wert. Das Modell rechnet die Gehäusehöhe daraus
+aus und **bricht mit einer Fehlermeldung ab**, wenn etwas nicht mehr passt — es
+kommt also kein Gehäuse heraus, in das die Elektronik nicht hineingeht.
+
+```bash
+openscad -D 'esp_oben=20' -D 'teil="schale"' -o nfc_schale.stl nfc_gehaeuse.scad
+openscad -D 'teil="boden"' -o nfc_boden.stl nfc_gehaeuse.scad
+```
+
+## Druck
+
+| Einstellung | Wert |
+|---|---|
+| Material | PLA oder PETG, **kein** Carbon- oder Metallic-Filament |
+| Schichthöhe | 0,2 mm |
+| Perimeter | 3 |
+| Infill | 20 % |
+| Stützen | keine |
+| Lage | so wie die STLs geladen werden: Schale mit der Lesefläche aufs Bett, Boden flach |
+
+Die Schale liegt mit der NFC-Fläche auf dem Druckbett — die wird dadurch glatt
+und bleibt exakt 1,6 mm dünn. **Diese Wand nicht dicker machen**, jeder
+zusätzliche Millimeter kostet Lesereichweite.
+
+Metallhaltiges Filament (Carbon, „Silk Metallic", Glitter) dämpft das Feld und
+kann den Reader unbrauchbar machen. Normales PLA ist völlig unkritisch.
+
+## Einbau
+
+1. **DIP-Schalter am PN532 zuerst setzen** — sie zeigen nach dem Einbau nach
+   innen und sind dann nicht mehr erreichbar. I2C heißt: Schalter 1 auf ON,
+   Schalter 2 auf OFF.
+2. Kabel aufstecken, Funktion testen (siehe unten), erst dann einbauen.
+3. PN532 von unten in die Einlassung drücken, bis es hinter den beiden Rastnasen
+   einrastet. Antennenseite (die flache) zeigt zur Deckfläche.
+4. ESP32 in die Eckwinkel auf der Bodenplatte legen, USB-Buchse Richtung
+   Ausschnitt.
+5. Kabel in einem weiten Bogen legen, nicht knicken.
+6. Bodenplatte aufsetzen, vier Schrauben von unten.
+
+Wenn das PN532 in der Einlassung wackelt: ein Tropfen Heißkleber an einer Ecke.
+Nicht die ganze Platine verkleben, sonst kommst du nie wieder ran.
+
+---
+
+# Anmerkungen zur Anleitung
+
+Das meiste stimmt: Die DIP-Schalter für I2C sind richtig (1 = ON, 2 = OFF), die
+I2C-Adresse `0x24` ist korrekt, `wemos_d1_mini32` ist das richtige Board, und
+GPIO21/22 sind die Standard-I2C-Pins des ESP32. Drei Dinge würde ich ändern.
+
+## 1. Ohne `api:` findet Home Assistant das Gerät nie
+
+Das ist der wichtigste Punkt. Schritt 6 der Anleitung („wird automatisch als
+Integration vorgeschlagen") passiert nur, wenn die API-Komponente aktiv ist. In
+der gezeigten YAML fehlt sie — das Gerät wäre im WLAN, würde aber in Home
+Assistant nicht auftauchen.
+
+Ebenfalls fehlt `ota:`. Ohne den Block lässt sich später nur noch per Kabel
+flashen, und das Gehäuse ist dann schon zu.
+
+## 2. Das Lambda braucht ein `return`
+
+`!lambda 'x'` ist kein gültiger Ausdruck. Richtig ist `!lambda 'return x;'`.
+
+## 3. Korrigierte Konfiguration
+
+```yaml
+esphome:
+  name: nfc-reader
+  friendly_name: NFC Reader
+
+esp32:
+  board: wemos_d1_mini32
+  framework:
+    type: arduino
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+logger:
+
+api:                      # ohne diesen Block: keine Verbindung zu Home Assistant
+  encryption:
+    key: !secret api_key   # optional, aber empfohlen
+
+ota:                      # sonst sind spätere Updates nur per Kabel möglich
+  - platform: esphome
+
+i2c:
+  sda: GPIO21
+  scl: GPIO22
+  scan: true              # zeigt beim Start im Log, ob 0x24 antwortet
+
+pn532_i2c:
+  address: 0x24
+  update_interval: 1s
+  on_tag:
+    then:
+      - homeassistant.tag_scanned: !lambda 'return x;'
+```
+
+Die Listen-Schreibweise bei `ota:` gilt für ESPHome ab 2024.6. Bei älteren
+Versionen ist `ota:` ein einfacher Block ohne `- platform:`.
+
+## Kleinigkeiten
+
+**3,3 V oder 5 V?** Die Warnung „Nicht an 5V!" ist zu streng. Das rote V3-Board
+hat einen eigenen 3,3-V-Regler und ist für 3,3–5 V ausgelegt. 3,3 V funktioniert
+und ist sicher — falls die Lesereichweite mager ausfällt, ist 5 V an VCC einen
+Versuch wert (die I2C-Leitungen bleiben in beiden Fällen auf 3,3-V-Logik, der
+ESP32 verträgt nichts anderes).
+
+**Welcher D1 Mini?** GPIO21/22 gibt es nur auf dem ESP32. Der klassische Wemos
+D1 Mini ist ein ESP8266 — dort wären es `D2`/`D1` (GPIO4/GPIO5) und
+`esp8266: board: d1_mini` statt des `esp32:`-Blocks. Im Zweifel: ESP8266-Boards
+tragen ein Blechkästchen mit der Aufschrift ESP-12F.
+
+**Erst testen, dann einbauen** — das steht in der Anleitung und ist genau
+richtig. `scan: true` im Log zeigt dir sofort, ob die Verkabelung sitzt:
+erscheint `Found i2c device at address 0x24`, stimmt alles.
