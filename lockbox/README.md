@@ -140,9 +140,10 @@ drucken), sonst wird die Schichthaftung genau dort schlecht, wo die ganze Last
 hängt. Und die Schichten liegen quer zur Zugrichtung – deshalb PETG, viele
 Perimeter und kein heruntergedrehter Lüfter.
 
-Rechnerisch trägt der Laschenquerschnitt (67 mm² in der Lochebene) bei
-konservativen 20 MPa Schichthaftung etwa **1,3 kN**, also gut 130 kg Zug. Von Hand
-bekommt man das nicht auf.
+Rechnerisch trägt der Laschenquerschnitt über dem Bügelloch bei 26 MPa
+Schichthaftung **2,7 kN** (kompakt, Deckellasche) bzw. 3,7 kN (groß) — also
+rund 270 bzw. 370 kg Zug. Von Hand bekommt man das nicht auf; die kritische
+Richtung ist ohnehin nicht Zug, sondern Seitenlast (siehe „Laschen — v3").
 
 ## Anpassen
 
