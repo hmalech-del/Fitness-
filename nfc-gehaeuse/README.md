@@ -95,6 +95,67 @@ zusätzliche Millimeter kostet Lesereichweite.
 Metallhaltiges Filament (Carbon, „Silk Metallic", Glitter) dämpft das Feld und
 kann den Reader unbrauchbar machen. Normales PLA ist völlig unkritisch.
 
+## Verdrahtung
+
+Vier Leitungen, mehr braucht der I2C-Betrieb nicht. `IRQ` und `RSTO` am PN532
+bleiben frei — ESPHome pollt.
+
+| PN532 (rotes V3-Board) | ESP32 D1 Mini | Anmerkung |
+|---|---|---|
+| VCC | `3V3` | 5 V geht auch, das Board hat einen eigenen Regler |
+| GND | `GND` | |
+| SDA | `GPIO21` | |
+| SCL | `GPIO22` | |
+
+**Vorher die DIP-Schalter setzen:** 1 auf ON, 2 auf OFF. Nach dem Einbau zeigen
+sie nach innen und sind nicht mehr erreichbar.
+
+Reihenfolge, die Ärger spart:
+
+1. DIP-Schalter setzen, vier Leitungen stecken, **noch nichts einbauen**.
+2. Flashen (USB, `esphome run nfc-reader.yaml`).
+3. Log ansehen. `Found i2c device at address 0x24` heißt: Verkabelung stimmt.
+   Kommt stattdessen nichts oder `0x48`, sind SDA/SCL vertauscht oder die
+   DIP-Schalter stehen falsch.
+4. Tag auflegen. Im Log erscheint `Found new tag '...'`.
+5. Erst jetzt einbauen.
+
+## Passprüfung — passt die gedruckte Schale?
+
+Die Modulmaße im Modell sind Annahmen. Am gedruckten Teil nachmessen, Sollwerte:
+
+| Stelle | Soll (Schieblehre) | Platz für |
+|---|---|---|
+| PN532-Einlassung | 43,8 × 41,8 mm, 5,1 mm tief | Platine 43 × 41, Bauteile 3,5 mm |
+| Innenraum | 47,0 × 50,0 mm | |
+| freie Höhe über der ESP-Platine | **27,0 mm** | Dupont-Stapel 25,5 mm |
+| USB-Ausschnitt | 13 × 7 mm, Unterkante 3,1 mm über dem Innenboden | |
+
+**Der kritische Wert ist die freie Höhe.** Zwischen dem angenommenen
+Dupont-Stapel (25,5 mm) und dem verfügbaren Platz (27,0 mm) liegen nur
+**1,5 mm Reserve**. Miss deinen echten Stapel: Kabel aufstecken, von der
+Platinenoberseite bis zur höchsten Stelle inklusive Kabelbogen. Über 27 mm
+schließt die Bodenplatte nicht.
+
+Probe ohne Werkzeug, in dieser Reihenfolge:
+
+1. PN532 von innen in die Einlassung drücken — muss hinter beiden Rastnasen
+   einrasten und darf nicht wackeln.
+2. ESP32 in die Eckwinkel der Bodenplatte legen, USB-Buchse zum Ausschnitt.
+3. Bodenplatte **ohne** gesteckte Kabel aufsetzen: rasten alle vier Schnapper
+   hörbar ein?
+4. Kabel stecken, Bogen weit legen, Bodenplatte erneut aufsetzen. Wenn sie jetzt
+   nicht mehr schließt oder sich wölbt, ist der Dupont-Stapel zu hoch.
+
+Wenn die Höhe nicht reicht — Schale neu drucken mit dem gemessenen Wert, das
+Modell rechnet alles andere nach:
+
+```bash
+openscad -D 'esp_oben=28' -D 'teil="schale"' -o nfc_schale.stl nfc_gehaeuse.scad
+```
+
+Die Bodenplatte bleibt in jedem Fall unverändert, die muss nicht neu.
+
 ## Einbau
 
 1. **DIP-Schalter am PN532 zuerst setzen** — sie zeigen nach dem Einbau nach
