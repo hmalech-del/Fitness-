@@ -115,6 +115,8 @@ Problem nicht — dort steckt die Logik im Gerät.
 
 ## Verdrahtung
 
+![Verkabelung PN532 an D1 Mini](verkabelung.png)
+
 Vier Leitungen, mehr braucht der I2C-Betrieb nicht. `IRQ` und `RSTO` am PN532
 bleiben frei — ESPHome pollt.
 
@@ -127,6 +129,11 @@ bleiben frei — ESPHome pollt.
 
 **Vorher die DIP-Schalter setzen:** 1 auf ON, 2 auf OFF. Nach dem Einbau zeigen
 sie nach innen und sind nicht mehr erreichbar.
+
+Die Zeichnung ordnet die Pins nach ihrer **Beschriftung**, nicht nach ihrer Lage
+auf der Platine: die Pinreihenfolge unterscheidet sich zwischen den Board-Klonen,
+die Beschriftung nicht. Auf doppelt beschrifteten Boards (SPI/UART/I2C) gelten im
+I2C-Modus die Namen SDA und SCL.
 
 Reihenfolge, die Ärger spart:
 
