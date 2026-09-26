@@ -1,0 +1,39 @@
+# Stufe 3 - mit Home Assistant. Jeder Scan wird dort als "Tag" gemeldet,
+# und die Automatisierung passiert in HA, nicht auf dem ESP.
+#
+# Braucht: ein Home Assistant, das dauerhaft laeuft, und WLAN in Reichweite.
+# ESPHome puffert Scans NICHT - ausserhalb des Netzes ist der Scan verloren.
+
+esphome:
+  name: nfc-reader
+  friendly_name: NFC Reader
+
+esp32:
+  board: wemos_d1_mini32
+  framework:
+    type: arduino
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+logger:
+
+api:                    # ohne diesen Block findet Home Assistant das Geraet nie
+  encryption:
+    key: !secret api_key
+
+ota:                    # sonst sind spaetere Updates nur per Kabel moeglich
+  - platform: esphome
+
+i2c:
+  sda: GPIO21
+  scl: GPIO22
+  scan: true
+
+pn532_i2c:
+  address: 0x24
+  update_interval: 1s
+  on_tag:
+    then:
+      - homeassistant.tag_scanned: !lambda 'return x;'

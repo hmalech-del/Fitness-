@@ -95,6 +95,24 @@ zusätzliche Millimeter kostet Lesereichweite.
 Metallhaltiges Filament (Carbon, „Silk Metallic", Glitter) dämpft das Feld und
 kann den Reader unbrauchbar machen. Normales PLA ist völlig unkritisch.
 
+## Drei Ausbaustufen — Home Assistant ist optional
+
+Der Reader braucht keinen Server. Was du an Infrastruktur aufbaust, entscheidet
+nur, **was mit dem gelesenen Tag passiert**.
+
+| | was du brauchst | was es kann |
+|---|---|---|
+| **1 — `esphome/01-nur-testen.yaml`** | nur ESPHome auf deinem PC, USB-Kabel | Tag-Nummer erscheint im Log. Beweist, dass Hardware und Verkabelung stimmen. |
+| **2 — `esphome/02-ohne-server.yaml`** | dasselbe | Der ESP entscheidet selbst: bekannte Tags schalten einen Ausgang. Läuft ohne WLAN, ohne Server, an der Powerbank. |
+| **3 — `esphome/03-home-assistant.yaml`** | ein dauerhaft laufendes Home Assistant + WLAN | Jeder Scan wird HA gemeldet, Automatisierungen über alle Geräte, Historie, Dashboard. |
+
+Stufe 1 ist immer der erste Schritt. Stufe 2 ist für viele Anwendungen schon das
+Ziel. Stufe 3 lohnt erst, wenn du mehrere Geräte zusammenspielen lassen willst.
+
+**Wichtig für Stufe 3:** ESPHome puffert Scans nicht. Außerhalb der
+WLAN-Reichweite passiert nichts, und der Scan ist verloren. Stufe 2 hat dieses
+Problem nicht — dort steckt die Logik im Gerät.
+
 ## Verdrahtung
 
 Vier Leitungen, mehr braucht der I2C-Betrieb nicht. `IRQ` und `RSTO` am PN532

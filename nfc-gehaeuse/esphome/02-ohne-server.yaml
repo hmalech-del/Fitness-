@@ -1,0 +1,52 @@
+# Stufe 2 - der Reader entscheidet selbst, ganz ohne Server und ohne WLAN.
+# Bekannte Tags schalten einen Ausgang, unbekannte nicht. Alles was der
+# Reader "weiss", steht hier in der Datei.
+#
+# Das laeuft auch an einer Powerbank ohne jedes Netz - im Gegensatz zur
+# Home-Assistant-Variante, die nur in WLAN-Reichweite funktioniert.
+
+esphome:
+  name: nfc-standalone
+
+esp32:
+  board: wemos_d1_mini32
+  framework:
+    type: arduino
+
+logger:
+
+i2c:
+  sda: GPIO21
+  scl: GPIO22
+  scan: true
+
+# Die LED auf dem Board. Bei manchen D1-Mini-ESP32 sitzt sie auf GPIO2,
+# bei anderen woanders oder gar nicht - notfalls eine LED mit 220-Ohm-
+# Widerstand an einen freien Pin haengen.
+output:
+  - platform: gpio
+    pin: GPIO2
+    id: melder
+
+pn532_i2c:
+  address: 0x24
+  update_interval: 1s
+  on_tag:
+    then:
+      - logger.log:
+          format: "Tag gelesen: %s"
+          args: ['x.c_str()']
+      - if:
+          condition:
+            lambda: |-
+              // Hier die UIDs eintragen, die gelten sollen.
+              // Die echten Nummern siehst du im Log aus Stufe 1.
+              return x == "04-A1-B2-C3-D4-E5-F6"
+                  || x == "11-22-33-44";
+          then:
+            - logger.log: "bekannt -> schalte"
+            - output.turn_on: melder
+            - delay: 2s
+            - output.turn_off: melder
+          else:
+            - logger.log: "unbekannt -> ignoriert"

@@ -1,0 +1,33 @@
+# Stufe 1 - nur schauen, ob die Hardware lebt.
+# Kein WLAN, kein Server, nichts zu installieren ausser ESPHome selbst.
+# Der ESP32 haengt am USB-Kabel und schreibt alles auf deinen Bildschirm.
+#
+#   esphome run 01-nur-testen.yaml
+#
+# Im Log erwartest du zwei Zeilen:
+#   "Found i2c device at address 0x24"   -> Verkabelung stimmt
+#   "Tag gelesen: 04-A1-B2-..."          -> der Leser liest
+
+esphome:
+  name: nfc-test
+
+esp32:
+  board: wemos_d1_mini32
+  framework:
+    type: arduino
+
+logger:                 # schreibt ueber das USB-Kabel mit
+
+i2c:
+  sda: GPIO21
+  scl: GPIO22
+  scan: true            # meldet beim Start, welche Chips am Bus antworten
+
+pn532_i2c:
+  address: 0x24
+  update_interval: 1s
+  on_tag:
+    then:
+      - logger.log:
+          format: "Tag gelesen: %s"
+          args: ['x.c_str()']
